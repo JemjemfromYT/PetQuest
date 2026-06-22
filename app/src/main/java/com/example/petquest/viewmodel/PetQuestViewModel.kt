@@ -1,3 +1,14 @@
+// ============================================================
+// FILE: app/src/main/java/com/example/petquest/viewmodel/PetQuestViewModel.kt
+//       (COMPLETE FILE — replace fully)
+// CHANGES (V1.5):
+//   1. Added notificationsEnabled, notificationHour, notificationMinute StateFlows
+//   2. Added setNotificationsEnabled() function
+//   3. Added setReminderTime() function
+//   Note: WorkManager scheduling is intentionally handled by the UI layer
+//   (ProfileScreen) which owns Context. The ViewModel only manages DataStore.
+// ============================================================
+
 package com.example.petquest.viewmodel
 
 import android.util.Log
@@ -20,6 +31,8 @@ class PetQuestViewModel(
     private val petRepository: PetRepository,
     private val prefsRepository: UserPreferencesRepository
 ) : ViewModel() {
+
+    // ─── Existing StateFlows ───────────────────────────────────────────────
 
     val allPets: StateFlow<List<PetEntity>> =
         petRepository.allPets.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -64,6 +77,23 @@ class PetQuestViewModel(
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
+    // ─── V1.5 Notification StateFlows ─────────────────────────────────────
+
+    /** Whether the user has enabled daily reminder notifications. */
+    val notificationsEnabled: StateFlow<Boolean> =
+        prefsRepository.notificationsEnabled
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    /** Hour component of the scheduled reminder (24-hour clock). Default 8. */
+    val notificationHour: StateFlow<Int> =
+        prefsRepository.notificationHour
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 8)
+
+    /** Minute component of the scheduled reminder. Default 0. */
+    val notificationMinute: StateFlow<Int> =
+        prefsRepository.notificationMinute
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     // ─── Level-up event stream ─────────────────────────────────────────────
     private val _levelUpEvent = MutableSharedFlow<LevelUpEvent>()
     val levelUpEvent: SharedFlow<LevelUpEvent> = _levelUpEvent.asSharedFlow()
@@ -77,6 +107,8 @@ class PetQuestViewModel(
             }
         }
     }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────
 
     private fun todayString(): String =
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -92,7 +124,6 @@ class PetQuestViewModel(
         val lastTaskDate = prefsRepository.lastTaskDate.first()
         if (lastTaskDate != today) {
             petRepository.clearAllTasks()
-            // Use the StateFlow value — it's already loaded and live
             val pets = allPets.first { it.isNotEmpty() || petRepository.allPets.first().isEmpty() }
             pets.forEach { pet -> generateTasksForPet(pet) }
             prefsRepository.updateLastTaskDate(today)
@@ -106,7 +137,6 @@ class PetQuestViewModel(
             try {
                 petRepository.insertPet(pet)
                 prefsRepository.setOnboarded()
-                // Wait for the StateFlow to emit the new pet
                 val pets = allPets.first { list -> list.any { it.name == pet.name && it.type == pet.type } }
                 val inserted = pets.maxByOrNull { it.id } ?: return@launch
                 generateTasksForPet(inserted)
@@ -142,13 +172,12 @@ class PetQuestViewModel(
         viewModelScope.launch {
             try {
                 petRepository.completeTask(task.id)
-                // Read from the live StateFlow — never the cold repository Flow
                 val pet = allPets.value.find { it.id == task.petId } ?: return@launch
 
-                val points = if (task.type == TaskType.CORE) 10 else 5
+                val points   = if (task.type == TaskType.CORE) 10 else 5
                 val oldLevel = pet.bondLevel
                 val newPoints = pet.bondPoints + points
-                val newLevel = (newPoints / 100) + 1
+                val newLevel  = (newPoints / 100) + 1
 
                 petRepository.addBondPoints(pet.id, points, pet.bondPoints, pet.bondLevel)
 
@@ -177,7 +206,7 @@ class PetQuestViewModel(
 
     private suspend fun updateStreak() {
         val today = todayString()
-        val last = prefsRepository.lastStreakDate.first()
+        val last  = prefsRepository.lastStreakDate.first()
         val current = prefsRepository.userStreak.first()
         if (last != today) {
             val yesterday = yesterdayString()
@@ -187,7 +216,40 @@ class PetQuestViewModel(
         }
     }
 
+    // ─── V1.5 Notification actions ─────────────────────────────────────────
+
+    /**
+     * Persist the notification enabled/disabled preference.
+     * The caller (ProfileScreen) is responsible for scheduling or cancelling
+     * the WorkManager job, since WorkManager requires a Context.
+     */
+    fun setNotificationsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                prefsRepository.setNotificationsEnabled(enabled)
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "setNotificationsEnabled error", e)
+            }
+        }
+    }
+
+    /**
+     * Persist the reminder time preference.
+     * The caller (ProfileScreen) is responsible for rescheduling the
+     * WorkManager job with the new time.
+     */
+    fun setReminderTime(hour: Int, minute: Int) {
+        viewModelScope.launch {
+            try {
+                prefsRepository.setReminderTime(hour, minute)
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "setReminderTime error", e)
+            }
+        }
+    }
+
     // ─── Personality-aware task generation ────────────────────────────────
+
     private suspend fun generateTasksForPet(pet: PetEntity) {
         if (petRepository.hasTasksForPet(pet.id)) return
 
@@ -196,36 +258,16 @@ class PetQuestViewModel(
             "Give water to ${pet.name}"
         )
         val personalityCore = when (pet.personality) {
-            Personality.PLAYFUL     -> listOf(
-                "Play with ${pet.name}",
-                "Chase toy with ${pet.name}"
-            )
-            Personality.LAZY        -> listOf(
-                "Relax with ${pet.name}",
-                "Give ${pet.name} a cozy rest area"
-            )
-            Personality.CURIOUS     -> listOf(
-                "Explore something new with ${pet.name}",
-                "Let ${pet.name} investigate a safe object"
-            )
-            Personality.FRIENDLY    -> listOf(
-                "Spend social time with ${pet.name}",
-                "Introduce ${pet.name} to someone new"
-            )
-            Personality.SHY         -> listOf(
-                "Spend quiet time with ${pet.name}",
-                "Create a calm space for ${pet.name}"
-            )
-            Personality.MISCHIEVOUS -> listOf(
-                "Give ${pet.name} an enrichment activity",
-                "Redirect ${pet.name}'s energy positively"
-            )
+            Personality.PLAYFUL     -> listOf("Play with ${pet.name}", "Chase toy with ${pet.name}")
+            Personality.LAZY        -> listOf("Relax with ${pet.name}", "Give ${pet.name} a cozy rest area")
+            Personality.CURIOUS     -> listOf("Explore something new with ${pet.name}", "Let ${pet.name} investigate a safe object")
+            Personality.FRIENDLY    -> listOf("Spend social time with ${pet.name}", "Introduce ${pet.name} to someone new")
+            Personality.SHY         -> listOf("Spend quiet time with ${pet.name}", "Create a calm space for ${pet.name}")
+            Personality.MISCHIEVOUS -> listOf("Give ${pet.name} an enrichment activity", "Redirect ${pet.name}'s energy positively")
         }
 
         (universalCore + personalityCore).forEach { title ->
-            petRepository.insertTask(
-                TaskEntity(petId = pet.id, title = title, type = TaskType.CORE)
-            )
+            petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.CORE))
         }
 
         listOf(
@@ -234,14 +276,11 @@ class PetQuestViewModel(
             "Take a photo of ${pet.name}",
             "Clean ${pet.name}'s area"
         ).forEach { title ->
-            petRepository.insertTask(
-                TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL)
-            )
+            petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL))
         }
     }
 
     private suspend fun checkAndUnlockAchievements() {
-        // Use StateFlow.value — always the latest committed data, never races
         val pets         = allPets.value
         val achievements = allAchievements.value
         if (achievements.isEmpty()) return
@@ -254,18 +293,16 @@ class PetQuestViewModel(
         val distinctTypes = pets.map { it.type }.toSet()
         val ownedRarities = distinctTypes.map { it.rarity }.toSet()
 
-        // ── V1.0 / V1.1 ───────────────────────────────────────────────────
         if (pets.isNotEmpty())                       unlock("First Pet")
         if (pets.any { it.isVerified })              unlock("First Verification")
         if (pets.size >= 3)                          unlock("Pet Lover")
         if (pets.any { it.bondLevel >= 5 })          unlock("Bond Master")
         if (prefsRepository.userStreak.first() >= 7) unlock("7-Day Streak")
 
-        // ── V1.2 collection ────────────────────────────────────────────────
-        if (pets.any { it.type.rarity == Rarity.EPIC })  unlock("Epic Tamer")
-        if (Rarity.entries.all { it in ownedRarities })  unlock("Rarity Hunter")
-        if (distinctTypes.size >= 5)                     unlock("Species Collector")
-        if (distinctTypes.size >= 10)                    unlock("Animal Explorer")
+        if (pets.any { it.type.rarity == Rarity.EPIC }) unlock("Epic Tamer")
+        if (Rarity.entries.all { it in ownedRarities }) unlock("Rarity Hunter")
+        if (distinctTypes.size >= 5)                    unlock("Species Collector")
+        if (distinctTypes.size >= 10)                   unlock("Animal Explorer")
     }
 
     // ─── Admin / Debug Functions ───────────────────────────────────────────
@@ -273,7 +310,6 @@ class PetQuestViewModel(
     fun adminAddBondPoints(petId: Int, points: Int) {
         viewModelScope.launch {
             try {
-                // FIX: read from the live StateFlow.value, not the cold repository Flow
                 val pet = allPets.value.find { it.id == petId } ?: return@launch
                 val oldLevel  = pet.bondLevel
                 val newPoints = pet.bondPoints + points
@@ -292,7 +328,6 @@ class PetQuestViewModel(
     fun adminCompleteAllTasks() {
         viewModelScope.launch {
             try {
-                // FIX: read from live StateFlows, not cold repository Flows
                 val tasks           = todaysTasks.value
                 val incompleteTasks = tasks.filter { !it.isCompleted }
                 incompleteTasks.forEach { task -> petRepository.completeTask(task.id) }
@@ -323,7 +358,6 @@ class PetQuestViewModel(
         viewModelScope.launch {
             try {
                 petRepository.clearAllTasks()
-                // FIX: read from live StateFlow.value
                 allPets.value.forEach { generateTasksForPet(it) }
                 prefsRepository.updateLastTaskDate(todayString())
             } catch (e: Exception) {
@@ -335,7 +369,6 @@ class PetQuestViewModel(
     fun adminUnlockAllAchievements() {
         viewModelScope.launch {
             try {
-                // FIX: read from live StateFlow.value
                 allAchievements.value
                     .filter { !it.isUnlocked }
                     .forEach { petRepository.unlockAchievement(it.id) }
@@ -360,7 +393,6 @@ class PetQuestViewModel(
     fun adminVerifyAllPets() {
         viewModelScope.launch {
             try {
-                // FIX: read from live StateFlow.value
                 allPets.value
                     .filter { !it.isVerified }
                     .forEach { pet -> petRepository.verifyPet(pet.id, "admin_verified") }

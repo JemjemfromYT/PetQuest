@@ -1,3 +1,8 @@
+// ============================================================
+// FILE: app/build.gradle.kts  (COMPLETE FILE — replace fully)
+// CHANGE: Added WorkManager dependency (line marked NEW)
+// ============================================================
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -58,4 +63,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // NEW — WorkManager for scheduled daily reminder notifications
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }

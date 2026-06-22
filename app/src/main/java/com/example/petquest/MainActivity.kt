@@ -1,3 +1,17 @@
+// ============================================================
+// FILE: app/src/main/java/com/example/petquest/MainActivity.kt
+//       (COMPLETE FILE — NO CHANGES REQUIRED)
+//
+// V1.5 NAVIGATION ANALYSIS:
+//   - Settings are embedded inline inside ProfileScreen as a card.
+//   - No new navigation route is needed for a dedicated Settings screen.
+//   - The notification toggle and time picker live at the bottom of the
+//     existing Profile tab — this matches the current single-screen-per-tab
+//     architecture used throughout the app.
+//   - MainActivity.kt is reproduced here in full for copy-paste verification,
+//     but you do NOT need to modify it for V1.5.
+// ============================================================
+
 package com.example.petquest
 
 import android.os.Bundle
@@ -113,7 +127,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     var tab by remember { mutableIntStateOf(0) }
 
-    // ── Global level-up dialog shown from any tab ──────────────────────────
+    // Global level-up dialog shown from any tab
     var levelUpEvent by remember { mutableStateOf<LevelUpEvent?>(null) }
     LaunchedEffect(viewModel) {
         viewModel.levelUpEvent.collect { event ->
@@ -127,35 +141,30 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     Scaffold(
         bottomBar = {
             NavigationBar {
-                // Tab 0: Home
                 NavigationBarItem(
                     selected = tab == 0,
                     onClick  = { tab = 0 },
                     icon     = { Icon(Icons.Default.Home, "Home") },
                     label    = { Text("Home") }
                 )
-                // Tab 1: Tasks
                 NavigationBarItem(
                     selected = tab == 1,
                     onClick  = { tab = 1 },
                     icon     = { Icon(Icons.Default.CheckCircle, "Tasks") },
                     label    = { Text("Tasks") }
                 )
-                // Tab 2: Collection (V1.2 — Encyclopedia)
                 NavigationBarItem(
                     selected = tab == 2,
                     onClick  = { tab = 2 },
                     icon     = { Icon(Icons.Default.Explore, "Collection") },
                     label    = { Text("Collection") }
                 )
-                // Tab 3: Awards
                 NavigationBarItem(
                     selected = tab == 3,
                     onClick  = { tab = 3 },
                     icon     = { Icon(Icons.Default.EmojiEvents, "Awards") },
                     label    = { Text("Awards") }
                 )
-                // Tab 4: Profile
                 NavigationBarItem(
                     selected = tab == 4,
                     onClick  = { tab = 4 },

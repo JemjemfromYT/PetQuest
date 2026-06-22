@@ -1,10 +1,22 @@
+<!-- ============================================================ -->
+<!-- FILE: app/src/main/AndroidManifest.xml  (COMPLETE FILE)     -->
+<!-- CHANGES:                                                      -->
+<!--   1. Added POST_NOTIFICATIONS permission (Android 13+)        -->
+<!--   2. WorkManager auto-initializes via its own ContentProvider -->
+<!--      — no extra receiver or service entries are needed        -->
+<!-- ============================================================ -->
+
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Existing permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+
+    <!-- NEW: Required to post notifications on Android 13+ (API 33+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".PetQuestApplication"
