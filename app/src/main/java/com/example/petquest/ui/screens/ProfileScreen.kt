@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -59,6 +60,15 @@ fun ProfileScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Profile", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = onAdminClick) {
+                        Icon(
+                            Icons.Default.Build,
+                            contentDescription = "Admin",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f)
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
