@@ -179,7 +179,7 @@ class PetQuestViewModel(
                 pets.forEach { pet ->
                     val totalPoints = incompleteTasks
                         .filter { it.petId == pet.id }
-                        .sumOf { if (it.type == TaskType.CORE) 10 else 5 }
+                        .sumOf { if (it.type == TaskType.CORE) 10 else 5 as Int }
                     if (totalPoints > 0) {
                         petRepository.addBondPoints(pet.id, totalPoints, pet.bondPoints, pet.bondLevel)
                     }
