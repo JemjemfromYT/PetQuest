@@ -3,13 +3,11 @@ package com.example.petquest.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,8 +18,8 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 @Composable
 fun TasksScreen(viewModel: PetQuestViewModel) {
     val tasks by viewModel.todaysTasks.collectAsState()
-    val pets by viewModel.allPets.collectAsState()
-    val core = tasks.filter { it.type == TaskType.CORE }
+    val pets  by viewModel.allPets.collectAsState()
+    val core     = tasks.filter { it.type == TaskType.CORE }
     val optional = tasks.filter { it.type == TaskType.OPTIONAL }
     val doneCount = tasks.count { it.isCompleted }
 
@@ -45,20 +43,18 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                     Spacer(Modifier.height(12.dp))
                     Text(
                         "No tasks yet!\nAdd a pet to get started.",
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
+                modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Progress header
+                // Progress card
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -72,15 +68,11 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                Text("Progress", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                                 Text(
-                                    "Progress",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp
-                                )
-                                Text(
-                                    "$doneCount / ${tasks.size}",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp,
+                                    "$doneCount / ${tasks.size} done",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 14.sp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -91,88 +83,42 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                             )
                         }
                     }
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(4.dp))
                 }
 
-                // Core tasks section
+                // Core section
                 if (core.isNotEmpty()) {
                     item {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Text("⚡", fontSize = 16.sp)
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                "Core Tasks",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Surface(
-                                shape = MaterialTheme.shapes.small,
-                                color = MaterialTheme.colorScheme.primary
-                            ) {
-                                Text(
-                                    "+10 pts",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        SectionHeader(emoji = "⚡", label = "Core Tasks", pts = "+10 pts",
+                            color = MaterialTheme.colorScheme.primary,
+                            onColor = MaterialTheme.colorScheme.onPrimary)
                     }
-                    items(core) { task ->
+                    items(core, key = { it.id }) { task ->
                         val pet = pets.find { it.id == task.petId }
-                        TaskRow(
+                        TaskCard(
                             title = task.title,
-                            petName = pet?.name ?: "",
-                            petEmoji = petEmoji(pet?.type?.name ?: ""),
+                            petLabel = "${petEmoji(pet?.type?.name ?: "")} ${pet?.name ?: ""}",
                             isDone = task.isCompleted,
-                            onCheck = { if (!task.isCompleted) viewModel.completeTask(task) }
+                            onCheck = { viewModel.completeTask(task) }
                         )
                     }
                 }
 
-                // Optional tasks section
+                // Optional section
                 if (optional.isNotEmpty()) {
                     item {
                         Spacer(Modifier.height(8.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Text("💡", fontSize = 16.sp)
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                "Optional Tasks",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Surface(
-                                shape = MaterialTheme.shapes.small,
-                                color = MaterialTheme.colorScheme.secondary
-                            ) {
-                                Text(
-                                    "+5 pts",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSecondary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                        SectionHeader(emoji = "💡", label = "Optional Tasks", pts = "+5 pts",
+                            color = MaterialTheme.colorScheme.secondary,
+                            onColor = MaterialTheme.colorScheme.onSecondary)
                     }
-                    items(optional) { task ->
+                    items(optional, key = { it.id }) { task ->
                         val pet = pets.find { it.id == task.petId }
-                        TaskRow(
+                        TaskCard(
                             title = task.title,
-                            petName = pet?.name ?: "",
-                            petEmoji = petEmoji(pet?.type?.name ?: ""),
+                            petLabel = "${petEmoji(pet?.type?.name ?: "")} ${pet?.name ?: ""}",
                             isDone = task.isCompleted,
-                            onCheck = { if (!task.isCompleted) viewModel.completeTask(task) }
+                            onCheck = { viewModel.completeTask(task) }
                         )
                     }
                 }
@@ -184,10 +130,37 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
 }
 
 @Composable
-private fun TaskRow(
+private fun SectionHeader(
+    emoji: String,
+    label: String,
+    pts: String,
+    color: androidx.compose.ui.graphics.Color,
+    onColor: androidx.compose.ui.graphics.Color
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(vertical = 4.dp)
+    ) {
+        Text(emoji, fontSize = 16.sp)
+        Spacer(Modifier.width(6.dp))
+        Text(label, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Spacer(Modifier.width(8.dp))
+        Surface(shape = MaterialTheme.shapes.small, color = color) {
+            Text(
+                pts,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                fontSize = 11.sp,
+                color = onColor,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun TaskCard(
     title: String,
-    petName: String,
-    petEmoji: String,
+    petLabel: String,
     isDone: Boolean,
     onCheck: () -> Unit
 ) {
@@ -204,21 +177,15 @@ private fun TaskRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onCheck, enabled = !isDone) {
-                Icon(
-                    imageVector = if (isDone) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
-                    contentDescription = null,
-                    tint = if (isDone)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-            Spacer(Modifier.width(8.dp))
+            Checkbox(
+                checked = isDone,
+                onCheckedChange = { if (!isDone) onCheck() },
+                enabled = !isDone
+            )
+            Spacer(Modifier.width(4.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -230,14 +197,11 @@ private fun TaskRow(
                     else
                         MaterialTheme.colorScheme.onSurface
                 )
-                if (petName.isNotEmpty()) {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = "$petEmoji $petName",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    text = petLabel,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

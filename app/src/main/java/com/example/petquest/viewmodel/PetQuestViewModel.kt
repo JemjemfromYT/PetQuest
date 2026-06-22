@@ -1,5 +1,6 @@
 package com.example.petquest.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.*
 import com.example.petquest.data.model.*
 import com.example.petquest.data.repository.*
@@ -47,30 +48,42 @@ class PetQuestViewModel(
 
     fun addPet(pet: PetEntity) {
         viewModelScope.launch {
-            petRepository.insertPet(pet)
-            prefsRepository.setOnboarded()
-            val pets = petRepository.allPets.first()
-            val inserted = pets.lastOrNull() ?: return@launch
-            generateTasksForPet(inserted)
-            checkAndUnlockAchievements()
+            try {
+                petRepository.insertPet(pet)
+                prefsRepository.setOnboarded()
+                val pets = petRepository.allPets.first()
+                val inserted = pets.lastOrNull() ?: return@launch
+                generateTasksForPet(inserted)
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "addPet error", e)
+            }
         }
     }
 
     fun completeTask(task: TaskEntity) {
         viewModelScope.launch {
-            petRepository.completeTask(task.id)
-            val pet = allPets.value.find { it.id == task.petId } ?: return@launch
-            val points = if (task.type == TaskType.CORE) 10 else 5
-            petRepository.addBondPoints(pet.id, points, pet.bondPoints, pet.bondLevel)
-            updateStreak()
-            checkAndUnlockAchievements()
+            try {
+                petRepository.completeTask(task.id)
+                val pet = allPets.value.find { it.id == task.petId } ?: return@launch
+                val points = if (task.type == TaskType.CORE) 10 else 5
+                petRepository.addBondPoints(pet.id, points, pet.bondPoints, pet.bondLevel)
+                updateStreak()
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "completeTask error", e)
+            }
         }
     }
 
     fun verifyPet(petId: Int, photoUri: String) {
         viewModelScope.launch {
-            petRepository.verifyPet(petId, photoUri)
-            checkAndUnlockAchievements()
+            try {
+                petRepository.verifyPet(petId, photoUri)
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "verifyPet error", e)
+            }
         }
     }
 
@@ -105,6 +118,7 @@ class PetQuestViewModel(
     private suspend fun checkAndUnlockAchievements() {
         val pets = allPets.value
         val achievements = allAchievements.value
+        if (achievements.isEmpty()) return
 
         suspend fun unlock(title: String) {
             val a = achievements.find { it.title == title }
