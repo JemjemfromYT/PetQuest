@@ -41,13 +41,21 @@ class PetRepository(private val dao: PetQuestDao) {
     }
 
     suspend fun seedAchievements() {
-        if (dao.getAchievementCount() > 0) return
+        // No early-return guard here — insertAchievement uses OnConflictStrategy.IGNORE
+        // and achievements has a unique index on title, so re-inserting existing rows is safe.
+        // This allows V1.2 achievements to be added to installs that already had V1.0/V1.1 data.
         listOf(
+            // ── V1.0 / V1.1 achievements ──────────────────────────────────────────
             AchievementEntity(title = "First Pet",          description = "Add your first pet"),
             AchievementEntity(title = "First Verification", description = "Verify a pet with a photo"),
             AchievementEntity(title = "Pet Lover",          description = "Own 3 or more pets"),
             AchievementEntity(title = "Bond Master",        description = "Reach Bond Level 5 with a pet"),
-            AchievementEntity(title = "7-Day Streak",       description = "Maintain a 7-day streak")
+            AchievementEntity(title = "7-Day Streak",       description = "Maintain a 7-day streak"),
+            // ── V1.2 collection achievements ──────────────────────────────────────
+            AchievementEntity(title = "Epic Tamer",         description = "Own a pet of EPIC rarity"),
+            AchievementEntity(title = "Rarity Hunter",      description = "Own a pet of every rarity tier"),
+            AchievementEntity(title = "Species Collector",  description = "Collect 5 different species"),
+            AchievementEntity(title = "Animal Explorer",    description = "Collect 10 different species")
         ).forEach { dao.insertAchievement(it) }
     }
 }

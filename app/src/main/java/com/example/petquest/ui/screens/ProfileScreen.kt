@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.petquest.data.model.PetEntity
+import com.example.petquest.data.model.PetType
 import com.example.petquest.viewmodel.PetQuestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,16 +25,21 @@ fun ProfileScreen(
     onAddPetClick: () -> Unit,
     onAdminClick: () -> Unit
 ) {
-    val pets by viewModel.allPets.collectAsState()
-    val achievements by viewModel.allAchievements.collectAsState()
-    val userLevel by viewModel.userLevel.collectAsState()
-    val totalBondPoints by viewModel.totalBondPoints.collectAsState()
-    val streak by viewModel.userStreak.collectAsState()
-    val unlockedCount = achievements.count { it.isUnlocked }
+    val pets               by viewModel.allPets.collectAsState()
+    val achievements       by viewModel.allAchievements.collectAsState()
+    val userLevel          by viewModel.userLevel.collectAsState()
+    val totalBondPoints    by viewModel.totalBondPoints.collectAsState()
+    val streak             by viewModel.userStreak.collectAsState()
+    val collectedSpecies   by viewModel.collectedSpecies.collectAsState()
+    val collectionPercentage by viewModel.collectionPercentage.collectAsState()
+
+    val unlockedCount  = achievements.count { it.isUnlocked }
+    val speciesCount   = collectedSpecies.size
+    val totalSpecies   = PetType.entries.size
 
     // Secret: tap the Level badge 5 times within 3 seconds to open Admin Mode
-    var tapCount by remember { mutableIntStateOf(0) }
-    var lastTapMs by remember { mutableLongStateOf(0L) }
+    var tapCount      by remember { mutableIntStateOf(0) }
+    var lastTapMs     by remember { mutableLongStateOf(0L) }
     var showAdminHint by remember { mutableStateOf(false) }
 
     fun onLevelTap() {
@@ -80,7 +86,7 @@ fun ProfileScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Level card — tap 5 times for admin
+            // ── Level card ─────────────────────────────────────────────────
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -90,12 +96,13 @@ fun ProfileScreen(
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text("🧑‍🤝‍🐾", fontSize = 56.sp)
                         Spacer(Modifier.height(8.dp))
-                        // The secret tap target
                         Box(
                             modifier = Modifier.clickable { onLevelTap() },
                             contentAlignment = Alignment.Center
@@ -131,19 +138,60 @@ fun ProfileScreen(
                 }
             }
 
-            // Stats row
+            // ── Stats row ──────────────────────────────────────────────────
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    StatCard(Modifier.weight(1f), "🔥", "$streak", "Streak")
-                    StatCard(Modifier.weight(1f), "⭐", "$totalBondPoints", "Bond Pts")
+                    StatCard(Modifier.weight(1f), "🔥", "$streak",        "Streak")
+                    StatCard(Modifier.weight(1f), "⭐", "$totalBondPoints","Bond Pts")
                     StatCard(Modifier.weight(1f), "🏆", "$unlockedCount", "Awards")
                 }
             }
 
-            // Pet collection header
+            // ── Collection progress card (V1.2) ────────────────────────────
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "🐾 Species Collected",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                "$speciesCount / $totalSpecies",
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        LinearProgressIndicator(
+                            progress = { if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat() },
+                            modifier = Modifier.fillMaxWidth().height(6.dp)
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "$collectionPercentage% complete  •  Tap Collection tab to explore",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // ── Pet collection header ──────────────────────────────────────
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -170,7 +218,9 @@ fun ProfileScreen(
                         )
                     ) {
                         Box(
-                            modifier = Modifier.fillMaxWidth().padding(32.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -181,7 +231,6 @@ fun ProfileScreen(
                     }
                 }
             } else {
-                // 2-column grid of pet cards
                 item {
                     val rows = pets.chunked(2)
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -213,10 +262,10 @@ fun ProfileScreen(
 @Composable
 private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
     val rarityColor = when (pet.type.rarity.name) {
-        "COMMON" -> MaterialTheme.colorScheme.tertiary
+        "COMMON"   -> MaterialTheme.colorScheme.tertiary
         "UNCOMMON" -> MaterialTheme.colorScheme.secondary
-        "RARE" -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.error
+        "RARE"     -> MaterialTheme.colorScheme.primary
+        else       -> MaterialTheme.colorScheme.error
     }
 
     Card(

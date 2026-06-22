@@ -14,13 +14,26 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AchievementsScreen(viewModel: PetQuestViewModel) {
-    val achievements by viewModel.allAchievements.collectAsState()
+    val achievements         by viewModel.allAchievements.collectAsState()
+    val collectionPercentage by viewModel.collectionPercentage.collectAsState()
+    val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
+
+    val unlockedCount = achievements.count { it.isUnlocked }
+    val totalCount    = achievements.size
+
+    // Emoji map covers all V1.0, V1.1, and V1.2 achievements
     val emojiMap = mapOf(
-        "First Pet" to "🐾",
+        // V1.0 / V1.1
+        "First Pet"          to "🐾",
         "First Verification" to "📷",
-        "Pet Lover" to "❤️",
-        "Bond Master" to "👑",
-        "7-Day Streak" to "🔥"
+        "Pet Lover"          to "❤️",
+        "Bond Master"        to "👑",
+        "7-Day Streak"       to "🔥",
+        // V1.2 collection achievements
+        "Epic Tamer"         to "🐉",
+        "Rarity Hunter"      to "🎯",
+        "Species Collector"  to "🗂️",
+        "Animal Explorer"    to "🌍"
     )
 
     Scaffold(
@@ -34,18 +47,72 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // ── Summary header ──────────────────────────────────────────────
             item {
-                Text(
-                    "${achievements.count { it.isUnlocked }} / ${achievements.size} Unlocked",
-                    fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(Modifier.height(4.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "🏆 $unlockedCount / $totalCount Unlocked",
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                "${if (totalCount == 0) 0 else (unlockedCount * 100) / totalCount}%",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = { if (totalCount == 0) 0f else unlockedCount / totalCount.toFloat() },
+                            modifier = Modifier.fillMaxWidth().height(6.dp)
+                        )
+
+                        // Collection progress teaser
+                        Spacer(Modifier.height(10.dp))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f))
+                        Spacer(Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "🐾 Species Collected",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                "${collectedSpecies.size}/29  ($collectionPercentage%)",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
+
+            // ── Achievement cards ───────────────────────────────────────────
             items(achievements) { a ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),

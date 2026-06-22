@@ -44,6 +44,32 @@ class PetQuestViewModel(
         (points / 100) + 1
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
 
+    // ─── V1.2 Collection flows ─────────────────────────────────────────────
+
+    /** Set of every PetType the player currently owns at least one of. */
+    val collectedSpecies: StateFlow<Set<PetType>> = allPets.map { pets ->
+        pets.map { it.type }.toSet()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+
+    /** 0–100 integer percentage of species collected out of all 29. */
+    val collectionPercentage: StateFlow<Int> = collectedSpecies.map { species ->
+        val total = PetType.entries.size
+        if (total == 0) 0 else (species.size * 100) / total
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    /**
+     * Per-rarity collection stats.
+     * Map key = Rarity, value = Pair(collectedCount, totalCount).
+     */
+    val rarityCollectionStats: StateFlow<Map<Rarity, Pair<Int, Int>>> =
+        collectedSpecies.map { species ->
+            Rarity.entries.associateWith { rarity ->
+                val total     = PetType.entries.count { it.rarity == rarity }
+                val collected = species.count { it.rarity == rarity }
+                collected to total
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
     // ─── Level-up event stream ─────────────────────────────────────────────
     private val _levelUpEvent = MutableSharedFlow<LevelUpEvent>()
     val levelUpEvent: SharedFlow<LevelUpEvent> = _levelUpEvent.asSharedFlow()
@@ -169,7 +195,6 @@ class PetQuestViewModel(
     private suspend fun generateTasksForPet(pet: PetEntity) {
         if (petRepository.hasTasksForPet(pet.id)) return
 
-        // 2 universal core tasks + 2 personality-specific core tasks
         val universalCore = listOf(
             "Feed ${pet.name}",
             "Give water to ${pet.name}"
@@ -207,7 +232,6 @@ class PetQuestViewModel(
             )
         }
 
-        // 4 universal optional tasks
         listOf(
             "Brush ${pet.name}",
             "Give ${pet.name} a treat",
@@ -230,11 +254,21 @@ class PetQuestViewModel(
             if (a != null && !a.isUnlocked) petRepository.unlockAchievement(a.id)
         }
 
-        if (pets.isNotEmpty()) unlock("First Pet")
-        if (pets.any { it.isVerified }) unlock("First Verification")
-        if (pets.size >= 3) unlock("Pet Lover")
-        if (pets.any { it.bondLevel >= 5 }) unlock("Bond Master")
+        val distinctTypes  = pets.map { it.type }.toSet()
+        val ownedRarities  = distinctTypes.map { it.rarity }.toSet()
+
+        // ── V1.0 / V1.1 achievements ──────────────────────────────────────
+        if (pets.isNotEmpty())                       unlock("First Pet")
+        if (pets.any { it.isVerified })              unlock("First Verification")
+        if (pets.size >= 3)                          unlock("Pet Lover")
+        if (pets.any { it.bondLevel >= 5 })          unlock("Bond Master")
         if (prefsRepository.userStreak.first() >= 7) unlock("7-Day Streak")
+
+        // ── V1.2 collection achievements ──────────────────────────────────
+        if (pets.any { it.type.rarity == Rarity.EPIC })          unlock("Epic Tamer")
+        if (Rarity.entries.all { it in ownedRarities })          unlock("Rarity Hunter")
+        if (distinctTypes.size >= 5)                             unlock("Species Collector")
+        if (distinctTypes.size >= 10)                            unlock("Animal Explorer")
     }
 
     // ─── Admin / Debug Functions ───────────────────────────────────────────

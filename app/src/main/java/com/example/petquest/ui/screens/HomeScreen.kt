@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.petquest.data.model.PetType
 import com.example.petquest.viewmodel.PetQuestViewModel
 
 fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
@@ -56,7 +57,9 @@ fun StatCard(modifier: Modifier = Modifier, emoji: String, value: String, label:
         )
     ) {
         Column(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -70,13 +73,16 @@ fun StatCard(modifier: Modifier = Modifier, emoji: String, value: String, label:
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
-    val pets by viewModel.allPets.collectAsState()
-    val tasks by viewModel.todaysTasks.collectAsState()
-    val streak by viewModel.userStreak.collectAsState()
-    val totalBondPoints by viewModel.totalBondPoints.collectAsState()
-    val userLevel by viewModel.userLevel.collectAsState()
+    val pets               by viewModel.allPets.collectAsState()
+    val tasks              by viewModel.todaysTasks.collectAsState()
+    val streak             by viewModel.userStreak.collectAsState()
+    val totalBondPoints    by viewModel.totalBondPoints.collectAsState()
+    val userLevel          by viewModel.userLevel.collectAsState()
+    val collectedSpecies   by viewModel.collectedSpecies.collectAsState()
 
-    val doneTasks = tasks.count { it.isCompleted }
+    val doneTasks      = tasks.count { it.isCompleted }
+    val speciesCount   = collectedSpecies.size
+    val totalSpecies   = PetType.entries.size
 
     Scaffold(
         topBar = {
@@ -89,20 +95,66 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // ── Stat cards row ──────────────────────────────────────────────
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    StatCard(Modifier.weight(1f), "🔥", "$streak", "Streak")
-                    StatCard(Modifier.weight(1f), "⭐", "$totalBondPoints", "Bond Pts")
-                    StatCard(Modifier.weight(1f), "🎖️", "Lv.$userLevel", "Level")
+                    StatCard(Modifier.weight(1f), "🔥", "$streak",           "Streak")
+                    StatCard(Modifier.weight(1f), "⭐", "$totalBondPoints",  "Bond Pts")
+                    StatCard(Modifier.weight(1f), "🎖️", "Lv.$userLevel",    "Level")
                 }
             }
 
+            // ── Collection progress card (V1.2) ─────────────────────────────
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "🐾 Species Collection",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                "$speciesCount / $totalSpecies",
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        LinearProgressIndicator(
+                            progress = { if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat() },
+                            modifier = Modifier.fillMaxWidth().height(6.dp)
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "${if (totalSpecies == 0) 0 else (speciesCount * 100) / totalSpecies}% of all species collected",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // ── Today's progress card ───────────────────────────────────────
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -127,6 +179,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 }
             }
 
+            // ── Your Pets heading ───────────────────────────────────────────
             item {
                 Text("Your Pets", fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
@@ -134,7 +187,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
             if (pets.isEmpty()) {
                 item {
                     Box(
-                        modifier = Modifier.fillMaxWidth().padding(32.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(

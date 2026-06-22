@@ -35,7 +35,6 @@ class MainActivity : ComponentActivity() {
                         )
                     )
 
-                    // null means DataStore hasn't loaded yet — wait before showing anything
                     val hasOnboarded by vm.hasOnboarded.collectAsState()
 
                     if (hasOnboarded == null) {
@@ -45,7 +44,6 @@ class MainActivity : ComponentActivity() {
                         return@Surface
                     }
 
-                    // startDestination is determined once, after real data is available
                     val startDest = if (hasOnboarded == true) "main" else "welcome"
                     val nav = rememberNavController()
 
@@ -74,9 +72,9 @@ class MainActivity : ComponentActivity() {
                             val id = back.arguments?.getString("petId")?.toIntOrNull()
                                 ?: return@composable
                             PetDetailScreen(
-                                petId       = id,
-                                viewModel   = vm,
-                                onBackClick = { nav.popBackStack() },
+                                petId         = id,
+                                viewModel     = vm,
+                                onBackClick   = { nav.popBackStack() },
                                 onVerifyClick = { nav.navigate("pet_verify/$id") }
                             )
                         }
@@ -129,19 +127,41 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     Scaffold(
         bottomBar = {
             NavigationBar {
-                listOf(
-                    "Home"    to Icons.Default.Home,
-                    "Tasks"   to Icons.Default.CheckCircle,
-                    "Awards"  to Icons.Default.EmojiEvents,
-                    "Profile" to Icons.Default.Person
-                ).forEachIndexed { i, (label, icon) ->
-                    NavigationBarItem(
-                        selected = tab == i,
-                        onClick  = { tab = i },
-                        icon     = { Icon(icon, label) },
-                        label    = { Text(label) }
-                    )
-                }
+                // Tab 0: Home
+                NavigationBarItem(
+                    selected = tab == 0,
+                    onClick  = { tab = 0 },
+                    icon     = { Icon(Icons.Default.Home, "Home") },
+                    label    = { Text("Home") }
+                )
+                // Tab 1: Tasks
+                NavigationBarItem(
+                    selected = tab == 1,
+                    onClick  = { tab = 1 },
+                    icon     = { Icon(Icons.Default.CheckCircle, "Tasks") },
+                    label    = { Text("Tasks") }
+                )
+                // Tab 2: Collection (V1.2 — Encyclopedia)
+                NavigationBarItem(
+                    selected = tab == 2,
+                    onClick  = { tab = 2 },
+                    icon     = { Icon(Icons.Default.Explore, "Collection") },
+                    label    = { Text("Collection") }
+                )
+                // Tab 3: Awards
+                NavigationBarItem(
+                    selected = tab == 3,
+                    onClick  = { tab = 3 },
+                    icon     = { Icon(Icons.Default.EmojiEvents, "Awards") },
+                    label    = { Text("Awards") }
+                )
+                // Tab 4: Profile
+                NavigationBarItem(
+                    selected = tab == 4,
+                    onClick  = { tab = 4 },
+                    icon     = { Icon(Icons.Default.Person, "Profile") },
+                    label    = { Text("Profile") }
+                )
             }
         }
     ) { padding ->
@@ -149,9 +169,10 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
             when (tab) {
                 0 -> HomeScreen(viewModel, outerNav)
                 1 -> TasksScreen(viewModel)
-                2 -> AchievementsScreen(viewModel)
-                3 -> ProfileScreen(
-                    viewModel    = viewModel,
+                2 -> EncyclopediaScreen(viewModel)
+                3 -> AchievementsScreen(viewModel)
+                4 -> ProfileScreen(
+                    viewModel     = viewModel,
                     onAddPetClick = { outerNav.navigate("add_more_pet") },
                     onAdminClick  = { outerNav.navigate("admin") }
                 )
