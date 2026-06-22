@@ -1,6 +1,9 @@
-package com.example.petquest.data.model
+package com.example.petquest.data.local
 
 import androidx.room.TypeConverter
+import com.example.petquest.data.model.Personality
+import com.example.petquest.data.model.PetType
+import com.example.petquest.data.model.TaskType
 
 class Converters {
     @TypeConverter fun fromPetType(value: PetType): String = value.name
