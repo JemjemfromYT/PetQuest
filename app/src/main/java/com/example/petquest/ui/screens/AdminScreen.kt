@@ -6,10 +6,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -232,7 +232,22 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                 }
             }
 
-            item { Spacer(Modifier.height(24.dp)) }
+            // Close button at the bottom
+            item {
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = onBackClick,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Icon(Icons.Default.Close, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("✕  Close Admin Mode", fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
 }
