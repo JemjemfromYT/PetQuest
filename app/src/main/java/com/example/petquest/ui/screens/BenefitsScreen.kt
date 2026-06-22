@@ -1,45 +1,59 @@
 package com.example.petquest.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun BenefitsScreen(onContinueClick: () -> Unit) {
+fun BenefitsScreen(onContinue: () -> Unit) {
     val benefits = listOf(
-        "📵" to "Reduce screen time",
-        "🐕" to "Encourage real-life pet interaction",
-        "❤️" to "Build stronger pet-owner relationships",
-        "📅" to "Create healthy daily routines",
-        "🏆" to "Reward your pet care with achievements"
+        "🐶" to "Discover pets near you",
+        "📋" to "Daily tasks to deepen your bond",
+        "🔥" to "Maintain streaks to earn rewards",
+        "🏆" to "Unlock achievements as you grow",
+        "📷" to "Verify your pet and earn bonus XP"
     )
-    Column(Modifier.fillMaxSize().padding(24.dp), Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            "Why PetQuest?",
+            fontSize = 30.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Here's what you'll be doing:",
+            fontSize = 15.sp,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Spacer(Modifier.height(32.dp))
-        Text("What does PetQuest help with?", fontSize = 26.sp, fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(24.dp))
-        LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(benefits) { (emoji, text) ->
-                Card(modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-                    Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(emoji, fontSize = 32.sp)
-                        Spacer(Modifier.width(16.dp))
-                        Text(text, fontSize = 17.sp, fontWeight = FontWeight.Medium)
-                    }
-                }
+        benefits.forEach { (emoji, text) ->
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(emoji, fontSize = 28.sp)
+                Spacer(Modifier.width(16.dp))
+                Text(text, fontSize = 16.sp)
             }
         }
-        Spacer(Modifier.height(24.dp))
-        Button(onContinueClick, Modifier.fillMaxWidth().height(56.dp)) {
-            Text("Set Up My Pet", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(48.dp))
+        Button(
+            onClick = onContinue,
+            modifier = Modifier.fillMaxWidth().height(56.dp)
+        ) {
+            Text("Add My First Pet", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
