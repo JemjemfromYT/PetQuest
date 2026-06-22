@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
             PetQuestTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color    = MaterialTheme.colorScheme.background
                 ) {
                     val app = LocalContext.current.applicationContext as PetQuestApplication
                     val vm: PetQuestViewModel = viewModel(
@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
                         composable("add_pet") {
                             AddPetScreen(
                                 onBackClick = { nav.popBackStack() },
-                                onSavePet = { pet ->
+                                onSavePet   = { pet ->
                                     vm.addPet(pet)
                                     nav.navigate("main") {
                                         popUpTo("welcome") { inclusive = true }
@@ -71,26 +71,28 @@ class MainActivity : ComponentActivity() {
                             MainScreen(vm, nav)
                         }
                         composable("pet_detail/{petId}") { back ->
-                            val id = back.arguments?.getString("petId")?.toIntOrNull() ?: return@composable
+                            val id = back.arguments?.getString("petId")?.toIntOrNull()
+                                ?: return@composable
                             PetDetailScreen(
-                                petId = id,
-                                viewModel = vm,
+                                petId       = id,
+                                viewModel   = vm,
                                 onBackClick = { nav.popBackStack() },
                                 onVerifyClick = { nav.navigate("pet_verify/$id") }
                             )
                         }
                         composable("pet_verify/{petId}") { back ->
-                            val id = back.arguments?.getString("petId")?.toIntOrNull() ?: return@composable
+                            val id = back.arguments?.getString("petId")?.toIntOrNull()
+                                ?: return@composable
                             PetVerificationScreen(
-                                petId = id,
+                                petId     = id,
                                 viewModel = vm,
-                                onDone = { nav.popBackStack() }
+                                onDone    = { nav.popBackStack() }
                             )
                         }
                         composable("add_more_pet") {
                             AddPetScreen(
                                 onBackClick = { nav.popBackStack() },
-                                onSavePet = { pet ->
+                                onSavePet   = { pet ->
                                     vm.addPet(pet)
                                     nav.popBackStack()
                                 }
@@ -98,7 +100,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("admin") {
                             AdminScreen(
-                                viewModel = vm,
+                                viewModel   = vm,
                                 onBackClick = { nav.popBackStack() }
                             )
                         }
@@ -113,20 +115,31 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     var tab by remember { mutableIntStateOf(0) }
 
+    // ── Global level-up dialog shown from any tab ──────────────────────────
+    var levelUpEvent by remember { mutableStateOf<LevelUpEvent?>(null) }
+    LaunchedEffect(viewModel) {
+        viewModel.levelUpEvent.collect { event ->
+            levelUpEvent = event
+        }
+    }
+    levelUpEvent?.let { event ->
+        LevelUpDialog(event = event, onDismiss = { levelUpEvent = null })
+    }
+
     Scaffold(
         bottomBar = {
             NavigationBar {
                 listOf(
-                    "Home" to Icons.Default.Home,
-                    "Tasks" to Icons.Default.CheckCircle,
-                    "Awards" to Icons.Default.EmojiEvents,
+                    "Home"    to Icons.Default.Home,
+                    "Tasks"   to Icons.Default.CheckCircle,
+                    "Awards"  to Icons.Default.EmojiEvents,
                     "Profile" to Icons.Default.Person
                 ).forEachIndexed { i, (label, icon) ->
                     NavigationBarItem(
                         selected = tab == i,
-                        onClick = { tab = i },
-                        icon = { Icon(icon, label) },
-                        label = { Text(label) }
+                        onClick  = { tab = i },
+                        icon     = { Icon(icon, label) },
+                        label    = { Text(label) }
                     )
                 }
             }
@@ -138,9 +151,9 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 1 -> TasksScreen(viewModel)
                 2 -> AchievementsScreen(viewModel)
                 3 -> ProfileScreen(
-                    viewModel = viewModel,
+                    viewModel    = viewModel,
                     onAddPetClick = { outerNav.navigate("add_more_pet") },
-                    onAdminClick = { outerNav.navigate("admin") }
+                    onAdminClick  = { outerNav.navigate("admin") }
                 )
             }
         }

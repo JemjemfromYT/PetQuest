@@ -34,9 +34,12 @@ fun PetVerificationScreen(
     val context = LocalContext.current
     var photoUri by remember { mutableStateOf<Uri?>(null) }
 
+    // ── FIX: Use filesDir (permanent internal storage) instead of cacheDir ──
+    // cacheDir can be cleared by the OS at any time; filesDir persists until
+    // the app is uninstalled.
     val photoFile = remember {
-        File(context.cacheDir, "pet_verify_${petId}_${System.currentTimeMillis()}.jpg")
-            .also { it.parentFile?.mkdirs() }
+        val dir = File(context.filesDir, "pet_photos").also { it.mkdirs() }
+        File(dir, "pet_verify_${petId}_${System.currentTimeMillis()}.jpg")
     }
 
     val cameraUri: Uri = remember {

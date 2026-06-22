@@ -6,7 +6,7 @@ import com.example.petquest.data.model.*
 
 @Database(
     entities = [PetEntity::class, TaskEntity::class, AchievementEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

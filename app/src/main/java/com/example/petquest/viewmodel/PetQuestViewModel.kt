@@ -9,6 +9,13 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+// ─── Level-up event payload ────────────────────────────────────────────────
+data class LevelUpEvent(
+    val petName: String,
+    val oldLevel: Int,
+    val newLevel: Int
+)
+
 class PetQuestViewModel(
     private val petRepository: PetRepository,
     private val prefsRepository: UserPreferencesRepository
@@ -36,6 +43,10 @@ class PetQuestViewModel(
     val userLevel: StateFlow<Int> = totalBondPoints.map { points ->
         (points / 100) + 1
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
+
+    // ─── Level-up event stream ─────────────────────────────────────────────
+    private val _levelUpEvent = MutableSharedFlow<LevelUpEvent>()
+    val levelUpEvent: SharedFlow<LevelUpEvent> = _levelUpEvent.asSharedFlow()
 
     init {
         viewModelScope.launch {
@@ -67,6 +78,8 @@ class PetQuestViewModel(
         }
     }
 
+    // ─── Public actions ────────────────────────────────────────────────────
+
     fun addPet(pet: PetEntity) {
         viewModelScope.launch {
             try {
@@ -82,14 +95,45 @@ class PetQuestViewModel(
         }
     }
 
+    fun editPet(petId: Int, newName: String, newPersonality: Personality) {
+        viewModelScope.launch {
+            try {
+                petRepository.updatePet(petId, newName.trim(), newPersonality)
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "editPet error", e)
+            }
+        }
+    }
+
+    fun deletePet(petId: Int) {
+        viewModelScope.launch {
+            try {
+                petRepository.deletePet(petId)
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "deletePet error", e)
+            }
+        }
+    }
+
     fun completeTask(task: TaskEntity) {
         viewModelScope.launch {
             try {
                 petRepository.completeTask(task.id)
                 val pets = petRepository.allPets.first()
                 val pet = pets.find { it.id == task.petId } ?: return@launch
+
                 val points = if (task.type == TaskType.CORE) 10 else 5
+                val oldLevel = pet.bondLevel
+                val newPoints = pet.bondPoints + points
+                val newLevel = (newPoints / 100) + 1
+
                 petRepository.addBondPoints(pet.id, points, pet.bondPoints, pet.bondLevel)
+
+                if (newLevel > oldLevel) {
+                    _levelUpEvent.emit(LevelUpEvent(pet.name, oldLevel, newLevel))
+                }
+
                 updateStreak()
                 checkAndUnlockAchievements()
             } catch (e: Exception) {
@@ -121,19 +165,58 @@ class PetQuestViewModel(
         }
     }
 
+    // ─── Personality-aware task generation ────────────────────────────────
     private suspend fun generateTasksForPet(pet: PetEntity) {
         if (petRepository.hasTasksForPet(pet.id)) return
-        listOf(
-            "Feed ${pet.name}", "Give water to ${pet.name}",
-            "Spend time with ${pet.name}", "Play with ${pet.name}"
-        ).forEach { title ->
-            petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.CORE))
+
+        // 2 universal core tasks + 2 personality-specific core tasks
+        val universalCore = listOf(
+            "Feed ${pet.name}",
+            "Give water to ${pet.name}"
+        )
+        val personalityCore = when (pet.personality) {
+            Personality.PLAYFUL     -> listOf(
+                "Play with ${pet.name}",
+                "Chase toy with ${pet.name}"
+            )
+            Personality.LAZY        -> listOf(
+                "Relax with ${pet.name}",
+                "Give ${pet.name} a cozy rest area"
+            )
+            Personality.CURIOUS     -> listOf(
+                "Explore something new with ${pet.name}",
+                "Let ${pet.name} investigate a safe object"
+            )
+            Personality.FRIENDLY    -> listOf(
+                "Spend social time with ${pet.name}",
+                "Introduce ${pet.name} to someone new"
+            )
+            Personality.SHY         -> listOf(
+                "Spend quiet time with ${pet.name}",
+                "Create a calm space for ${pet.name}"
+            )
+            Personality.MISCHIEVOUS -> listOf(
+                "Give ${pet.name} an enrichment activity",
+                "Redirect ${pet.name}'s energy positively"
+            )
         }
+
+        (universalCore + personalityCore).forEach { title ->
+            petRepository.insertTask(
+                TaskEntity(petId = pet.id, title = title, type = TaskType.CORE)
+            )
+        }
+
+        // 4 universal optional tasks
         listOf(
-            "Brush ${pet.name}", "Give ${pet.name} a treat",
-            "Take a photo of ${pet.name}", "Clean ${pet.name}'s area"
+            "Brush ${pet.name}",
+            "Give ${pet.name} a treat",
+            "Take a photo of ${pet.name}",
+            "Clean ${pet.name}'s area"
         ).forEach { title ->
-            petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL))
+            petRepository.insertTask(
+                TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL)
+            )
         }
     }
 
@@ -154,13 +237,19 @@ class PetQuestViewModel(
         if (prefsRepository.userStreak.first() >= 7) unlock("7-Day Streak")
     }
 
-    // ─── Admin / Debug Functions ──────────────────────────────────────────────
+    // ─── Admin / Debug Functions ───────────────────────────────────────────
 
     fun adminAddBondPoints(petId: Int, points: Int) {
         viewModelScope.launch {
             try {
                 val pet = petRepository.allPets.first().find { it.id == petId } ?: return@launch
+                val oldLevel = pet.bondLevel
+                val newPoints = pet.bondPoints + points
+                val newLevel = (newPoints / 100) + 1
                 petRepository.addBondPoints(petId, points, pet.bondPoints, pet.bondLevel)
+                if (newLevel > oldLevel) {
+                    _levelUpEvent.emit(LevelUpEvent(pet.name, oldLevel, newLevel))
+                }
                 checkAndUnlockAchievements()
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "adminAddBondPoints error", e)
@@ -174,14 +263,19 @@ class PetQuestViewModel(
                 val tasks = petRepository.todaysTasks.first()
                 val incompleteTasks = tasks.filter { !it.isCompleted }
                 incompleteTasks.forEach { task -> petRepository.completeTask(task.id) }
-                // Add points per pet in a single batch (avoid stale reads inside loop)
                 val pets = petRepository.allPets.first()
                 pets.forEach { pet ->
                     val totalPoints = incompleteTasks
                         .filter { it.petId == pet.id }
                         .sumOf { if (it.type == TaskType.CORE) 10 else 5 as Int }
                     if (totalPoints > 0) {
+                        val oldLevel = pet.bondLevel
+                        val newPoints = pet.bondPoints + totalPoints
+                        val newLevel = (newPoints / 100) + 1
                         petRepository.addBondPoints(pet.id, totalPoints, pet.bondPoints, pet.bondLevel)
+                        if (newLevel > oldLevel) {
+                            _levelUpEvent.emit(LevelUpEvent(pet.name, oldLevel, newLevel))
+                        }
                     }
                 }
                 updateStreak()
