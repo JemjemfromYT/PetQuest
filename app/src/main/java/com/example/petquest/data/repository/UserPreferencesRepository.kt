@@ -7,26 +7,30 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
 
-class UserPreferencesRepository(private val context: Context) {
-    private object Keys {
-        val STREAK = intPreferencesKey("streak")
-        val USER_LEVEL = intPreferencesKey("user_level")
-        val TOTAL_BOND_POINTS = intPreferencesKey("total_bond_points")
-        val LAST_STREAK_DATE = longPreferencesKey("last_streak_date")
+class UserPreferencesRepository(context: Context) {
+    private val dataStore = context.dataStore
+
+    companion object {
+        val STREAK_KEY = intPreferencesKey("streak")
+        val LAST_STREAK_DATE_KEY = stringPreferencesKey("last_streak_date")
+        val HAS_ONBOARDED_KEY = booleanPreferencesKey("has_onboarded")
     }
 
-    val userStreak: Flow<Int> = context.dataStore.data.map { it[Keys.STREAK] ?: 0 }
-    val userLevel: Flow<Int> = context.dataStore.data.map { it[Keys.USER_LEVEL] ?: 1 }
-    val totalBondPoints: Flow<Int> = context.dataStore.data.map { it[Keys.TOTAL_BOND_POINTS] ?: 0 }
-    val lastStreakDate: Flow<Long> = context.dataStore.data.map { it[Keys.LAST_STREAK_DATE] ?: 0L }
+    val userStreak: Flow<Int> = dataStore.data.map { it[STREAK_KEY] ?: 0 }
+    val lastStreakDate: Flow<String> = dataStore.data.map { it[LAST_STREAK_DATE_KEY] ?: "" }
+    val hasOnboarded: Flow<Boolean> = dataStore.data.map { it[HAS_ONBOARDED_KEY] ?: false }
 
-    suspend fun updateStreak(v: Int) = context.dataStore.edit { it[Keys.STREAK] = v }
-    suspend fun updateLastStreakDate(v: Long) = context.dataStore.edit { it[Keys.LAST_STREAK_DATE] = v }
-    suspend fun addBondPoints(points: Int) = context.dataStore.edit { prefs ->
-        val total = (prefs[Keys.TOTAL_BOND_POINTS] ?: 0) + points
-        prefs[Keys.TOTAL_BOND_POINTS] = total
-        prefs[Keys.USER_LEVEL] = (total / 100) + 1
+    suspend fun updateStreak(streak: Int) {
+        dataStore.edit { it[STREAK_KEY] = streak }
+    }
+
+    suspend fun updateLastStreakDate(date: String) {
+        dataStore.edit { it[LAST_STREAK_DATE_KEY] = date }
+    }
+
+    suspend fun setOnboarded() {
+        dataStore.edit { it[HAS_ONBOARDED_KEY] = true }
     }
 }

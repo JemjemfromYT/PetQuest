@@ -1,95 +1,125 @@
 package com.example.petquest.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.*
 import com.example.petquest.data.model.*
 import com.example.petquest.data.repository.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import java.util.Calendar
+import java.time.LocalDate
 
 class PetQuestViewModel(
     private val petRepository: PetRepository,
     private val prefsRepository: UserPreferencesRepository
 ) : ViewModel() {
 
-    val allPets = petRepository.allPets.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    val todaysTasks = petRepository.getTodaysTasks().stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    val allAchievements = petRepository.allAchievements.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    val userStreak = prefsRepository.userStreak.stateIn(viewModelScope, SharingStarted.Lazily, 0)
-    val userLevel = prefsRepository.userLevel.stateIn(viewModelScope, SharingStarted.Lazily, 1)
-    val totalBondPoints = prefsRepository.totalBondPoints.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    val allPets: StateFlow<List<PetEntity>> =
+        petRepository.allPets.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    init {
+    val todaysTasks: StateFlow<List<TaskEntity>> =
+        petRepository.todaysTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val allAchievements: StateFlow<List<AchievementEntity>> =
+        petRepository.allAchievements.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val userStreak: StateFlow<Int> =
+        prefsRepository.userStreak.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val hasOnboarded: StateFlow<Boolean> =
+        prefsRepository.hasOnboarded.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val totalBondPoints: StateFlow<Int> = allPets.map { pets ->
+        pets.sumOf { it.bondPoints }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val userLevel: StateFlow<Int> = totalBondPoints.map { points ->
+        (points / 100) + 1
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
+
+    fun addPet(pet: PetEntity) {
         viewModelScope.launch {
-            petRepository.initializeDefaultAchievements()
-            checkDailyStreak()
+            petRepository.insertPet(pet)
+            prefsRepository.setOnboarded()
+            checkAndUnlockAchievements()
+            generateTasksForAllPets()
         }
     }
 
-    private suspend fun checkDailyStreak() {
-        val lastDate = prefsRepository.lastStreakDate.first()
-        val today = startOfDay()
-        val yesterday = today - 86_400_000L
-        val streak = prefsRepository.userStreak.first()
-        when {
-            lastDate == 0L -> prefsRepository.updateLastStreakDate(today)
-            lastDate >= today -> {}
-            lastDate >= yesterday -> {
-                prefsRepository.updateStreak(streak + 1)
-                prefsRepository.updateLastStreakDate(today)
-                if (streak + 1 >= 7) unlockAchievement("7-Day Streak")
+    fun completeTask(task: TaskEntity) {
+        viewModelScope.launch {
+            petRepository.completeTask(task.id)
+            val pet = allPets.value.find { it.id == task.petId } ?: return@launch
+            val points = if (task.type == TaskType.CORE) 10 else 5
+            petRepository.addBondPoints(pet.id, points, pet.bondPoints, pet.bondLevel)
+            updateStreak()
+            checkAndUnlockAchievements()
+        }
+    }
+
+    fun verifyPet(petId: Int, photoUri: String) {
+        viewModelScope.launch {
+            petRepository.verifyPet(petId, photoUri)
+            checkAndUnlockAchievements()
+        }
+    }
+
+    private suspend fun updateStreak() {
+        val today = LocalDate.now().toString()
+        val last = prefsRepository.lastStreakDate.first()
+        val current = prefsRepository.userStreak.first()
+        if (last != today) {
+            val yesterday = LocalDate.now().minusDays(1).toString()
+            val newStreak = if (last == yesterday) current + 1 else 1
+            prefsRepository.updateStreak(newStreak)
+            prefsRepository.updateLastStreakDate(today)
+        }
+    }
+
+    private suspend fun generateTasksForAllPets() {
+        val pets = allPets.value
+        val existing = todaysTasks.value
+        if (existing.isEmpty()) {
+            pets.forEach { pet ->
+                val coreTasks = listOf("Feed ${pet.name}", "Give water to ${pet.name}",
+                    "Spend time with ${pet.name}", "Play with ${pet.name}")
+                val optionalTasks = listOf("Brush ${pet.name}", "Give ${pet.name} a treat",
+                    "Take a photo of ${pet.name}", "Clean ${pet.name}'s area")
+                coreTasks.forEach { title ->
+                    petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.CORE))
+                }
+                optionalTasks.forEach { title ->
+                    petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL))
+                }
             }
-            else -> { prefsRepository.updateStreak(0); prefsRepository.updateLastStreakDate(today) }
         }
     }
 
-    fun addPet(pet: PetEntity) = viewModelScope.launch {
-        val id = petRepository.addPet(pet).toInt()
-        listOf("Feed pet", "Give water", "Spend time together", "Play together").forEach {
-            petRepository.addTask(TaskEntity(petId = id, title = it, type = TaskType.CORE))
+    private suspend fun checkAndUnlockAchievements() {
+        val pets = allPets.value
+        val achievements = allAchievements.value
+        val tasks = todaysTasks.value
+
+        fun unlock(title: String) {
+            val a = achievements.find { it.title == title }
+            if (a != null && !a.isUnlocked) {
+                viewModelScope.launch { petRepository.unlockAchievement(a.id) }
+            }
         }
-        listOf("Brush pet", "Give treat", "Take photo", "Clean area").forEach {
-            petRepository.addTask(TaskEntity(petId = id, title = it, type = TaskType.OPTIONAL))
-        }
-        unlockAchievement("First Pet")
+
+        if (pets.isNotEmpty()) unlock("First Pet")
+        if (pets.any { it.isVerified }) unlock("First Verification")
+        if (pets.size >= 3) unlock("Pet Lover")
+        if (pets.any { it.bondLevel >= 5 }) unlock("Bond Master")
+        if (prefsRepository.userStreak.first() >= 7) unlock("7-Day Streak")
     }
-
-    fun completeTask(task: TaskEntity) = viewModelScope.launch {
-        petRepository.updateTask(task.copy(isCompleted = true))
-        val points = if (task.type == TaskType.CORE) 10 else 5
-        prefsRepository.addBondPoints(points)
-        val pet = petRepository.getPetById(task.petId) ?: return@launch
-        val newPoints = pet.bondPoints + points
-        val newLevel = (newPoints / 100) + 1
-        petRepository.updatePet(pet.copy(bondPoints = newPoints, bondLevel = newLevel))
-        if (newLevel >= 5) unlockAchievement("Pet Lover")
-        if (newLevel >= 10) unlockAchievement("Bond Master")
-    }
-
-    fun verifyPet(petId: Int, photoUri: String) = viewModelScope.launch {
-        val pet = petRepository.getPetById(petId) ?: return@launch
-        petRepository.updatePet(pet.copy(photoUri = photoUri, isVerified = true))
-        unlockAchievement("First Verification")
-    }
-
-    fun getPetById(petId: Int): Flow<PetEntity?> = allPets.map { it.find { p -> p.id == petId } }
-
-    private suspend fun unlockAchievement(title: String) {
-        val a = petRepository.allAchievements.first().find { it.title == title && !it.isUnlocked } ?: return
-        petRepository.updateAchievement(a.copy(isUnlocked = true, unlockDate = System.currentTimeMillis()))
-    }
-
-    private fun startOfDay() = Calendar.getInstance().apply {
-        set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
-    }.timeInMillis
 }
 
 class PetQuestViewModelFactory(
-    private val repo: PetRepository, private val prefs: UserPreferencesRepository
+    private val petRepository: PetRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return PetQuestViewModel(repo, prefs) as T
+        return PetQuestViewModel(petRepository, userPreferencesRepository) as T
     }
 }

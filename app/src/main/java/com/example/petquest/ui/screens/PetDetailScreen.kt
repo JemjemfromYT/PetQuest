@@ -1,6 +1,8 @@
 package com.example.petquest.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
@@ -51,6 +53,7 @@ fun PetDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -96,6 +99,7 @@ fun PetDetailScreen(
             }
 
             Spacer(Modifier.height(12.dp))
+
             LinearProgressIndicator(
                 progress = { (pet.bondPoints % 100) / 100f },
                 modifier = Modifier.fillMaxWidth().height(8.dp)
@@ -134,6 +138,8 @@ fun PetDetailScreen(
                     Text("Verify My Pet (Take Photo)", fontSize = 15.sp)
                 }
             }
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }

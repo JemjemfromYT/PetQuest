@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -33,9 +34,26 @@ class MainActivity : ComponentActivity() {
                             app.userPreferencesRepository
                         )
                     )
+
+                    val hasOnboarded by vm.hasOnboarded.collectAsState()
+                    var startChecked by remember { mutableStateOf(false) }
+                    var startDest by remember { mutableStateOf("welcome") }
+
+                    LaunchedEffect(hasOnboarded) {
+                        startDest = if (hasOnboarded) "main" else "welcome"
+                        startChecked = true
+                    }
+
+                    if (!startChecked) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
+                        return@Surface
+                    }
+
                     val nav = rememberNavController()
 
-                    NavHost(nav, startDestination = "welcome") {
+                    NavHost(nav, startDestination = startDest) {
                         composable("welcome") {
                             WelcomeScreen { nav.navigate("benefits") }
                         }
