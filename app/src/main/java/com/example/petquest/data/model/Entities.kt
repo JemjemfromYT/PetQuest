@@ -1,7 +1,6 @@
 package com.example.petquest.data.model
 
 import androidx.room.*
-import com.example.petquest.data.model.Converters
 
 @Entity(tableName = "pets")
 data class PetEntity(
