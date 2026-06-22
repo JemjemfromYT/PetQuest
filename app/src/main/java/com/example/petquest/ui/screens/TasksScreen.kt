@@ -3,10 +3,14 @@ package com.example.petquest.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.petquest.data.model.TaskType
@@ -19,6 +23,7 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
     val pets by viewModel.allPets.collectAsState()
     val core = tasks.filter { it.type == TaskType.CORE }
     val optional = tasks.filter { it.type == TaskType.OPTIONAL }
+    val doneCount = tasks.count { it.isCompleted }
 
     Scaffold(
         topBar = {
@@ -32,109 +37,206 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
     ) { padding ->
         if (tasks.isEmpty()) {
             Box(Modifier.fillMaxSize(), Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text("📋", fontSize = 64.sp)
                     Spacer(Modifier.height(12.dp))
-                    Text("Add a pet to generate tasks!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "No tasks yet!\nAdd a pet to get started.",
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Progress header
                 item {
-                    val done = tasks.count { it.isCompleted }
-                    LinearProgressIndicator(
-                        progress = { if (tasks.isEmpty()) 0f else done / tasks.size.toFloat() },
-                        modifier = Modifier.fillMaxWidth().height(8.dp)
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        "$done / ${tasks.size} completed",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Progress",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                                Text(
+                                    "$doneCount / ${tasks.size}",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = { if (tasks.isEmpty()) 0f else doneCount / tasks.size.toFloat() },
+                                modifier = Modifier.fillMaxWidth().height(8.dp)
+                            )
+                        }
+                    }
                     Spacer(Modifier.height(8.dp))
                 }
 
+                // Core tasks section
                 if (core.isNotEmpty()) {
                     item {
-                        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                            Text("⚡ Core Tasks", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Text("+10 pts each", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            Text("⚡", fontSize = 16.sp)
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                "Core Tasks",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Surface(
+                                shape = MaterialTheme.shapes.small,
+                                color = MaterialTheme.colorScheme.primary
+                            ) {
+                                Text(
+                                    "+10 pts",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
-                        Spacer(Modifier.height(4.dp))
                     }
                     items(core) { task ->
                         val pet = pets.find { it.id == task.petId }
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (task.isCompleted)
-                                    MaterialTheme.colorScheme.surfaceVariant
-                                else
-                                    MaterialTheme.colorScheme.surface
-                            ),
-                            elevation = CardDefaults.cardElevation(if (task.isCompleted) 0.dp else 2.dp)
-                        ) {
-                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(petEmoji(pet?.type?.name ?: ""), fontSize = 24.sp)
-                                Spacer(Modifier.width(10.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text(task.title, fontWeight = FontWeight.Medium, fontSize = 15.sp,
-                                        color = if (task.isCompleted) MaterialTheme.colorScheme.onSurfaceVariant
-                                        else MaterialTheme.colorScheme.onSurface)
-                                    Text(pet?.name ?: "", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                                Checkbox(
-                                    checked = task.isCompleted,
-                                    onCheckedChange = { if (!task.isCompleted) viewModel.completeTask(task) },
-                                    enabled = !task.isCompleted
-                                )
-                            }
-                        }
+                        TaskRow(
+                            title = task.title,
+                            petName = pet?.name ?: "",
+                            petEmoji = petEmoji(pet?.type?.name ?: ""),
+                            isDone = task.isCompleted,
+                            onCheck = { if (!task.isCompleted) viewModel.completeTask(task) }
+                        )
                     }
                 }
 
+                // Optional tasks section
                 if (optional.isNotEmpty()) {
                     item {
                         Spacer(Modifier.height(8.dp))
-                        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                            Text("💡 Optional Tasks", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Text("+5 pts each", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
-                        }
-                        Spacer(Modifier.height(4.dp))
-                    }
-                    items(optional) { task ->
-                        val pet = pets.find { it.id == task.petId }
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (task.isCompleted)
-                                    MaterialTheme.colorScheme.surfaceVariant
-                                else
-                                    MaterialTheme.colorScheme.surface
-                            ),
-                            elevation = CardDefaults.cardElevation(if (task.isCompleted) 0.dp else 2.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 4.dp)
                         ) {
-                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(petEmoji(pet?.type?.name ?: ""), fontSize = 24.sp)
-                                Spacer(Modifier.width(10.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text(task.title, fontWeight = FontWeight.Medium, fontSize = 15.sp,
-                                        color = if (task.isCompleted) MaterialTheme.colorScheme.onSurfaceVariant
-                                        else MaterialTheme.colorScheme.onSurface)
-                                    Text(pet?.name ?: "", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                }
-                                Checkbox(
-                                    checked = task.isCompleted,
-                                    onCheckedChange = { if (!task.isCompleted) viewModel.completeTask(task) },
-                                    enabled = !task.isCompleted
+                            Text("💡", fontSize = 16.sp)
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                "Optional Tasks",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Surface(
+                                shape = MaterialTheme.shapes.small,
+                                color = MaterialTheme.colorScheme.secondary
+                            ) {
+                                Text(
+                                    "+5 pts",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSecondary,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                     }
+                    items(optional) { task ->
+                        val pet = pets.find { it.id == task.petId }
+                        TaskRow(
+                            title = task.title,
+                            petName = pet?.name ?: "",
+                            petEmoji = petEmoji(pet?.type?.name ?: ""),
+                            isDone = task.isCompleted,
+                            onCheck = { if (!task.isCompleted) viewModel.completeTask(task) }
+                        )
+                    }
+                }
+
+                item { Spacer(Modifier.height(16.dp)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskRow(
+    title: String,
+    petName: String,
+    petEmoji: String,
+    isDone: Boolean,
+    onCheck: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isDone)
+                MaterialTheme.colorScheme.surfaceVariant
+            else
+                MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(if (isDone) 0.dp else 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onCheck, enabled = !isDone) {
+                Icon(
+                    imageVector = if (isDone) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                    contentDescription = null,
+                    tint = if (isDone)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 15.sp,
+                    textDecoration = if (isDone) TextDecoration.LineThrough else null,
+                    color = if (isDone)
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    else
+                        MaterialTheme.colorScheme.onSurface
+                )
+                if (petName.isNotEmpty()) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "$petEmoji $petName",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
