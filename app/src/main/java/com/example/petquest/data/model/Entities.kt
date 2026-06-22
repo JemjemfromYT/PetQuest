@@ -1,7 +1,7 @@
 package com.example.petquest.data.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.*
+import com.example.petquest.data.model.Converters
 
 @Entity(tableName = "pets")
 data class PetEntity(
@@ -9,10 +9,10 @@ data class PetEntity(
     val name: String,
     val type: PetType,
     val personality: Personality,
-    val bondLevel: Int = 1,
     val bondPoints: Int = 0,
-    val photoUri: String? = null,
-    val isVerified: Boolean = false
+    val bondLevel: Int = 1,
+    val isVerified: Boolean = false,
+    val photoUri: String? = null
 )
 
 @Entity(tableName = "tasks")
@@ -21,15 +21,16 @@ data class TaskEntity(
     val petId: Int,
     val title: String,
     val type: TaskType,
-    val isCompleted: Boolean = false,
-    val dateAdded: Long = System.currentTimeMillis()
+    val isCompleted: Boolean = false
 )
 
-@Entity(tableName = "achievements")
+@Entity(
+    tableName = "achievements",
+    indices = [Index(value = ["title"], unique = true)]
+)
 data class AchievementEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val title: String,
     val description: String,
-    val isUnlocked: Boolean = false,
-    val unlockDate: Long? = null
+    val isUnlocked: Boolean = false
 )

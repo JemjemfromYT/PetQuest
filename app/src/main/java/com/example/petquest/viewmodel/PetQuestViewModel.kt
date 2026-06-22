@@ -1,6 +1,5 @@
 package com.example.petquest.viewmodel
 
-import android.net.Uri
 import androidx.lifecycle.*
 import com.example.petquest.data.model.*
 import com.example.petquest.data.repository.*
@@ -40,8 +39,11 @@ class PetQuestViewModel(
         viewModelScope.launch {
             petRepository.insertPet(pet)
             prefsRepository.setOnboarded()
+            // Re-fetch pets to get the inserted pet with its real ID
+            val pets = petRepository.allPets.first()
+            val inserted = pets.lastOrNull() ?: return@launch
+            generateTasksForPet(inserted)
             checkAndUnlockAchievements()
-            generateTasksForAllPets()
         }
     }
 
@@ -75,29 +77,31 @@ class PetQuestViewModel(
         }
     }
 
-    private suspend fun generateTasksForAllPets() {
-        val pets = allPets.value
-        val existing = todaysTasks.value
-        if (existing.isEmpty()) {
-            pets.forEach { pet ->
-                val coreTasks = listOf("Feed ${pet.name}", "Give water to ${pet.name}",
-                    "Spend time with ${pet.name}", "Play with ${pet.name}")
-                val optionalTasks = listOf("Brush ${pet.name}", "Give ${pet.name} a treat",
-                    "Take a photo of ${pet.name}", "Clean ${pet.name}'s area")
-                coreTasks.forEach { title ->
-                    petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.CORE))
-                }
-                optionalTasks.forEach { title ->
-                    petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL))
-                }
-            }
+    private suspend fun generateTasksForPet(pet: PetEntity) {
+        if (petRepository.hasTasksForPet(pet.id)) return
+        val coreTasks = listOf(
+            "Feed ${pet.name}",
+            "Give water to ${pet.name}",
+            "Spend time with ${pet.name}",
+            "Play with ${pet.name}"
+        )
+        val optionalTasks = listOf(
+            "Brush ${pet.name}",
+            "Give ${pet.name} a treat",
+            "Take a photo of ${pet.name}",
+            "Clean ${pet.name}'s area"
+        )
+        coreTasks.forEach { title ->
+            petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.CORE))
+        }
+        optionalTasks.forEach { title ->
+            petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL))
         }
     }
 
     private suspend fun checkAndUnlockAchievements() {
         val pets = allPets.value
         val achievements = allAchievements.value
-        val tasks = todaysTasks.value
 
         fun unlock(title: String) {
             val a = achievements.find { it.title == title }

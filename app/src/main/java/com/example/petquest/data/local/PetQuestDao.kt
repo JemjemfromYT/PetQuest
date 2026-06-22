@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PetQuestDao {
 
-    // ── Pets ──────────────────────────────────────────────────────────────
     @Query("SELECT * FROM pets ORDER BY id ASC")
     fun getAllPets(): Flow<List<PetEntity>>
 
@@ -20,7 +19,6 @@ interface PetQuestDao {
     @Query("UPDATE pets SET isVerified = 1, photoUri = :uri WHERE id = :petId")
     suspend fun verifyPet(petId: Int, uri: String)
 
-    // ── Tasks ─────────────────────────────────────────────────────────────
     @Query("SELECT * FROM tasks ORDER BY type ASC, id ASC")
     fun getTodaysTasks(): Flow<List<TaskEntity>>
 
@@ -33,7 +31,6 @@ interface PetQuestDao {
     @Query("DELETE FROM tasks")
     suspend fun clearAllTasks()
 
-    // ── Achievements ──────────────────────────────────────────────────────
     @Query("SELECT * FROM achievements ORDER BY id ASC")
     fun getAllAchievements(): Flow<List<AchievementEntity>>
 
@@ -42,4 +39,10 @@ interface PetQuestDao {
 
     @Query("UPDATE achievements SET isUnlocked = 1 WHERE id = :id")
     suspend fun unlockAchievement(id: Int)
+
+    @Query("SELECT COUNT(*) FROM achievements")
+    suspend fun getAchievementCount(): Int
+
+    @Query("SELECT COUNT(*) FROM tasks WHERE petId = :petId")
+    suspend fun getTaskCountForPet(petId: Int): Int
 }

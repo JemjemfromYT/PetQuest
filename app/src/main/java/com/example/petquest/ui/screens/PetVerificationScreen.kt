@@ -1,5 +1,6 @@
 package com.example.petquest.ui.screens
 
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.example.petquest.viewmodel.PetQuestViewModel
@@ -33,15 +35,23 @@ fun PetVerificationScreen(
     var photoUri by remember { mutableStateOf<Uri?>(null) }
 
     val photoFile = remember {
-        File(context.externalCacheDir, "pet_${petId}_${System.currentTimeMillis()}.jpg")
+        File(context.cacheDir, "pet_verify_${petId}_${System.currentTimeMillis()}.jpg")
+            .also { it.parentFile?.mkdirs() }
     }
-    val cameraUri = remember {
-        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", photoFile)
+
+    val cameraUri: Uri = remember {
+        FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            photoFile
+        )
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
-    ) { success -> if (success) photoUri = cameraUri }
+    ) { success ->
+        if (success) photoUri = cameraUri
+    }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -49,7 +59,17 @@ fun PetVerificationScreen(
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> if (granted) cameraLauncher.launch(cameraUri) }
+    ) { granted ->
+        if (granted) cameraLauncher.launch(cameraUri)
+    }
+
+    fun launchCamera() {
+        val hasPerm = ContextCompat.checkSelfPermission(
+            context, android.Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+        if (hasPerm) cameraLauncher.launch(cameraUri)
+        else permissionLauncher.launch(android.Manifest.permission.CAMERA)
+    }
 
     Scaffold(
         topBar = {
@@ -82,7 +102,9 @@ fun PetVerificationScreen(
             )
 
             Card(
-                modifier = Modifier.fillMaxWidth().height(260.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(260.dp),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
                 if (photoUri != null) {
@@ -94,7 +116,10 @@ fun PetVerificationScreen(
                     )
                 } else {
                     Box(Modifier.fillMaxSize(), Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
                             Text("📷", fontSize = 64.sp)
                             Spacer(Modifier.height(8.dp))
                             Text("No photo yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -104,7 +129,7 @@ fun PetVerificationScreen(
             }
 
             Button(
-                onClick = { permissionLauncher.launch(android.Manifest.permission.CAMERA) },
+                onClick = { launchCamera() },
                 modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
                 Icon(Icons.Default.CameraAlt, contentDescription = null)
