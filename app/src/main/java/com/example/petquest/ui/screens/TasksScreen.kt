@@ -11,50 +11,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.petquest.data.model.PetEntity
 import com.example.petquest.data.model.TaskEntity
 import com.example.petquest.data.model.TaskType
 import com.example.petquest.viewmodel.PetQuestViewModel
-
-// Flat list item types for the LazyColumn
-private sealed class TaskListItem {
-    data class PetHeader(val pet: PetEntity, val done: Int, val total: Int) : TaskListItem()
-    data class CoreDivider(val petId: Int) : TaskListItem()
-    data class OptionalDivider(val petId: Int) : TaskListItem()
-    data class Task(val task: TaskEntity) : TaskListItem()
-    data class PetSpacer(val petId: Int) : TaskListItem()
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksScreen(viewModel: PetQuestViewModel) {
     val tasks by viewModel.todaysTasks.collectAsState()
-    val pets by viewModel.allPets.collectAsState()
-    val doneCount = tasks.count { it.isCompleted }
+    val pets  by viewModel.allPets.collectAsState()
 
-    // Build flat list grouped by pet → core → optional
-    val listItems = remember(pets, tasks) {
-        buildList {
-            pets.forEach { pet ->
-                val petTasks = tasks.filter { it.petId == pet.id }
-                if (petTasks.isEmpty()) return@forEach
-                val core = petTasks.filter { it.type == TaskType.CORE }
-                val optional = petTasks.filter { it.type == TaskType.OPTIONAL }
-                val done = petTasks.count { it.isCompleted }
+    var selectedTab by remember { mutableIntStateOf(0) }
 
-                add(TaskListItem.PetHeader(pet, done, petTasks.size))
-                if (core.isNotEmpty()) {
-                    add(TaskListItem.CoreDivider(pet.id))
-                    core.forEach { add(TaskListItem.Task(it)) }
-                }
-                if (optional.isNotEmpty()) {
-                    add(TaskListItem.OptionalDivider(pet.id))
-                    optional.forEach { add(TaskListItem.Task(it)) }
-                }
-                add(TaskListItem.PetSpacer(pet.id))
-            }
-        }
-    }
+    // Clamp selected tab if pets change
+    val safeTab = if (pets.isEmpty()) 0 else selectedTab.coerceIn(0, pets.lastIndex)
 
     Scaffold(
         topBar = {
@@ -66,15 +36,12 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
             )
         }
     ) { padding ->
-        if (tasks.isEmpty()) {
+        if (pets.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("📋", fontSize = 64.sp)
                     Spacer(Modifier.height(12.dp))
                     Text(
@@ -84,18 +51,82 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                     )
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+            return@Scaffold
+        }
+
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+
+            // ── Pet tab row ──────────────────────────────────────────────────
+            ScrollableTabRow(
+                selectedTabIndex = safeTab,
+                edgePadding = 16.dp,
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             ) {
-                // Global progress card
+                pets.forEachIndexed { index, pet ->
+                    val petTasks  = tasks.filter { it.petId == pet.id }
+                    val donePet   = petTasks.count { it.isCompleted }
+                    val allDone   = petTasks.isNotEmpty() && donePet == petTasks.size
+
+                    Tab(
+                        selected = safeTab == index,
+                        onClick  = { selectedTab = index },
+                        text = {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    petEmoji(pet.type.name),
+                                    fontSize = 22.sp
+                                )
+                                Text(
+                                    pet.name,
+                                    fontSize = 12.sp,
+                                    fontWeight = if (safeTab == index) FontWeight.Bold else FontWeight.Normal,
+                                    maxLines = 1
+                                )
+                                if (petTasks.isNotEmpty()) {
+                                    Text(
+                                        if (allDone) "✅ Done" else "$donePet/${petTasks.size}",
+                                        fontSize = 10.sp,
+                                        color = if (allDone)
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+
+            // ── Tasks for selected pet ───────────────────────────────────────
+            val selectedPet = pets.getOrNull(safeTab)
+
+            if (selectedPet == null) return@Column
+
+            val petTasks  = tasks.filter { it.petId == selectedPet.id }
+            val core      = petTasks.filter { it.type == TaskType.CORE }
+            val optional  = petTasks.filter { it.type == TaskType.OPTIONAL }
+            val doneCount = petTasks.count { it.isCompleted }
+
+            if (petTasks.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No tasks for ${selectedPet.name}",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                return@Column
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Progress card
                 item(key = "progress") {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
                         )
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -104,45 +135,55 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Today's Progress", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                                 Text(
-                                    "$doneCount / ${tasks.size} done",
+                                    "${selectedPet.name}'s Progress",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                                Text(
+                                    "$doneCount / ${petTasks.size} done",
                                     fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp,
+                                    fontSize = 13.sp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
                             Spacer(Modifier.height(8.dp))
                             LinearProgressIndicator(
-                                progress = { doneCount / tasks.size.toFloat() },
+                                progress = { doneCount / petTasks.size.toFloat() },
                                 modifier = Modifier.fillMaxWidth().height(8.dp)
                             )
                         }
                     }
-                    Spacer(Modifier.height(8.dp))
                 }
 
-                items(listItems, key = { item ->
-                    when (item) {
-                        is TaskListItem.PetHeader -> "header_${item.pet.id}"
-                        is TaskListItem.CoreDivider -> "core_div_${item.petId}"
-                        is TaskListItem.OptionalDivider -> "opt_div_${item.petId}"
-                        is TaskListItem.Task -> "task_${item.task.id}"
-                        is TaskListItem.PetSpacer -> "spacer_${item.petId}"
-                    }
-                }) { item ->
-                    when (item) {
-                        is TaskListItem.PetHeader -> PetSectionHeader(item.pet, item.done, item.total)
-                        is TaskListItem.CoreDivider -> TypeDivider("⚡ Core Tasks", "+10 pts",
-                            MaterialTheme.colorScheme.primary)
-                        is TaskListItem.OptionalDivider -> TypeDivider("💡 Optional", "+5 pts",
-                            MaterialTheme.colorScheme.secondary)
-                        is TaskListItem.Task -> TaskRow(
-                            task = item.task,
-                            isCore = item.task.type == TaskType.CORE,
-                            onCheck = { viewModel.completeTask(item.task) }
+                // Core tasks
+                if (core.isNotEmpty()) {
+                    item(key = "core_header") {
+                        TaskTypeHeader(
+                            emoji = "⚡",
+                            label = "Core Tasks",
+                            pts = "+10 pts",
+                            color = MaterialTheme.colorScheme.primary
                         )
-                        is TaskListItem.PetSpacer -> Spacer(Modifier.height(10.dp))
+                    }
+                    items(core, key = { "c_${it.id}" }) { task ->
+                        TaskRow(task, isCore = true) { viewModel.completeTask(task) }
+                    }
+                }
+
+                // Optional tasks
+                if (optional.isNotEmpty()) {
+                    item(key = "opt_header") {
+                        Spacer(Modifier.height(4.dp))
+                        TaskTypeHeader(
+                            emoji = "💡",
+                            label = "Optional Tasks",
+                            pts = "+5 pts",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    items(optional, key = { "o_${it.id}" }) { task ->
+                        TaskRow(task, isCore = false) { viewModel.completeTask(task) }
                     }
                 }
 
@@ -153,61 +194,25 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
 }
 
 @Composable
-private fun PetSectionHeader(pet: PetEntity, done: Int, total: Int) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(petEmoji(pet.type.name), fontSize = 24.sp)
-            Spacer(Modifier.width(10.dp))
-            Text(
-                pet.name,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 16.sp,
-                modifier = Modifier.weight(1f)
-            )
-            Surface(
-                shape = MaterialTheme.shapes.small,
-                color = if (done == total)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-            ) {
-                Text(
-                    "$done / $total",
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (done == total)
-                        MaterialTheme.colorScheme.onPrimary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TypeDivider(label: String, pts: String, color: androidx.compose.ui.graphics.Color) {
+private fun TaskTypeHeader(
+    emoji: String,
+    label: String,
+    pts: String,
+    color: androidx.compose.ui.graphics.Color
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 2.dp)
+        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
     ) {
-        Text(label, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = color)
+        Text(emoji, fontSize = 15.sp)
         Spacer(Modifier.width(6.dp))
+        Text(label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Spacer(Modifier.width(8.dp))
         Surface(shape = MaterialTheme.shapes.extraSmall, color = color.copy(alpha = 0.15f)) {
             Text(
                 pts,
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
-                fontSize = 10.sp,
+                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = color
             )
@@ -226,12 +231,12 @@ private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
             else
                 MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(if (isDone) 0.dp else 1.dp)
+        elevation = CardDefaults.cardElevation(if (isDone) 0.dp else 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 4.dp, end = 12.dp, top = 2.dp, bottom = 2.dp),
+                .padding(start = 4.dp, end = 14.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
