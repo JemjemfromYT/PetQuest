@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-cache-path name="pet_photos" path="." />
-    <cache-path name="pet_photos_internal" path="." />
+    <files-path name="pet_photos" path="pet_photos/" />
+    <external-cache-path name="pet_photos_ext_cache" path="." />
+    <cache-path name="pet_photos_cache" path="." />
 </paths>

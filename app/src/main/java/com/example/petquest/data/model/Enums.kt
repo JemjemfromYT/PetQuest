@@ -13,7 +13,25 @@ enum class PetType(val rarity: Rarity) {
     LIZARD(Rarity.UNCOMMON),
     SNAKE(Rarity.RARE),
     HEDGEHOG(Rarity.UNCOMMON),
-    CHICKEN(Rarity.COMMON)
+    CHICKEN(Rarity.COMMON),
+    GUINEA_PIG(Rarity.COMMON),
+    FERRET(Rarity.UNCOMMON),
+    HORSE(Rarity.EPIC),
+    DUCK(Rarity.COMMON),
+    FROG(Rarity.UNCOMMON),
+    CRAB(Rarity.UNCOMMON),
+    MONKEY(Rarity.EPIC),
+    FOX(Rarity.EPIC),
+    OWL(Rarity.RARE),
+    PENGUIN(Rarity.RARE),
+    PANDA(Rarity.EPIC),
+    GOAT(Rarity.COMMON),
+    PIG(Rarity.COMMON),
+    COW(Rarity.COMMON),
+    SHEEP(Rarity.COMMON),
+    DEER(Rarity.RARE),
+    BEAR(Rarity.EPIC),
+    WOLF(Rarity.EPIC)
 }
 
 enum class Personality { PLAYFUL, LAZY, CURIOUS, FRIENDLY, SHY, MISCHIEVOUS }

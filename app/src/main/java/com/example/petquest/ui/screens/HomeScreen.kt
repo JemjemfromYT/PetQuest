@@ -15,18 +15,36 @@ import androidx.navigation.NavController
 import com.example.petquest.viewmodel.PetQuestViewModel
 
 fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
-    "DOG" -> "🐶"
-    "CAT" -> "🐱"
-    "RABBIT" -> "🐰"
-    "HAMSTER" -> "🐹"
-    "BIRD" -> "🦜"
-    "FISH" -> "🐟"
-    "TURTLE" -> "🐢"
-    "LIZARD" -> "🦎"
-    "SNAKE" -> "🐍"
-    "HEDGEHOG" -> "🦔"
-    "CHICKEN" -> "🐔"
-    else -> "🐾"
+    "DOG"        -> "🐶"
+    "CAT"        -> "🐱"
+    "RABBIT"     -> "🐰"
+    "HAMSTER"    -> "🐹"
+    "BIRD"       -> "🦜"
+    "FISH"       -> "🐟"
+    "TURTLE"     -> "🐢"
+    "LIZARD"     -> "🦎"
+    "SNAKE"      -> "🐍"
+    "HEDGEHOG"   -> "🦔"
+    "CHICKEN"    -> "🐔"
+    "GUINEA_PIG" -> "🐭"
+    "FERRET"     -> "🦦"
+    "HORSE"      -> "🐴"
+    "DUCK"       -> "🦆"
+    "FROG"       -> "🐸"
+    "CRAB"       -> "🦀"
+    "MONKEY"     -> "🐒"
+    "FOX"        -> "🦊"
+    "OWL"        -> "🦉"
+    "PENGUIN"    -> "🐧"
+    "PANDA"      -> "🐼"
+    "GOAT"       -> "🐐"
+    "PIG"        -> "🐷"
+    "COW"        -> "🐄"
+    "SHEEP"      -> "🐑"
+    "DEER"       -> "🦌"
+    "BEAR"       -> "🐻"
+    "WOLF"       -> "🐺"
+    else         -> "🐾"
 }
 
 @Composable
@@ -149,7 +167,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(pet.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                                 Text(
-                                    "${pet.type.name}  •  ${pet.personality.name}",
+                                    "${pet.type.name.replace("_", " ")}  •  ${pet.personality.name}",
                                     fontSize = 13.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

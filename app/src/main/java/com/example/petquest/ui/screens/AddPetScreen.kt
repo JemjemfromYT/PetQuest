@@ -4,12 +4,16 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -23,10 +27,17 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
     var petName             by remember { mutableStateOf("") }
     var expandedType        by remember { mutableStateOf(false) }
     var selectedType        by remember { mutableStateOf(PetType.DOG) }
+    var typeSearchQuery     by remember { mutableStateOf("") }
     var expandedPersonality by remember { mutableStateOf(false) }
     var selectedPersonality by remember { mutableStateOf(Personality.PLAYFUL) }
 
-    // Hold the pet to save until celebration is dismissed
+    val filteredTypes = remember(typeSearchQuery) {
+        PetType.entries.filter {
+            typeSearchQuery.isBlank() ||
+                    it.name.replace("_", " ").contains(typeSearchQuery.trim(), ignoreCase = true)
+        }
+    }
+
     var petToSave by remember { mutableStateOf<PetEntity?>(null) }
 
     if (petToSave != null) {
@@ -57,10 +68,13 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
         ) {
             Spacer(Modifier.height(8.dp))
 
-            // Live preview of selected pet
             Text(petEmoji(selectedType.name), fontSize = 80.sp)
             Spacer(Modifier.height(4.dp))
-            Text(selectedType.name, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                selectedType.name.replace("_", " "),
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             Spacer(Modifier.height(20.dp))
 
@@ -73,13 +87,15 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
             )
             Spacer(Modifier.height(20.dp))
 
-            // Pet Type — emoji + name only, no rarity shown
             ExposedDropdownMenuBox(
                 expanded = expandedType,
-                onExpandedChange = { expandedType = !expandedType }
+                onExpandedChange = {
+                    expandedType = !expandedType
+                    if (!expandedType) typeSearchQuery = ""
+                }
             ) {
                 OutlinedTextField(
-                    value = "${petEmoji(selectedType.name)} ${selectedType.name}",
+                    value = "${petEmoji(selectedType.name)} ${selectedType.name.replace("_", " ")}",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Pet Type") },
@@ -88,13 +104,60 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                 )
                 ExposedDropdownMenu(
                     expanded = expandedType,
-                    onDismissRequest = { expandedType = false }
+                    onDismissRequest = { expandedType = false; typeSearchQuery = "" }
                 ) {
-                    PetType.entries.forEach { type ->
+                    OutlinedTextField(
+                        value = typeSearchQuery,
+                        onValueChange = { typeSearchQuery = it },
+                        placeholder = { Text("Search animals...") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Search, contentDescription = null)
+                        },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                    if (filteredTypes.isEmpty()) {
                         DropdownMenuItem(
-                            text = { Text("${petEmoji(type.name)} ${type.name}") },
-                            onClick = { selectedType = type; expandedType = false }
+                            text = {
+                                Text(
+                                    "No animals found",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            onClick = {},
+                            enabled = false
                         )
+                    } else {
+                        filteredTypes.forEach { type ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Text(petEmoji(type.name), fontSize = 20.sp)
+                                        Column {
+                                            Text(
+                                                type.name.replace("_", " "),
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Text(
+                                                type.rarity.name,
+                                                fontSize = 11.sp,
+                                                color = rarityColor(type.rarity)
+                                            )
+                                        }
+                                    }
+                                },
+                                onClick = {
+                                    selectedType = type
+                                    expandedType = false
+                                    typeSearchQuery = ""
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -153,6 +216,14 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
 }
 
 @Composable
+private fun rarityColor(rarity: Rarity) = when (rarity) {
+    Rarity.COMMON   -> MaterialTheme.colorScheme.onSurfaceVariant
+    Rarity.UNCOMMON -> MaterialTheme.colorScheme.primary
+    Rarity.RARE     -> MaterialTheme.colorScheme.tertiary
+    Rarity.EPIC     -> MaterialTheme.colorScheme.error
+}
+
+@Composable
 private fun CelebrationDialog(petName: String, petTypeName: String, onDismiss: () -> Unit) {
     var started by remember { mutableStateOf(false) }
 
@@ -172,7 +243,7 @@ private fun CelebrationDialog(petName: String, petTypeName: String, onDismiss: (
 
     LaunchedEffect(Unit) { started = true }
 
-    Dialog(onDismissRequest = { /* block accidental close */ }) {
+    Dialog(onDismissRequest = {}) {
         Card(
             shape  = MaterialTheme.shapes.extraLarge,
             colors = CardDefaults.cardColors(
@@ -205,7 +276,7 @@ private fun CelebrationDialog(petName: String, petTypeName: String, onDismiss: (
                 )
 
                 Text(
-                    "Your new ${petTypeName.lowercase()} companion is ready for adventures! 🚀",
+                    "Your new ${petTypeName.replace("_", " ").lowercase()} companion is ready for adventures! 🚀",
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
