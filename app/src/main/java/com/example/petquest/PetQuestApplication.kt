@@ -4,9 +4,23 @@ import android.app.Application
 import com.example.petquest.data.local.AppDatabase
 import com.example.petquest.data.repository.PetRepository
 import com.example.petquest.data.repository.UserPreferencesRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class PetQuestApplication : Application() {
-    val database by lazy { AppDatabase.getDatabase(this) }
-    val petRepository by lazy { PetRepository(database.petQuestDao()) }
-    val userPreferencesRepository by lazy { UserPreferencesRepository(this) }
+
+    lateinit var petRepository: PetRepository
+    lateinit var userPreferencesRepository: UserPreferencesRepository
+
+    override fun onCreate() {
+        super.onCreate()
+        val db = AppDatabase.getDatabase(this)
+        petRepository = PetRepository(db.petQuestDao())
+        userPreferencesRepository = UserPreferencesRepository(this)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            petRepository.seedAchievements()
+        }
+    }
 }
