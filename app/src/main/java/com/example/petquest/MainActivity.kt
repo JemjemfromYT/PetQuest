@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
                         )
                     )
 
+                    // null means DataStore hasn't loaded yet — wait before showing anything
                     val hasOnboarded by vm.hasOnboarded.collectAsState()
 
                     if (hasOnboarded == null) {
@@ -44,6 +45,7 @@ class MainActivity : ComponentActivity() {
                         return@Surface
                     }
 
+                    // startDestination is determined once, after real data is available
                     val startDest = if (hasOnboarded == true) "main" else "welcome"
                     val nav = rememberNavController()
 
@@ -94,6 +96,12 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+                        composable("admin") {
+                            AdminScreen(
+                                viewModel = vm,
+                                onBackClick = { nav.popBackStack() }
+                            )
+                        }
                     }
                 }
             }
@@ -129,7 +137,11 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 0 -> HomeScreen(viewModel, outerNav)
                 1 -> TasksScreen(viewModel)
                 2 -> AchievementsScreen(viewModel)
-                3 -> ProfileScreen(viewModel) { outerNav.navigate("add_more_pet") }
+                3 -> ProfileScreen(
+                    viewModel = viewModel,
+                    onAddPetClick = { outerNav.navigate("add_more_pet") },
+                    onAdminClick = { outerNav.navigate("admin") }
+                )
             }
         }
     }

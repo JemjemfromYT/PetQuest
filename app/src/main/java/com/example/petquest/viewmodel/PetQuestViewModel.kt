@@ -153,6 +153,96 @@ class PetQuestViewModel(
         if (pets.any { it.bondLevel >= 5 }) unlock("Bond Master")
         if (prefsRepository.userStreak.first() >= 7) unlock("7-Day Streak")
     }
+
+    // ─── Admin / Debug Functions ──────────────────────────────────────────────
+
+    fun adminAddBondPoints(petId: Int, points: Int) {
+        viewModelScope.launch {
+            try {
+                val pet = petRepository.allPets.first().find { it.id == petId } ?: return@launch
+                petRepository.addBondPoints(petId, points, pet.bondPoints, pet.bondLevel)
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "adminAddBondPoints error", e)
+            }
+        }
+    }
+
+    fun adminCompleteAllTasks() {
+        viewModelScope.launch {
+            try {
+                val tasks = petRepository.todaysTasks.first()
+                val incompleteTasks = tasks.filter { !it.isCompleted }
+                incompleteTasks.forEach { task -> petRepository.completeTask(task.id) }
+                // Add points per pet in a single batch (avoid stale reads inside loop)
+                val pets = petRepository.allPets.first()
+                pets.forEach { pet ->
+                    val totalPoints = incompleteTasks
+                        .filter { it.petId == pet.id }
+                        .sumOf { if (it.type == TaskType.CORE) 10 else 5 }
+                    if (totalPoints > 0) {
+                        petRepository.addBondPoints(pet.id, totalPoints, pet.bondPoints, pet.bondLevel)
+                    }
+                }
+                updateStreak()
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "adminCompleteAllTasks error", e)
+            }
+        }
+    }
+
+    fun adminResetTasks() {
+        viewModelScope.launch {
+            try {
+                petRepository.clearAllTasks()
+                val pets = petRepository.allPets.first()
+                pets.forEach { generateTasksForPet(it) }
+                prefsRepository.updateLastTaskDate(todayString())
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "adminResetTasks error", e)
+            }
+        }
+    }
+
+    fun adminUnlockAllAchievements() {
+        viewModelScope.launch {
+            try {
+                val achievements = petRepository.allAchievements.first()
+                achievements.filter { !it.isUnlocked }.forEach {
+                    petRepository.unlockAchievement(it.id)
+                }
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "adminUnlockAll error", e)
+            }
+        }
+    }
+
+    fun adminSetStreak(streak: Int) {
+        viewModelScope.launch {
+            try {
+                prefsRepository.updateStreak(streak)
+                prefsRepository.updateLastStreakDate(todayString())
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "adminSetStreak error", e)
+            }
+        }
+    }
+
+    fun adminVerifyAllPets() {
+        viewModelScope.launch {
+            try {
+                val pets = petRepository.allPets.first()
+                pets.filter { !it.isVerified }.forEach { pet ->
+                    petRepository.verifyPet(pet.id, "admin_verified")
+                }
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "adminVerifyAll error", e)
+            }
+        }
+    }
 }
 
 class PetQuestViewModelFactory(

@@ -1,5 +1,6 @@
 package com.example.petquest.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,13 +18,42 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
+fun ProfileScreen(
+    viewModel: PetQuestViewModel,
+    onAddPetClick: () -> Unit,
+    onAdminClick: () -> Unit
+) {
     val pets by viewModel.allPets.collectAsState()
     val achievements by viewModel.allAchievements.collectAsState()
     val userLevel by viewModel.userLevel.collectAsState()
     val totalBondPoints by viewModel.totalBondPoints.collectAsState()
     val streak by viewModel.userStreak.collectAsState()
     val unlockedCount = achievements.count { it.isUnlocked }
+
+    // Secret: tap the Level badge 5 times within 3 seconds to open Admin Mode
+    var tapCount by remember { mutableIntStateOf(0) }
+    var lastTapMs by remember { mutableLongStateOf(0L) }
+    var showAdminHint by remember { mutableStateOf(false) }
+
+    fun onLevelTap() {
+        val now = System.currentTimeMillis()
+        if (now - lastTapMs > 3000L) tapCount = 0
+        tapCount++
+        lastTapMs = now
+        if (tapCount >= 5) {
+            tapCount = 0
+            onAdminClick()
+        } else if (tapCount >= 3) {
+            showAdminHint = true
+        }
+    }
+
+    LaunchedEffect(showAdminHint) {
+        if (showAdminHint) {
+            kotlinx.coroutines.delay(1500)
+            showAdminHint = false
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -40,6 +70,7 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Level card — tap 5 times for admin
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -54,12 +85,27 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
                     ) {
                         Text("🧑‍🤝‍🐾", fontSize = 56.sp)
                         Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Level $userLevel",
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        // The secret tap target
+                        Box(
+                            modifier = Modifier.clickable { onLevelTap() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "Level $userLevel",
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                if (showAdminHint) {
+                                    Text(
+                                        "🔧 Keep tapping...",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
                         Spacer(Modifier.height(8.dp))
                         LinearProgressIndicator(
                             progress = { (totalBondPoints % 100) / 100f },
@@ -75,6 +121,7 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
                 }
             }
 
+            // Stats row
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -86,6 +133,7 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
                 }
             }
 
+            // Pet collection header
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -123,6 +171,7 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
                     }
                 }
             } else {
+                // 2-column grid of pet cards
                 item {
                     val rows = pets.chunked(2)
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
