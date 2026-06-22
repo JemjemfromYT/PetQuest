@@ -9,8 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.petquest.data.model.PetEntity
 import com.example.petquest.viewmodel.PetQuestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +40,6 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Level card
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -74,7 +75,6 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
                 }
             }
 
-            // Stats row
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -86,7 +86,6 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
                 }
             }
 
-            // Pet collection header
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -124,77 +123,22 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
                     }
                 }
             } else {
-                items(pets) { pet ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = CardDefaults.cardElevation(3.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Big emoji avatar
-                            Surface(
-                                modifier = Modifier.size(56.dp),
-                                shape = MaterialTheme.shapes.medium,
-                                color = MaterialTheme.colorScheme.secondaryContainer
+                item {
+                    val rows = pets.chunked(2)
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        rows.forEach { rowPets ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text(petEmoji(pet.type.name), fontSize = 30.sp)
+                                rowPets.forEach { pet ->
+                                    PetCollectionCard(
+                                        pet = pet,
+                                        modifier = Modifier.weight(1f)
+                                    )
                                 }
-                            }
-                            Spacer(Modifier.width(14.dp))
-                            // Pet info
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        pet.name,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp
-                                    )
-                                    if (pet.isVerified) {
-                                        Spacer(Modifier.width(6.dp))
-                                        Text("✅", fontSize = 13.sp)
-                                    }
-                                }
-                                Spacer(Modifier.height(2.dp))
-                                Text(
-                                    "${pet.type.name}  •  ${pet.personality.name}",
-                                    fontSize = 13.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                LinearProgressIndicator(
-                                    progress = { (pet.bondPoints % 100) / 100f },
-                                    modifier = Modifier.fillMaxWidth().height(4.dp)
-                                )
-                            }
-                            Spacer(Modifier.width(12.dp))
-                            // Level badge
-                            Surface(
-                                shape = MaterialTheme.shapes.small,
-                                color = MaterialTheme.colorScheme.primaryContainer
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Text(
-                                        "Lv.${pet.bondLevel}",
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontSize = 14.sp
-                                    )
-                                    Text(
-                                        "${pet.bondPoints} pts",
-                                        fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                if (rowPets.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }
@@ -203,6 +147,96 @@ fun ProfileScreen(viewModel: PetQuestViewModel, onAddPetClick: () -> Unit) {
             }
 
             item { Spacer(Modifier.height(8.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
+    val rarityColor = when (pet.type.rarity.name) {
+        "COMMON" -> MaterialTheme.colorScheme.tertiary
+        "UNCOMMON" -> MaterialTheme.colorScheme.secondary
+        "RARE" -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.error
+    }
+
+    Card(
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Surface(
+                modifier = Modifier.size(72.dp),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.secondaryContainer
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(petEmoji(pet.type.name), fontSize = 38.sp)
+                }
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    pet.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (pet.isVerified) {
+                    Spacer(Modifier.width(4.dp))
+                    Text("✅", fontSize = 12.sp)
+                }
+            }
+
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = rarityColor.copy(alpha = 0.15f)
+            ) {
+                Text(
+                    pet.type.rarity.name,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = rarityColor
+                )
+            }
+
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Text(
+                    "Lv.${pet.bondLevel}  •  ${pet.bondPoints} pts",
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            LinearProgressIndicator(
+                progress = { (pet.bondPoints % 100) / 100f },
+                modifier = Modifier.fillMaxWidth().height(4.dp)
+            )
+
+            Text(
+                pet.personality.name,
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

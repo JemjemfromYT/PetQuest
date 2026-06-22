@@ -25,19 +25,12 @@ fun PetDetailScreen(
     onVerifyClick: () -> Unit
 ) {
     val pets by viewModel.allPets.collectAsState()
-    val pet = pets.find { it.id == petId } ?: return
-
-    val rarityColor = when (pet.type.rarity.name) {
-        "COMMON" -> MaterialTheme.colorScheme.tertiary
-        "UNCOMMON" -> MaterialTheme.colorScheme.secondary
-        "RARE" -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.error
-    }
+    val pet = pets.find { it.id == petId }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(pet.name, fontWeight = FontWeight.Bold) },
+                title = { Text(pet?.name ?: "Pet Detail", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -49,6 +42,27 @@ fun PetDetailScreen(
             )
         }
     ) { padding ->
+        if (pet == null) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                if (pets.isEmpty()) {
+                    CircularProgressIndicator()
+                } else {
+                    LaunchedEffect(Unit) { onBackClick() }
+                }
+            }
+            return@Scaffold
+        }
+
+        val rarityColor = when (pet.type.rarity.name) {
+            "COMMON" -> MaterialTheme.colorScheme.tertiary
+            "UNCOMMON" -> MaterialTheme.colorScheme.secondary
+            "RARE" -> MaterialTheme.colorScheme.primary
+            else -> MaterialTheme.colorScheme.error
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()

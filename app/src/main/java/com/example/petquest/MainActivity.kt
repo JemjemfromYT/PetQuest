@@ -36,21 +36,15 @@ class MainActivity : ComponentActivity() {
                     )
 
                     val hasOnboarded by vm.hasOnboarded.collectAsState()
-                    var startChecked by remember { mutableStateOf(false) }
-                    var startDest by remember { mutableStateOf("welcome") }
 
-                    LaunchedEffect(hasOnboarded) {
-                        startDest = if (hasOnboarded) "main" else "welcome"
-                        startChecked = true
-                    }
-
-                    if (!startChecked) {
+                    if (hasOnboarded == null) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator()
                         }
                         return@Surface
                     }
 
+                    val startDest = if (hasOnboarded == true) "main" else "welcome"
                     val nav = rememberNavController()
 
                     NavHost(nav, startDestination = startDest) {

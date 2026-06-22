@@ -26,8 +26,8 @@ class PetQuestViewModel(
     val userStreak: StateFlow<Int> =
         prefsRepository.userStreak.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    val hasOnboarded: StateFlow<Boolean> =
-        prefsRepository.hasOnboarded.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val hasOnboarded: StateFlow<Boolean?> =
+        prefsRepository.hasOnboarded.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val totalBondPoints: StateFlow<Int> = allPets.map { pets ->
         pets.sumOf { it.bondPoints }
@@ -36,6 +36,16 @@ class PetQuestViewModel(
     val userLevel: StateFlow<Int> = totalBondPoints.map { points ->
         (points / 100) + 1
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
+
+    init {
+        viewModelScope.launch {
+            try {
+                checkDailyReset()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "daily reset error", e)
+            }
+        }
+    }
 
     private fun todayString(): String =
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -46,13 +56,24 @@ class PetQuestViewModel(
         return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
     }
 
+    private suspend fun checkDailyReset() {
+        val today = todayString()
+        val lastTaskDate = prefsRepository.lastTaskDate.first()
+        if (lastTaskDate != today) {
+            petRepository.clearAllTasks()
+            val pets = petRepository.allPets.first()
+            pets.forEach { pet -> generateTasksForPet(pet) }
+            prefsRepository.updateLastTaskDate(today)
+        }
+    }
+
     fun addPet(pet: PetEntity) {
         viewModelScope.launch {
             try {
                 petRepository.insertPet(pet)
                 prefsRepository.setOnboarded()
                 val pets = petRepository.allPets.first()
-                val inserted = pets.lastOrNull() ?: return@launch
+                val inserted = pets.maxByOrNull { it.id } ?: return@launch
                 generateTasksForPet(inserted)
                 checkAndUnlockAchievements()
             } catch (e: Exception) {
@@ -65,7 +86,8 @@ class PetQuestViewModel(
         viewModelScope.launch {
             try {
                 petRepository.completeTask(task.id)
-                val pet = allPets.value.find { it.id == task.petId } ?: return@launch
+                val pets = petRepository.allPets.first()
+                val pet = pets.find { it.id == task.petId } ?: return@launch
                 val points = if (task.type == TaskType.CORE) 10 else 5
                 petRepository.addBondPoints(pet.id, points, pet.bondPoints, pet.bondLevel)
                 updateStreak()
@@ -116,8 +138,8 @@ class PetQuestViewModel(
     }
 
     private suspend fun checkAndUnlockAchievements() {
-        val pets = allPets.value
-        val achievements = allAchievements.value
+        val pets = petRepository.allPets.first()
+        val achievements = petRepository.allAchievements.first()
         if (achievements.isEmpty()) return
 
         suspend fun unlock(title: String) {

@@ -16,11 +16,13 @@ class UserPreferencesRepository(context: Context) {
         val STREAK_KEY = intPreferencesKey("streak")
         val LAST_STREAK_DATE_KEY = stringPreferencesKey("last_streak_date")
         val HAS_ONBOARDED_KEY = booleanPreferencesKey("has_onboarded")
+        val LAST_TASK_DATE_KEY = stringPreferencesKey("last_task_date")
     }
 
     val userStreak: Flow<Int> = dataStore.data.map { it[STREAK_KEY] ?: 0 }
     val lastStreakDate: Flow<String> = dataStore.data.map { it[LAST_STREAK_DATE_KEY] ?: "" }
     val hasOnboarded: Flow<Boolean> = dataStore.data.map { it[HAS_ONBOARDED_KEY] ?: false }
+    val lastTaskDate: Flow<String> = dataStore.data.map { it[LAST_TASK_DATE_KEY] ?: "" }
 
     suspend fun updateStreak(streak: Int) {
         dataStore.edit { it[STREAK_KEY] = streak }
@@ -32,5 +34,9 @@ class UserPreferencesRepository(context: Context) {
 
     suspend fun setOnboarded() {
         dataStore.edit { it[HAS_ONBOARDED_KEY] = true }
+    }
+
+    suspend fun updateLastTaskDate(date: String) {
+        dataStore.edit { it[LAST_TASK_DATE_KEY] = date }
     }
 }

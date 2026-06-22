@@ -34,7 +34,12 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
         }
     ) { padding ->
         if (tasks.isEmpty()) {
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
@@ -54,7 +59,6 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Progress card
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -86,12 +90,13 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                     Spacer(Modifier.height(4.dp))
                 }
 
-                // Core section
                 if (core.isNotEmpty()) {
                     item {
-                        SectionHeader(emoji = "⚡", label = "Core Tasks", pts = "+10 pts",
+                        SectionHeader(
+                            emoji = "⚡", label = "Core Tasks", pts = "+10 pts",
                             color = MaterialTheme.colorScheme.primary,
-                            onColor = MaterialTheme.colorScheme.onPrimary)
+                            onColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     }
                     items(core, key = { it.id }) { task ->
                         val pet = pets.find { it.id == task.petId }
@@ -104,13 +109,14 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                     }
                 }
 
-                // Optional section
                 if (optional.isNotEmpty()) {
                     item {
                         Spacer(Modifier.height(8.dp))
-                        SectionHeader(emoji = "💡", label = "Optional Tasks", pts = "+5 pts",
+                        SectionHeader(
+                            emoji = "💡", label = "Optional Tasks", pts = "+5 pts",
                             color = MaterialTheme.colorScheme.secondary,
-                            onColor = MaterialTheme.colorScheme.onSecondary)
+                            onColor = MaterialTheme.colorScheme.onSecondary
+                        )
                     }
                     items(optional, key = { it.id }) { task ->
                         val pet = pets.find { it.id == task.petId }

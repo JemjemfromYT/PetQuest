@@ -25,6 +25,7 @@ fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
     "LIZARD" -> "🦎"
     "SNAKE" -> "🐍"
     "HEDGEHOG" -> "🦔"
+    "CHICKEN" -> "🐔"
     else -> "🐾"
 }
 
@@ -62,9 +63,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text("PetQuest 🐾", fontWeight = FontWeight.ExtraBold)
-                },
+                title = { Text("PetQuest 🐾", fontWeight = FontWeight.ExtraBold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -94,11 +93,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            "Today's Progress",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
+                        Text("Today's Progress", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         Spacer(Modifier.height(8.dp))
                         LinearProgressIndicator(
                             progress = { if (tasks.isEmpty()) 0f else doneTasks / tasks.size.toFloat() },
@@ -115,11 +110,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
             }
 
             item {
-                Text(
-                    "Your Pets",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Text("Your Pets", fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
 
             if (pets.isEmpty()) {
@@ -156,11 +147,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             Text(petEmoji(pet.type.name), fontSize = 40.sp)
                             Spacer(Modifier.width(14.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    pet.name,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 17.sp
-                                )
+                                Text(pet.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                                 Text(
                                     "${pet.type.name}  •  ${pet.personality.name}",
                                     fontSize = 13.sp,
