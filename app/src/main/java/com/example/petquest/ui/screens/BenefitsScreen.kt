@@ -1,6 +1,8 @@
 package com.example.petquest.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,11 +21,16 @@ fun BenefitsScreen(onContinue: () -> Unit) {
         "🏆" to "Unlock achievements as you grow",
         "📷" to "Verify your pet and earn bonus XP"
     )
+
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(Modifier.height(48.dp))
+
         Text(
             "Why PetQuest?",
             fontSize = 30.sp,
@@ -38,9 +45,12 @@ fun BenefitsScreen(onContinue: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(32.dp))
+
         benefits.forEach { (emoji, text) ->
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(emoji, fontSize = 28.sp)
@@ -48,12 +58,18 @@ fun BenefitsScreen(onContinue: () -> Unit) {
                 Text(text, fontSize = 16.sp)
             }
         }
+
         Spacer(Modifier.height(48.dp))
+
         Button(
             onClick = onContinue,
-            modifier = Modifier.fillMaxWidth().height(56.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
         ) {
             Text("Add My First Pet", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
+
+        Spacer(Modifier.height(24.dp))
     }
 }

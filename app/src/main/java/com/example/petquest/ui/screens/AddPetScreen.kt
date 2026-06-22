@@ -1,9 +1,12 @@
 package com.example.petquest.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,9 +35,12 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = petName,
                 onValueChange = { petName = it },
@@ -94,6 +100,7 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                     }
                 }
             }
+
             Spacer(Modifier.height(40.dp))
 
             Button(
@@ -106,15 +113,21 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                         )
                     )
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
                 enabled = petName.isNotBlank()
             ) {
-                Text("Save Pet", fontSize = 18.sp)
+                Text("Save Pet", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
+
             Spacer(Modifier.height(12.dp))
+
             TextButton(onClick = onBackClick) {
                 Text("Cancel", color = MaterialTheme.colorScheme.error)
             }
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
