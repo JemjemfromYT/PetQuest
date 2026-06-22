@@ -19,26 +19,34 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
-    val pets by viewModel.allPets.collectAsState()
+    val pets   by viewModel.allPets.collectAsState()
     val streak by viewModel.userStreak.collectAsState()
-    var streakInput by remember { mutableStateOf(streak.toString()) }
-    var snackMessage by remember { mutableStateOf("") }
+
+    // Keep streakInput in sync when streak loads from DataStore on first composition
+    var streakInput by remember(streak) { mutableStateOf(streak.toString()) }
+
+    // FIX: use a counter key instead of the message string so the effect only
+    // fires once per action, even when snackMessage resets back to "".
+    var snackMessage   by remember { mutableStateOf("") }
+    var snackTrigger   by remember { mutableIntStateOf(0) }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(snackMessage) {
-        if (snackMessage.isNotEmpty()) {
+    LaunchedEffect(snackTrigger) {
+        if (snackTrigger > 0 && snackMessage.isNotEmpty()) {
             snackbarHostState.showSnackbar(snackMessage)
-            snackMessage = ""
         }
+    }
+
+    fun showSnack(msg: String) {
+        snackMessage = msg
+        snackTrigger++
     }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = {
-                    Text("🔧 Admin Mode", fontWeight = FontWeight.Bold)
-                },
+                title = { Text("🔧 Admin Mode", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -55,7 +63,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Warning banner
+            // ── Warning banner ─────────────────────────────────────────────
             item {
                 Card(
                     colors = CardDefaults.cardColors(
@@ -84,10 +92,8 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                 }
             }
 
-            // Bond Points section
-            item {
-                AdminSectionHeader("💊 Bond Points")
-            }
+            // ── Bond Points section ────────────────────────────────────────
+            item { AdminSectionHeader("💊 Bond Points") }
 
             if (pets.isEmpty()) {
                 item {
@@ -98,7 +104,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                     )
                 }
             } else {
-                items(pets) { pet ->
+                items(pets, key = { it.id }) { pet ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
@@ -127,7 +133,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                                     OutlinedButton(
                                         onClick = {
                                             viewModel.adminAddBondPoints(pet.id, pts)
-                                            snackMessage = "+$pts pts added to ${pet.name}"
+                                            showSnack("+$pts pts added to ${pet.name}")
                                         },
                                         modifier = Modifier.weight(1f),
                                         contentPadding = PaddingValues(4.dp)
@@ -141,7 +147,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                 }
             }
 
-            // Tasks section
+            // ── Tasks section ──────────────────────────────────────────────
             item { AdminSectionHeader("📋 Tasks") }
 
             item {
@@ -149,7 +155,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                     Button(
                         onClick = {
                             viewModel.adminCompleteAllTasks()
-                            snackMessage = "All tasks completed!"
+                            showSnack("All tasks completed!")
                         },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
@@ -161,7 +167,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                     OutlinedButton(
                         onClick = {
                             viewModel.adminResetTasks()
-                            snackMessage = "Tasks reset!"
+                            showSnack("Tasks reset!")
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -170,14 +176,14 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                 }
             }
 
-            // Achievements section
+            // ── Achievements section ───────────────────────────────────────
             item { AdminSectionHeader("🏆 Achievements") }
 
             item {
                 Button(
                     onClick = {
                         viewModel.adminUnlockAllAchievements()
-                        snackMessage = "All achievements unlocked!"
+                        showSnack("All achievements unlocked!")
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
@@ -188,7 +194,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                 }
             }
 
-            // Streak section
+            // ── Streak section ─────────────────────────────────────────────
             item { AdminSectionHeader("🔥 Streak") }
 
             item {
@@ -208,7 +214,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                         onClick = {
                             val v = streakInput.toIntOrNull() ?: 0
                             viewModel.adminSetStreak(v)
-                            snackMessage = "Streak set to $v days"
+                            showSnack("Streak set to $v days")
                         },
                         modifier = Modifier.height(56.dp)
                     ) {
@@ -217,14 +223,14 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                 }
             }
 
-            // Verification section
+            // ── Verification section ───────────────────────────────────────
             item { AdminSectionHeader("📷 Verification") }
 
             item {
                 Button(
                     onClick = {
                         viewModel.adminVerifyAllPets()
-                        snackMessage = "All pets verified!"
+                        showSnack("All pets verified!")
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -232,7 +238,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                 }
             }
 
-            // Close button at the bottom
+            // ── Close button ───────────────────────────────────────────────
             item {
                 Spacer(Modifier.height(8.dp))
                 Button(

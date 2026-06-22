@@ -46,21 +46,15 @@ class PetQuestViewModel(
 
     // ─── V1.2 Collection flows ─────────────────────────────────────────────
 
-    /** Set of every PetType the player currently owns at least one of. */
     val collectedSpecies: StateFlow<Set<PetType>> = allPets.map { pets ->
         pets.map { it.type }.toSet()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    /** 0–100 integer percentage of species collected out of all 29. */
     val collectionPercentage: StateFlow<Int> = collectedSpecies.map { species ->
         val total = PetType.entries.size
         if (total == 0) 0 else (species.size * 100) / total
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    /**
-     * Per-rarity collection stats.
-     * Map key = Rarity, value = Pair(collectedCount, totalCount).
-     */
     val rarityCollectionStats: StateFlow<Map<Rarity, Pair<Int, Int>>> =
         collectedSpecies.map { species ->
             Rarity.entries.associateWith { rarity ->
@@ -98,7 +92,8 @@ class PetQuestViewModel(
         val lastTaskDate = prefsRepository.lastTaskDate.first()
         if (lastTaskDate != today) {
             petRepository.clearAllTasks()
-            val pets = petRepository.allPets.first()
+            // Use the StateFlow value — it's already loaded and live
+            val pets = allPets.first { it.isNotEmpty() || petRepository.allPets.first().isEmpty() }
             pets.forEach { pet -> generateTasksForPet(pet) }
             prefsRepository.updateLastTaskDate(today)
         }
@@ -111,7 +106,8 @@ class PetQuestViewModel(
             try {
                 petRepository.insertPet(pet)
                 prefsRepository.setOnboarded()
-                val pets = petRepository.allPets.first()
+                // Wait for the StateFlow to emit the new pet
+                val pets = allPets.first { list -> list.any { it.name == pet.name && it.type == pet.type } }
                 val inserted = pets.maxByOrNull { it.id } ?: return@launch
                 generateTasksForPet(inserted)
                 checkAndUnlockAchievements()
@@ -146,8 +142,8 @@ class PetQuestViewModel(
         viewModelScope.launch {
             try {
                 petRepository.completeTask(task.id)
-                val pets = petRepository.allPets.first()
-                val pet = pets.find { it.id == task.petId } ?: return@launch
+                // Read from the live StateFlow — never the cold repository Flow
+                val pet = allPets.value.find { it.id == task.petId } ?: return@launch
 
                 val points = if (task.type == TaskType.CORE) 10 else 5
                 val oldLevel = pet.bondLevel
@@ -245,8 +241,9 @@ class PetQuestViewModel(
     }
 
     private suspend fun checkAndUnlockAchievements() {
-        val pets = petRepository.allPets.first()
-        val achievements = petRepository.allAchievements.first()
+        // Use StateFlow.value — always the latest committed data, never races
+        val pets         = allPets.value
+        val achievements = allAchievements.value
         if (achievements.isEmpty()) return
 
         suspend fun unlock(title: String) {
@@ -254,21 +251,21 @@ class PetQuestViewModel(
             if (a != null && !a.isUnlocked) petRepository.unlockAchievement(a.id)
         }
 
-        val distinctTypes  = pets.map { it.type }.toSet()
-        val ownedRarities  = distinctTypes.map { it.rarity }.toSet()
+        val distinctTypes = pets.map { it.type }.toSet()
+        val ownedRarities = distinctTypes.map { it.rarity }.toSet()
 
-        // ── V1.0 / V1.1 achievements ──────────────────────────────────────
+        // ── V1.0 / V1.1 ───────────────────────────────────────────────────
         if (pets.isNotEmpty())                       unlock("First Pet")
         if (pets.any { it.isVerified })              unlock("First Verification")
         if (pets.size >= 3)                          unlock("Pet Lover")
         if (pets.any { it.bondLevel >= 5 })          unlock("Bond Master")
         if (prefsRepository.userStreak.first() >= 7) unlock("7-Day Streak")
 
-        // ── V1.2 collection achievements ──────────────────────────────────
-        if (pets.any { it.type.rarity == Rarity.EPIC })          unlock("Epic Tamer")
-        if (Rarity.entries.all { it in ownedRarities })          unlock("Rarity Hunter")
-        if (distinctTypes.size >= 5)                             unlock("Species Collector")
-        if (distinctTypes.size >= 10)                            unlock("Animal Explorer")
+        // ── V1.2 collection ────────────────────────────────────────────────
+        if (pets.any { it.type.rarity == Rarity.EPIC })  unlock("Epic Tamer")
+        if (Rarity.entries.all { it in ownedRarities })  unlock("Rarity Hunter")
+        if (distinctTypes.size >= 5)                     unlock("Species Collector")
+        if (distinctTypes.size >= 10)                    unlock("Animal Explorer")
     }
 
     // ─── Admin / Debug Functions ───────────────────────────────────────────
@@ -276,10 +273,11 @@ class PetQuestViewModel(
     fun adminAddBondPoints(petId: Int, points: Int) {
         viewModelScope.launch {
             try {
-                val pet = petRepository.allPets.first().find { it.id == petId } ?: return@launch
-                val oldLevel = pet.bondLevel
+                // FIX: read from the live StateFlow.value, not the cold repository Flow
+                val pet = allPets.value.find { it.id == petId } ?: return@launch
+                val oldLevel  = pet.bondLevel
                 val newPoints = pet.bondPoints + points
-                val newLevel = (newPoints / 100) + 1
+                val newLevel  = (newPoints / 100) + 1
                 petRepository.addBondPoints(petId, points, pet.bondPoints, pet.bondLevel)
                 if (newLevel > oldLevel) {
                     _levelUpEvent.emit(LevelUpEvent(pet.name, oldLevel, newLevel))
@@ -294,18 +292,19 @@ class PetQuestViewModel(
     fun adminCompleteAllTasks() {
         viewModelScope.launch {
             try {
-                val tasks = petRepository.todaysTasks.first()
+                // FIX: read from live StateFlows, not cold repository Flows
+                val tasks           = todaysTasks.value
                 val incompleteTasks = tasks.filter { !it.isCompleted }
                 incompleteTasks.forEach { task -> petRepository.completeTask(task.id) }
-                val pets = petRepository.allPets.first()
+                val pets = allPets.value
                 pets.forEach { pet ->
                     val totalPoints = incompleteTasks
                         .filter { it.petId == pet.id }
                         .sumOf { if (it.type == TaskType.CORE) 10 else 5 as Int }
                     if (totalPoints > 0) {
-                        val oldLevel = pet.bondLevel
+                        val oldLevel  = pet.bondLevel
                         val newPoints = pet.bondPoints + totalPoints
-                        val newLevel = (newPoints / 100) + 1
+                        val newLevel  = (newPoints / 100) + 1
                         petRepository.addBondPoints(pet.id, totalPoints, pet.bondPoints, pet.bondLevel)
                         if (newLevel > oldLevel) {
                             _levelUpEvent.emit(LevelUpEvent(pet.name, oldLevel, newLevel))
@@ -324,8 +323,8 @@ class PetQuestViewModel(
         viewModelScope.launch {
             try {
                 petRepository.clearAllTasks()
-                val pets = petRepository.allPets.first()
-                pets.forEach { generateTasksForPet(it) }
+                // FIX: read from live StateFlow.value
+                allPets.value.forEach { generateTasksForPet(it) }
                 prefsRepository.updateLastTaskDate(todayString())
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "adminResetTasks error", e)
@@ -336,10 +335,10 @@ class PetQuestViewModel(
     fun adminUnlockAllAchievements() {
         viewModelScope.launch {
             try {
-                val achievements = petRepository.allAchievements.first()
-                achievements.filter { !it.isUnlocked }.forEach {
-                    petRepository.unlockAchievement(it.id)
-                }
+                // FIX: read from live StateFlow.value
+                allAchievements.value
+                    .filter { !it.isUnlocked }
+                    .forEach { petRepository.unlockAchievement(it.id) }
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "adminUnlockAll error", e)
             }
@@ -361,10 +360,10 @@ class PetQuestViewModel(
     fun adminVerifyAllPets() {
         viewModelScope.launch {
             try {
-                val pets = petRepository.allPets.first()
-                pets.filter { !it.isVerified }.forEach { pet ->
-                    petRepository.verifyPet(pet.id, "admin_verified")
-                }
+                // FIX: read from live StateFlow.value
+                allPets.value
+                    .filter { !it.isVerified }
+                    .forEach { pet -> petRepository.verifyPet(pet.id, "admin_verified") }
                 checkAndUnlockAchievements()
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "adminVerifyAll error", e)
