@@ -186,7 +186,12 @@ fun ProfileScreen(
                         modifier = Modifier.padding(20.dp).fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("🧑‍🤝‍🐾", fontSize = 56.sp)
+                        Image(
+                            painter = painterResource(id = R.drawable.profile_banner),
+                            contentDescription = "Person bonding with pet",
+                            modifier = Modifier.size(110.dp),
+                            contentScale = ContentScale.Fit
+                        )
                         Spacer(Modifier.height(8.dp))
                         Box(
                             modifier = Modifier.clickable { onLevelTap() },
