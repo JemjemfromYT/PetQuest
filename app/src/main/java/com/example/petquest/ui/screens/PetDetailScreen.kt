@@ -1,6 +1,7 @@
 package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,12 +16,15 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
+import com.example.petquest.data.model.Virtue
+import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.LevelUpEvent
 import com.example.petquest.viewmodel.PetQuestViewModel
 
@@ -39,7 +43,6 @@ fun PetDetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var levelUpEvent     by remember { mutableStateOf<LevelUpEvent?>(null) }
 
-    // Collect level-up events while this screen is visible
     LaunchedEffect(Unit) {
         viewModel.levelUpEvent.collect { event ->
             if (event.petName == pet?.name) {
@@ -154,7 +157,7 @@ fun PetDetailScreen(
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Photo or emoji
+            // ── Photo or emoji ────────────────────────────────────────────────
             Card(
                 modifier  = Modifier.size(200.dp),
                 elevation = CardDefaults.cardElevation(8.dp)
@@ -186,18 +189,19 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatCard(Modifier.weight(1f), "🎯", pet.type.name,        "Type")
-                StatCard(Modifier.weight(1f), "💫", pet.virtue.name,      "Virtue")
-            }
-            Spacer(Modifier.height(10.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatCard(Modifier.weight(1f), "🏅", "Lv.${pet.bondLevel}", "Bond Level")
-                StatCard(Modifier.weight(1f), "⭐", "${pet.bondPoints}",   "Bond Pts")
+            // ── Stat cards: Type | Bond Level | Bond Points ───────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                StatCard(Modifier.weight(1f), "🎯", pet.type.name.replace("_", " "), "Type")
+                StatCard(Modifier.weight(1f), "🏅", "Lv.${pet.bondLevel}",           "Bond Level")
+                StatCard(Modifier.weight(1f), "⭐", "${pet.bondPoints}",              "Bond Pts")
             }
 
             Spacer(Modifier.height(12.dp))
 
+            // ── Bond progress bar ─────────────────────────────────────────────
             LinearProgressIndicator(
                 progress = { (pet.bondPoints % 100) / 100f },
                 modifier = Modifier.fillMaxWidth().height(8.dp)
@@ -208,9 +212,14 @@ fun PetDetailScreen(
                 color    = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
 
-            // Verification section
+            // ── Virtue Identity Card ──────────────────────────────────────────
+            VirtueIdentityCard(virtue = pet.virtue)
+
+            Spacer(Modifier.height(20.dp))
+
+            // ── Verification section ──────────────────────────────────────────
             if (pet.isVerified) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -239,6 +248,63 @@ fun PetDetailScreen(
             }
 
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+// ─── Virtue Identity Card ─────────────────────────────────────────────────────
+
+@Composable
+fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
+    val info = VirtueConfig[virtue]
+
+    Card(
+        modifier  = modifier.fillMaxWidth(),
+        colors    = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(
+            modifier            = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            // Large emblem
+            Image(
+                painter            = painterResource(id = info.emblemRes),
+                contentDescription = "${virtue.name} emblem",
+                modifier           = Modifier.size(88.dp),
+                contentScale       = ContentScale.Fit
+            )
+
+            Spacer(Modifier.height(4.dp))
+
+            // Virtue name (e.g. WISDOM)
+            Text(
+                text       = virtue.name,
+                fontSize   = 20.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color      = MaterialTheme.colorScheme.primary
+            )
+
+            // Virtue title (e.g. "The Sage")
+            Text(
+                text       = info.title,
+                fontSize   = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+
+            // Virtue description
+            Text(
+                text      = info.description,
+                fontSize  = 13.sp,
+                color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -319,11 +385,11 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
             Column(
-                modifier                = Modifier
+                modifier            = Modifier
                     .fillMaxWidth()
                     .padding(32.dp),
-                horizontalAlignment     = Alignment.CenterHorizontally,
-                verticalArrangement     = Arrangement.spacedBy(12.dp)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text("🎉  ✨  🎊  ✨  🎉", fontSize = 20.sp)
 
@@ -344,13 +410,12 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
 
                 Text(
                     "${event.petName} reached Bond Level ${event.newLevel}!",
-                    fontSize  = 15.sp,
-                    textAlign = TextAlign.Center,
+                    fontSize   = 15.sp,
+                    textAlign  = TextAlign.Center,
                     fontWeight = FontWeight.SemiBold,
-                    modifier  = Modifier.alpha(contentAlpha)
+                    modifier   = Modifier.alpha(contentAlpha)
                 )
 
-                // Level progression display
                 Row(
                     modifier              = Modifier.alpha(contentAlpha),
                     horizontalArrangement = Arrangement.Center,

@@ -1,5 +1,6 @@
 package com.example.petquest.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,11 +10,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.petquest.data.model.PetType
+import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 
 fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
@@ -221,6 +226,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 }
             } else {
                 items(pets) { pet ->
+                    val virtueInfo = VirtueConfig[pet.virtue]
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -228,26 +234,72 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         elevation = CardDefaults.cardElevation(3.dp)
                     ) {
                         Row(
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(petEmoji(pet.type.name), fontSize = 40.sp)
-                            Spacer(Modifier.width(14.dp))
+                            // Pet species emoji
+                            Text(petEmoji(pet.type.name), fontSize = 38.sp)
+
+                            Spacer(Modifier.width(12.dp))
+
+                            // Pet name + species
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(pet.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                                 Text(
-                                    "${pet.type.name.replace("_", " ")}  •  ${pet.virtue.name}",
-                                    fontSize = 13.sp,
+                                    pet.name,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    pet.type.name.replace("_", " "),
+                                    fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+
+                            Spacer(Modifier.width(10.dp))
+
+                            // Virtue emblem + title
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Surface(
+                                    modifier = Modifier.size(40.dp),
+                                    shape    = MaterialTheme.shapes.small,
+                                    color    = MaterialTheme.colorScheme.surfaceVariant
+                                ) {
+                                    Image(
+                                        painter            = painterResource(id = virtueInfo.emblemRes),
+                                        contentDescription = "${pet.virtue.name} emblem",
+                                        modifier           = Modifier
+                                            .fillMaxSize()
+                                            .padding(4.dp),
+                                        contentScale       = ContentScale.Fit
+                                    )
+                                }
+                                Spacer(Modifier.height(3.dp))
+                                Text(
+                                    virtueInfo.title,
+                                    fontSize  = 9.sp,
+                                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines  = 1,
+                                    overflow  = TextOverflow.Ellipsis
+                                )
+                            }
+
+                            Spacer(Modifier.width(10.dp))
+
+                            // Bond level + verified badge
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
                                     "Lv.${pet.bondLevel}",
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color      = MaterialTheme.colorScheme.primary,
+                                    fontSize   = 13.sp
                                 )
-                                if (pet.isVerified) Text("✅", fontSize = 14.sp)
+                                if (pet.isVerified) Text("✅", fontSize = 13.sp)
                             }
                         }
                     }

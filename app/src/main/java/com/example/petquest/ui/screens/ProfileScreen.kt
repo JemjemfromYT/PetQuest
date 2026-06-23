@@ -1,16 +1,3 @@
-// ============================================================
-// FILE: app/src/main/java/com/example/petquest/ui/screens/ProfileScreen.kt
-//       (COMPLETE FILE — replace fully)
-// CHANGES (V1.5):
-//   1. Added notification permission launcher (POST_NOTIFICATIONS, API 33+)
-//   2. Added "Settings" card at the bottom of the LazyColumn with:
-//      - Daily Reminders toggle (Switch)
-//      - Current reminder time display
-//      - "Change Time" button opening a Material3 TimePicker dialog
-//   3. WorkManager schedule/cancel called directly from UI (owns Context)
-//   4. All existing profile content is unchanged
-// ============================================================
-
 package com.example.petquest.ui.screens
 
 import android.Manifest
@@ -18,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -30,7 +18,9 @@ import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.petquest.data.model.PetEntity
 import com.example.petquest.data.model.PetType
+import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 import com.example.petquest.worker.ReminderWorker
 import java.util.Locale
@@ -60,7 +51,6 @@ fun ProfileScreen(
     val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
     val collectionPercentage by viewModel.collectionPercentage.collectAsState()
 
-    // V1.5 — Notification prefs from ViewModel
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val notificationHour     by viewModel.notificationHour.collectAsState()
     val notificationMinute   by viewModel.notificationMinute.collectAsState()
@@ -91,26 +81,20 @@ fun ProfileScreen(
         }
     }
 
-    // ── V1.5: Time picker dialog state ────────────────────────────────────
     var showTimePicker by remember { mutableStateOf(false) }
 
-    // ── V1.5: POST_NOTIFICATIONS permission launcher (Android 13+ only) ──
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
         if (granted) {
-            // Permission granted — save preference and schedule the worker
             viewModel.setNotificationsEnabled(true)
             ReminderWorker.schedule(context, notificationHour, notificationMinute)
         }
-        // If denied, the toggle stays off (we don't change the preference)
     }
 
-    // ── Helper: enable or disable notifications ────────────────────────────
     fun toggleNotifications(enable: Boolean) {
         if (enable) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                // Android 13+: must request POST_NOTIFICATIONS at runtime
                 val granted = ContextCompat.checkSelfPermission(
                     context,
                     Manifest.permission.POST_NOTIFICATIONS
@@ -123,7 +107,6 @@ fun ProfileScreen(
                     permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             } else {
-                // Android 12 and below: no runtime permission needed
                 viewModel.setNotificationsEnabled(true)
                 ReminderWorker.schedule(context, notificationHour, notificationMinute)
             }
@@ -133,7 +116,6 @@ fun ProfileScreen(
         }
     }
 
-    // ── Time picker dialog ─────────────────────────────────────────────────
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState(
             initialHour   = notificationHour,
@@ -154,7 +136,6 @@ fun ProfileScreen(
                     val h = timePickerState.hour
                     val m = timePickerState.minute
                     viewModel.setReminderTime(h, m)
-                    // Reschedule with the new time if notifications are on
                     if (notificationsEnabled) {
                         ReminderWorker.schedule(context, h, m)
                     }
@@ -167,7 +148,6 @@ fun ProfileScreen(
         )
     }
 
-    // ── Screen scaffold ───────────────────────────────────────────────────
     Scaffold(
         topBar = {
             TopAppBar(
@@ -343,7 +323,7 @@ fun ProfileScreen(
                 }
             }
 
-            // ── V1.5 Settings card ─────────────────────────────────────────
+            // ── Settings card ──────────────────────────────────────────────
             item {
                 SettingsCard(
                     notificationsEnabled = notificationsEnabled,
@@ -359,7 +339,7 @@ fun ProfileScreen(
     }
 }
 
-// ─── V1.5 Settings Card ────────────────────────────────────────────────────
+// ─── Settings Card ─────────────────────────────────────────────────────────
 
 @Composable
 private fun SettingsCard(
@@ -387,7 +367,6 @@ private fun SettingsCard(
 
             HorizontalDivider(modifier = Modifier.padding(bottom = 12.dp))
 
-            // ── Notification toggle row ────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -429,7 +408,6 @@ private fun SettingsCard(
                 )
             }
 
-            // ── Reminder time row (only visible when enabled) ──────────────
             if (notificationsEnabled) {
                 Spacer(Modifier.height(12.dp))
                 HorizontalDivider()
@@ -475,7 +453,7 @@ private fun formatTime(hour: Int, minute: Int): String {
     return String.format(Locale.getDefault(), "%d:%02d %s", h12, minute, amPm)
 }
 
-// ─── Existing PetCollectionCard (UNCHANGED) ────────────────────────────────
+// ─── Pet Collection Card ────────────────────────────────────────────────────
 
 @Composable
 private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
@@ -485,6 +463,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
         "RARE"     -> MaterialTheme.colorScheme.primary
         else       -> MaterialTheme.colorScheme.error
     }
+    val virtueInfo = VirtueConfig[pet.virtue]
 
     Card(
         modifier = modifier,
@@ -498,6 +477,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Pet species emoji
             Surface(
                 modifier = Modifier.size(72.dp),
                 shape = MaterialTheme.shapes.large,
@@ -508,6 +488,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 }
             }
 
+            // Name + verified badge
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -525,6 +506,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 }
             }
 
+            // Rarity badge
             Surface(
                 shape = MaterialTheme.shapes.small,
                 color = rarityColor.copy(alpha = 0.15f)
@@ -538,6 +520,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 )
             }
 
+            // Bond level + points
             Surface(
                 shape = MaterialTheme.shapes.small,
                 color = MaterialTheme.colorScheme.primaryContainer
@@ -551,16 +534,33 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 )
             }
 
+            // Bond progress bar
             LinearProgressIndicator(
                 progress = { (pet.bondPoints % 100) / 100f },
                 modifier = Modifier.fillMaxWidth().height(4.dp)
             )
 
-            Text(
-                pet.virtue.name,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            // Virtue emblem + title
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    painter            = painterResource(id = virtueInfo.emblemRes),
+                    contentDescription = "${pet.virtue.name} emblem",
+                    modifier           = Modifier.size(22.dp),
+                    contentScale       = ContentScale.Fit
+                )
+                Spacer(Modifier.width(5.dp))
+                Text(
+                    virtueInfo.title,
+                    fontSize  = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines  = 1,
+                    overflow  = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
