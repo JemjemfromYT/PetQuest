@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.petquest.R
 import com.example.petquest.data.model.PetType
 import com.example.petquest.data.model.Rarity
 import com.example.petquest.viewmodel.PetQuestViewModel
@@ -41,7 +42,6 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
         else PetType.entries.filter { it.rarity == selectedRarity }
     }
 
-    // Animated collection progress
     val collectionProgress by animateFloatAsState(
         targetValue = if (totalSpecies == 0) 0f else collectedCount / totalSpecies.toFloat(),
         animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
@@ -100,7 +100,6 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    // Milestone chips — text only, no emojis
                     val milestones = listOf(25, 50, 75, 100)
                     val reached = milestones.filter { collectionPercentage >= it }
                     if (reached.isNotEmpty()) {
@@ -208,10 +207,9 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
 private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
     val rarityColor = encyclopediaRarityColor(petType.rarity)
 
-    // Fade in on first appearance
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(petType.name) { visible = true }
-    val alpha by animateFloatAsState(
+    val cardAlpha by animateFloatAsState(
         targetValue = if (visible) 1f else 0f,
         animationSpec = tween(durationMillis = 250),
         label = "species_alpha_${petType.name}"
@@ -220,7 +218,7 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .alpha(alpha),
+            .alpha(cardAlpha),
         elevation = CardDefaults.cardElevation(if (isCollected) 4.dp else 1.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isCollected)
@@ -241,53 +239,21 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    // PNG-ready: replace with per-species drawable when artwork available.
-                    // Uncollected species show a lock placeholder instead of ❓ emoji.
-                    Surface(
-                        modifier = Modifier.size(52.dp),
-                        shape = MaterialTheme.shapes.medium,
-                        color = if (isCollected)
-                            rarityColor.copy(alpha = 0.12f)
-                        else
-                            MaterialTheme.colorScheme.surfaceVariant
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            if (isCollected) {
-                                // First two letters of species name as monogram
-                                Text(
-                                    petType.name.take(2),
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = rarityColor
-                                )
-                            } else {
-                                // Locked appearance — not emoji
-                                Text(
-                                    "?",
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                                )
-                            }
-                        }
-                    }
+                    // Pet species emoji — restored original visual identity
+                    Text(
+                        text = if (isCollected) petEmoji(petType.name) else "❓",
+                        fontSize = 42.sp,
+                        color = if (isCollected) Color.Unspecified
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                    )
                 }
-
                 if (isCollected) {
-                    Surface(
-                        modifier = Modifier.size(18.dp),
-                        shape    = MaterialTheme.shapes.extraSmall,
-                        color    = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                "✓",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Collected",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
 

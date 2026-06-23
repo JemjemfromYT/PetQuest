@@ -27,7 +27,19 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
     val unlockedCount = achievements.count { it.isUnlocked }
     val totalCount    = achievements.size
 
-    // Animated overall progress
+    // Achievement identity icons — restored from original
+    val emojiMap = mapOf(
+        "First Pet"          to "🐾",
+        "First Verification" to "📷",
+        "Pet Lover"          to "❤️",
+        "Bond Master"        to "👑",
+        "7-Day Streak"       to "🔥",
+        "Epic Tamer"         to "🐉",
+        "Rarity Hunter"      to "🎯",
+        "Species Collector"  to "🗂️",
+        "Animal Explorer"    to "🌍"
+    )
+
     val overallProgress by animateFloatAsState(
         targetValue = if (totalCount == 0) 0f else unlockedCount / totalCount.toFloat(),
         animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
@@ -50,7 +62,7 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 EmptyStateCard(
-                    imageRes = com.example.petquest.R.drawable.empty_achievements,
+                    imageRes = R.drawable.empty_achievements,
                     title = "No Achievements Yet",
                     description = "Add pets, complete tasks, and build bonds to earn achievements.",
                     actionLabel = "Get Started",
@@ -142,7 +154,6 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                     label = "ach_alpha_$index"
                 )
 
-                // Unlock scale "pop" — only for unlocked achievements
                 var unlockAnimStarted by remember { mutableStateOf(false) }
                 LaunchedEffect(a.isUnlocked) {
                     if (a.isUnlocked) {
@@ -177,33 +188,22 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Achievement icon: solid circle for unlocked, faded lock for locked
+                        // Achievement icon: species/theme emoji for unlocked, Lock for locked
                         Box(
                             modifier = Modifier.size(48.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             if (a.isUnlocked) {
-                                Surface(
-                                    modifier = Modifier.size(44.dp),
-                                    shape    = MaterialTheme.shapes.medium,
-                                    color    = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text(
-                                            // First letter as a bold monogram — no emojis
-                                            a.title.firstOrNull()?.uppercase() ?: "A",
-                                            fontSize = 22.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
+                                Text(
+                                    text = emojiMap[a.title] ?: "⭐",
+                                    fontSize = 36.sp
+                                )
                             } else {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
                                     contentDescription = "Locked",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
-                                    modifier = Modifier.size(30.dp)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                    modifier = Modifier.size(32.dp)
                                 )
                             }
                         }

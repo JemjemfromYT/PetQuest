@@ -8,6 +8,9 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +28,42 @@ import com.example.petquest.R
 import com.example.petquest.data.model.PetType
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
+
+// ---------------------------------------------------------------------------
+// petEmoji — species identity visual used across all screens
+// ---------------------------------------------------------------------------
+fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
+    "DOG"        -> "🐶"
+    "CAT"        -> "🐱"
+    "RABBIT"     -> "🐰"
+    "HAMSTER"    -> "🐹"
+    "BIRD"       -> "🦜"
+    "FISH"       -> "🐟"
+    "TURTLE"     -> "🐢"
+    "LIZARD"     -> "🦎"
+    "SNAKE"      -> "🐍"
+    "HEDGEHOG"   -> "🦔"
+    "CHICKEN"    -> "🐔"
+    "GUINEA_PIG" -> "🐭"
+    "FERRET"     -> "🦦"
+    "HORSE"      -> "🐴"
+    "DUCK"       -> "🦆"
+    "FROG"       -> "🐸"
+    "CRAB"       -> "🦀"
+    "MONKEY"     -> "🐒"
+    "FOX"        -> "🦊"
+    "OWL"        -> "🦉"
+    "PENGUIN"    -> "🐧"
+    "PANDA"      -> "🐼"
+    "GOAT"       -> "🐐"
+    "PIG"        -> "🐷"
+    "COW"        -> "🐄"
+    "SHEEP"      -> "🐑"
+    "DEER"       -> "🦌"
+    "BEAR"       -> "🐻"
+    "WOLF"       -> "🐺"
+    else         -> "🐾"
+}
 
 // ---------------------------------------------------------------------------
 // StatCard — supports an optional PNG icon via painterResource
@@ -89,14 +128,12 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     val speciesCount = collectedSpecies.size
     val totalSpecies = PetType.entries.size
 
-    // Animated collection progress
     val collectionProgress by animateFloatAsState(
         targetValue = if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat(),
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
         label = "collection_progress"
     )
 
-    // Animated today's progress
     val todayProgress by animateFloatAsState(
         targetValue = if (tasks.isEmpty()) 0f else doneTasks / tasks.size.toFloat(),
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
@@ -236,13 +273,12 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     val virtueInfo = VirtueConfig[pet.virtue]
                     val isVerified = pet.isVerified
 
-                    // Staggered fade-in + slide-up
                     var visible by remember { mutableStateOf(false) }
                     LaunchedEffect(pet.id) {
                         kotlinx.coroutines.delay(index * 60L)
                         visible = true
                     }
-                    val alpha by animateFloatAsState(
+                    val cardAlpha by animateFloatAsState(
                         targetValue = if (visible) 1f else 0f,
                         animationSpec = tween(durationMillis = 300),
                         label = "pet_alpha_$index"
@@ -253,7 +289,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         label = "pet_offset_$index"
                     )
 
-                    // Press scale feedback
                     val interactionSource = remember { MutableInteractionSource() }
                     val isPressed by interactionSource.collectIsPressedAsState()
                     val cardScale by animateFloatAsState(
@@ -266,7 +301,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .offset(y = offsetY)
-                            .alpha(if (isVerified) alpha else alpha * 0.55f)
+                            .alpha(if (isVerified) cardAlpha else cardAlpha * 0.55f)
                             .scale(cardScale)
                             .clickable(
                                 interactionSource = interactionSource,
@@ -284,26 +319,22 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // ── Lock icon for unverified; empty space for verified ──
-                            Box(
-                                modifier = Modifier.size(48.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
+                            // ── Pet species emoji + lock overlay for unverified ──
+                            Box(contentAlignment = Alignment.BottomEnd) {
+                                Text(petEmoji(pet.type.name), fontSize = 38.sp)
                                 if (!isVerified) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.ic_locked),
-                                        contentDescription = "Locked",
-                                        modifier = Modifier.size(32.dp),
-                                        contentScale = ContentScale.Fit
-                                    )
-                                } else {
-                                    // Verified check icon
-                                    Image(
-                                        painter = painterResource(id = R.drawable.ic_verified),
-                                        contentDescription = "Verified",
-                                        modifier = Modifier.size(32.dp),
-                                        contentScale = ContentScale.Fit
-                                    )
+                                    Surface(
+                                        shape = MaterialTheme.shapes.extraSmall,
+                                        color = MaterialTheme.colorScheme.errorContainer,
+                                        modifier = Modifier.size(16.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Lock,
+                                            contentDescription = "Locked",
+                                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                                            modifier = Modifier.padding(2.dp)
+                                        )
+                                    }
                                 }
                             }
 
@@ -330,7 +361,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         color = MaterialTheme.colorScheme.errorContainer
                                     ) {
                                         Text(
-                                            "Unverified",
+                                            "Verification Required",
                                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.SemiBold,
@@ -342,9 +373,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                             Spacer(Modifier.width(10.dp))
 
-                            // Virtue emblem — visually dominant
+                            // Virtue emblem — kept alongside pet identity
                             Surface(
-                                modifier = Modifier.size(44.dp),
+                                modifier = Modifier.size(40.dp),
                                 shape = MaterialTheme.shapes.small,
                                 color = MaterialTheme.colorScheme.surfaceVariant
                             ) {
@@ -360,7 +391,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                             Spacer(Modifier.width(10.dp))
 
-                            // Bond level
+                            // Bond level + verification badge
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
                                     "Lv.${pet.bondLevel}",
@@ -372,11 +403,38 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     fontSize = 13.sp
                                 )
                                 Spacer(Modifier.height(4.dp))
-                                Text(
-                                    pet.virtue.name,
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                if (isVerified) {
+                                    Surface(
+                                        shape = MaterialTheme.shapes.extraSmall,
+                                        color = MaterialTheme.colorScheme.tertiaryContainer
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Shield,
+                                                contentDescription = "Verified",
+                                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                modifier = Modifier.size(10.dp)
+                                            )
+                                            Text(
+                                                "Verified",
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = "Unverified",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
                             }
                         }
                     }

@@ -514,19 +514,25 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Virtue emblem as primary visual identity (replaces emoji)
-            Surface(
-                modifier = Modifier.size(72.dp),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.secondaryContainer
-            ) {
-                Box(contentAlignment = Alignment.Center) {
+            // Pet species emoji as primary visual; virtue emblem as small corner badge
+            Box(contentAlignment = Alignment.TopEnd) {
+                // Large species emoji
+                Text(
+                    text = petEmoji(pet.type.name),
+                    fontSize = 52.sp
+                )
+                // Virtue emblem badge in top-right corner
+                Surface(
+                    modifier = Modifier.size(24.dp),
+                    shape = MaterialTheme.shapes.extraSmall,
+                    color = MaterialTheme.colorScheme.secondaryContainer
+                ) {
                     Image(
                         painter = painterResource(id = virtueInfo.emblemRes),
                         contentDescription = "${pet.virtue.name} emblem",
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(8.dp),
+                            .padding(2.dp),
                         contentScale = ContentScale.Fit
                     )
                 }
