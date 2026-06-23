@@ -2,6 +2,7 @@ package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,17 +13,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.petquest.R
 import com.example.petquest.data.model.TaskEntity
 import com.example.petquest.data.model.TaskType
 import com.example.petquest.viewmodel.PetQuestViewModel
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,283 +34,448 @@ fun TasksScreen(
     viewModel: PetQuestViewModel,
     onVerifyPet: (Int) -> Unit
 ) {
-    val tasks by viewModel.todaysTasks.collectAsState()
-    val pets  by viewModel.allPets.collectAsState()
+    val tasks  by viewModel.todaysTasks.collectAsState()
+    val pets   by viewModel.allPets.collectAsState()
+    val streak by viewModel.userStreak.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(0) }
-
     val safeTab = if (pets.isEmpty()) 0 else selectedTab.coerceIn(0, pets.lastIndex)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Today's Tasks", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            )
+    // ── Streak change detection ───────────────────────────────────────────────
+    var showStreakOverlay  by remember { mutableStateOf(false) }
+    var overlayStreakValue by remember { mutableIntStateOf(streak) }
+    var prevStreak        by remember { mutableIntStateOf(streak) }
+
+    LaunchedEffect(streak) {
+        if (streak > prevStreak && prevStreak >= 0) {
+            overlayStreakValue = streak
+            showStreakOverlay  = true
+            delay(2800)
+            showStreakOverlay  = false
         }
-    ) { padding ->
-        // ── Empty state: no pets ──────────────────────────────────────────────
-        if (pets.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                EmptyStateCard(
-                    imageRes = R.drawable.empty_tasks,
-                    title = "No Tasks Yet",
-                    description = "Add a pet and verify them to start receiving daily tasks.",
-                    actionLabel = "Go to Profile",
-                    onAction = {}
-                )
-            }
-            return@Scaffold
-        }
+        prevStreak = streak
+    }
 
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-
-            // ── Pet tab row ───────────────────────────────────────────────────
-            ScrollableTabRow(
-                selectedTabIndex = safeTab,
-                edgePadding = 16.dp,
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                pets.forEachIndexed { index, pet ->
-                    val petTasks = tasks.filter { it.petId == pet.id }
-                    val donePet  = petTasks.count { it.isCompleted }
-                    val allDone  = petTasks.isNotEmpty() && donePet == petTasks.size
-                    val isLocked = !pet.isVerified
-
-                    Tab(
-                        selected = safeTab == index,
-                        onClick  = { selectedTab = index },
-                        text = {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                // Pet species emoji as tab icon — quick species recognition
-                                Box(
-                                    contentAlignment = Alignment.BottomEnd
-                                ) {
-                                    Text(
-                                        text = petEmoji(pet.type.name),
-                                        fontSize = 24.sp
-                                    )
-                                    if (isLocked) {
-                                        Icon(
-                                            imageVector = Icons.Default.Lock,
-                                            contentDescription = "Locked",
-                                            tint = MaterialTheme.colorScheme.error,
-                                            modifier = Modifier.size(10.dp)
-                                        )
-                                    }
-                                }
-                                Text(
-                                    pet.name,
-                                    fontSize = 12.sp,
-                                    fontWeight = if (safeTab == index) FontWeight.Bold else FontWeight.Normal,
-                                    maxLines = 1
-                                )
-                                if (isLocked) {
-                                    Text(
-                                        "Locked",
-                                        fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.error,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                } else if (petTasks.isNotEmpty()) {
-                                    Text(
-                                        if (allDone) "Done" else "$donePet/${petTasks.size}",
-                                        fontSize = 10.sp,
-                                        color = if (allDone)
-                                            MaterialTheme.colorScheme.primary
-                                        else
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Today's Tasks", fontWeight = FontWeight.Bold) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
-                }
+                )
             }
-
-            // ── Tasks for selected pet ────────────────────────────────────────
-            val selectedPet = pets.getOrNull(safeTab)
-            if (selectedPet == null) return@Column
-
-            // ── Verification gate ─────────────────────────────────────────────
-            if (!selectedPet.isVerified) {
+        ) { padding ->
+            // ── Empty state: no pets ──────────────────────────────────────────
+            if (pets.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        ),
-                        elevation = CardDefaults.cardElevation(4.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(28.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_locked),
-                                contentDescription = "Locked",
-                                modifier = Modifier.size(56.dp),
-                                contentScale = ContentScale.Fit
-                            )
-
-                            Text(
-                                "Verification Required",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                textAlign = TextAlign.Center
-                            )
-
-                            Text(
-                                "${selectedPet.name} must be verified before they can complete tasks and earn bond points.",
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                textAlign = TextAlign.Center
-                            )
-
-                            Button(
-                                onClick  = { onVerifyPet(selectedPet.id) },
-                                modifier = Modifier.fillMaxWidth().height(52.dp),
-                                colors   = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
-                                )
-                            ) {
-                                Icon(Icons.Default.Lock, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    "Verify ${selectedPet.name}",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                }
-                return@Column
-            }
-
-            // ── Normal task list (verified pets only) ─────────────────────────
-            val petTasks  = tasks.filter { it.petId == selectedPet.id }
-            val core      = petTasks.filter { it.type == TaskType.CORE }
-            val optional  = petTasks.filter { it.type == TaskType.OPTIONAL }
-            val doneCount = petTasks.count { it.isCompleted }
-
-            if (petTasks.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
+                        .padding(padding)
                         .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     EmptyStateCard(
-                        imageRes = R.drawable.empty_tasks,
-                        title = "All Done!",
-                        description = "${selectedPet.name} has no tasks remaining for today.",
-                        actionLabel = "Check Back Tomorrow",
-                        onAction = {}
+                        imageRes    = R.drawable.empty_tasks,
+                        title       = "No Tasks Yet",
+                        description = "Add a pet and verify them to start receiving daily tasks.",
+                        actionLabel = "Go to Profile",
+                        onAction    = {}
                     )
                 }
-                return@Column
+                return@Scaffold
             }
 
-            // Animated progress
-            val taskProgress by animateFloatAsState(
-                targetValue = doneCount / petTasks.size.toFloat(),
-                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-                label = "task_progress"
-            )
+            Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                item(key = "progress") {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "${selectedPet.name}'s Progress",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
-                                )
-                                Text(
-                                    "$doneCount / ${petTasks.size} done",
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 13.sp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                // ── Pet tab row ───────────────────────────────────────────────
+                ScrollableTabRow(
+                    selectedTabIndex = safeTab,
+                    edgePadding      = 16.dp,
+                    containerColor   = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    pets.forEachIndexed { index, pet ->
+                        val petTasks = tasks.filter { it.petId == pet.id }
+                        val donePet  = petTasks.count { it.isCompleted }
+                        val allDone  = petTasks.isNotEmpty() && donePet == petTasks.size
+                        val isLocked = !pet.isVerified
+
+                        Tab(
+                            selected = safeTab == index,
+                            onClick  = { selectedTab = index },
+                            text = {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.BottomEnd) {
+                                        Text(petEmoji(pet.type.name), fontSize = 24.sp)
+                                        if (isLocked) {
+                                            Icon(
+                                                imageVector = Icons.Default.Lock,
+                                                contentDescription = "Locked",
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(10.dp)
+                                            )
+                                        }
+                                    }
+                                    Text(
+                                        pet.name,
+                                        fontSize   = 12.sp,
+                                        fontWeight = if (safeTab == index) FontWeight.Bold else FontWeight.Normal,
+                                        maxLines   = 1
+                                    )
+                                    if (isLocked) {
+                                        Text(
+                                            "Locked",
+                                            fontSize   = 10.sp,
+                                            color      = MaterialTheme.colorScheme.error,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    } else if (petTasks.isNotEmpty()) {
+                                        Text(
+                                            if (allDone) "Done" else "$donePet/${petTasks.size}",
+                                            fontSize = 10.sp,
+                                            color    = if (allDone)
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             }
-                            Spacer(Modifier.height(8.dp))
-                            LinearProgressIndicator(
-                                progress = { taskProgress },
-                                modifier = Modifier.fillMaxWidth().height(8.dp)
-                            )
+                        )
+                    }
+                }
+
+                // ── Tasks for selected pet ────────────────────────────────────
+                val selectedPet = pets.getOrNull(safeTab)
+                if (selectedPet == null) return@Column
+
+                // ── Verification gate ─────────────────────────────────────────
+                if (!selectedPet.isVerified) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors   = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer
+                            ),
+                            elevation = CardDefaults.cardElevation(4.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(28.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Image(
+                                    painter           = painterResource(id = R.drawable.ic_locked),
+                                    contentDescription = "Locked",
+                                    modifier          = Modifier.size(56.dp),
+                                    contentScale      = ContentScale.Fit
+                                )
+                                Text(
+                                    "Verification Required",
+                                    fontSize   = 20.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color      = MaterialTheme.colorScheme.onErrorContainer,
+                                    textAlign  = TextAlign.Center
+                                )
+                                Text(
+                                    "${selectedPet.name} must be verified before they can complete tasks and earn bond points.",
+                                    fontSize  = 14.sp,
+                                    color     = MaterialTheme.colorScheme.onErrorContainer,
+                                    textAlign = TextAlign.Center
+                                )
+                                Button(
+                                    onClick  = { onVerifyPet(selectedPet.id) },
+                                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                                    colors   = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Lock, contentDescription = null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Verify ${selectedPet.name}",
+                                        fontSize   = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                         }
                     }
+                    return@Column
                 }
 
-                if (core.isNotEmpty()) {
-                    item(key = "core_header") {
-                        TaskTypeHeader(
-                            label = "Core Tasks",
-                            pts   = "+10 pts",
-                            color = MaterialTheme.colorScheme.primary
+                // ── Normal task list (verified pets only) ─────────────────────
+                val petTasks  = tasks.filter { it.petId == selectedPet.id }
+                val core      = petTasks.filter { it.type == TaskType.CORE }
+                val optional  = petTasks.filter { it.type == TaskType.OPTIONAL }
+                val doneCount = petTasks.count { it.isCompleted }
+
+                if (petTasks.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        EmptyStateCard(
+                            imageRes    = R.drawable.empty_tasks,
+                            title       = "All Done!",
+                            description = "${selectedPet.name} has no tasks remaining for today.",
+                            actionLabel = "Check Back Tomorrow",
+                            onAction    = {}
                         )
                     }
-                    items(core, key = { "c_${it.id}" }) { task ->
-                        TaskRow(task, isCore = true) { viewModel.completeTask(task) }
-                    }
+                    return@Column
                 }
 
-                if (optional.isNotEmpty()) {
-                    item(key = "opt_header") {
-                        Spacer(Modifier.height(4.dp))
-                        TaskTypeHeader(
-                            label = "Optional Tasks",
-                            pts   = "+5 pts",
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    items(optional, key = { "o_${it.id}" }) { task ->
-                        TaskRow(task, isCore = false) { viewModel.completeTask(task) }
-                    }
-                }
+                val taskProgress by animateFloatAsState(
+                    targetValue   = doneCount / petTasks.size.toFloat(),
+                    animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+                    label         = "task_progress"
+                )
 
-                item { Spacer(Modifier.height(16.dp)) }
+                LazyColumn(
+                    modifier        = Modifier.fillMaxSize(),
+                    contentPadding  = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item(key = "progress") {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors   = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            )
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment     = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "${selectedPet.name}'s Progress",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize   = 14.sp
+                                    )
+                                    Text(
+                                        "$doneCount / ${petTasks.size} done",
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize   = 13.sp,
+                                        color      = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                Spacer(Modifier.height(8.dp))
+                                LinearProgressIndicator(
+                                    progress = { taskProgress },
+                                    modifier = Modifier.fillMaxWidth().height(8.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    if (core.isNotEmpty()) {
+                        item(key = "core_header") {
+                            TaskTypeHeader(
+                                label = "Core Tasks",
+                                pts   = "+10 pts",
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        items(core, key = { "c_${it.id}" }) { task ->
+                            TaskRow(task, isCore = true) { viewModel.completeTask(task) }
+                        }
+                    }
+
+                    if (optional.isNotEmpty()) {
+                        item(key = "opt_header") {
+                            Spacer(Modifier.height(4.dp))
+                            TaskTypeHeader(
+                                label = "Optional Tasks",
+                                pts   = "+5 pts",
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        items(optional, key = { "o_${it.id}" }) { task ->
+                            TaskRow(task, isCore = false) { viewModel.completeTask(task) }
+                        }
+                    }
+
+                    item { Spacer(Modifier.height(16.dp)) }
+                }
             }
+        }
+
+        // ── Streak celebration overlay — renders above everything ─────────────
+        if (showStreakOverlay) {
+            StreakCelebrationOverlay(streakCount = overlayStreakValue)
         }
     }
 }
 
+// ---------------------------------------------------------------------------
+// Streak Celebration Overlay
+// ---------------------------------------------------------------------------
+@Composable
+private fun StreakCelebrationOverlay(streakCount: Int) {
+    // Phase 1: entrance (0–400ms), Phase 2: hold, Phase 3: exit (fade out)
+    var phase by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(streakCount) {
+        phase = 0
+        delay(30)
+        phase = 1          // entrance
+        delay(2000)
+        phase = 2          // exit
+    }
+
+    // Scrim alpha
+    val scrimAlpha by animateFloatAsState(
+        targetValue   = when (phase) { 1 -> 0.72f; else -> 0f },
+        animationSpec = tween(durationMillis = if (phase == 2) 500 else 300),
+        label         = "scrim_alpha"
+    )
+
+    // Flame scale — spring bounce entrance, shrink on exit
+    val flameScale by animateFloatAsState(
+        targetValue   = when (phase) { 1 -> 1f; else -> 0.5f },
+        animationSpec = if (phase == 1)
+            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+        else
+            tween(durationMillis = 400),
+        label = "flame_scale"
+    )
+
+    // Streak number: bounces in larger then settles
+    val numberScale by animateFloatAsState(
+        targetValue   = when (phase) { 1 -> 1f; else -> 0.3f },
+        animationSpec = if (phase == 1)
+            spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
+        else
+            tween(durationMillis = 350),
+        label = "number_scale"
+    )
+
+    // Text + sub-label fade
+    val textAlpha by animateFloatAsState(
+        targetValue   = when (phase) { 1 -> 1f; else -> 0f },
+        animationSpec = tween(durationMillis = if (phase == 1) 400 else 350, delayMillis = if (phase == 1) 200 else 0),
+        label         = "text_alpha"
+    )
+
+    // Sparkle 1 — floats up-left
+    val sparkle1Offset by animateIntOffsetAsState(
+        targetValue   = when (phase) { 1 -> IntOffset(-80, -90); else -> IntOffset(0, 0) },
+        animationSpec = if (phase == 1)
+            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+        else tween(300),
+        label = "sparkle1"
+    )
+    // Sparkle 2 — floats up-right
+    val sparkle2Offset by animateIntOffsetAsState(
+        targetValue   = when (phase) { 1 -> IntOffset(90, -70); else -> IntOffset(0, 0) },
+        animationSpec = if (phase == 1)
+            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+        else tween(300),
+        label = "sparkle2"
+    )
+    // Sparkle 3 — floats straight up
+    val sparkle3Offset by animateIntOffsetAsState(
+        targetValue   = when (phase) { 1 -> IntOffset(0, -130); else -> IntOffset(0, 0) },
+        animationSpec = if (phase == 1)
+            spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+        else tween(300),
+        label = "sparkle3"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .alpha(scrimAlpha)
+            .background(Color(0xFF000000)),
+        contentAlignment = Alignment.Center
+    ) {}
+
+    // Content layer (not affected by scrim alpha clipping)
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // Floating sparkles above the flame
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .alpha(textAlpha),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("✨", fontSize = 22.sp, modifier = Modifier.offset { sparkle1Offset })
+                Text("⭐", fontSize = 18.sp, modifier = Modifier.offset { sparkle2Offset })
+                Text("💫", fontSize = 20.sp, modifier = Modifier.offset { sparkle3Offset })
+            }
+
+            // Flame + streak number stacked
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    "🔥",
+                    fontSize = 96.sp,
+                    modifier = Modifier.scale(flameScale)
+                )
+                Text(
+                    "$streakCount",
+                    fontSize   = 36.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = Color.White,
+                    modifier   = Modifier
+                        .scale(numberScale)
+                        .offset(y = 14.dp)
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // "Day X Streak!" label
+            Text(
+                "Day $streakCount Streak!",
+                fontSize   = 28.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color      = Color.White,
+                textAlign  = TextAlign.Center,
+                modifier   = Modifier.alpha(textAlpha)
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                if (streakCount == 1) "You're on a roll — keep it up!"
+                else "Amazing — $streakCount days in a row!",
+                fontSize  = 15.sp,
+                color     = Color.White.copy(alpha = 0.82f),
+                textAlign = TextAlign.Center,
+                modifier  = Modifier
+                    .padding(horizontal = 40.dp)
+                    .alpha(textAlpha)
+            )
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// TaskTypeHeader
+// ---------------------------------------------------------------------------
 @Composable
 private fun TaskTypeHeader(
     label: String,
@@ -315,7 +484,7 @@ private fun TaskTypeHeader(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+        modifier          = Modifier.padding(top = 4.dp, bottom = 2.dp)
     ) {
         Text(label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Spacer(Modifier.width(8.dp))
@@ -331,21 +500,23 @@ private fun TaskTypeHeader(
     }
 }
 
+// ---------------------------------------------------------------------------
+// TaskRow
+// ---------------------------------------------------------------------------
 @Composable
 private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
     val isDone = task.isCompleted
 
-    // Completion scale pop
     var checkAnimStarted by remember { mutableStateOf(isDone) }
     LaunchedEffect(isDone) {
         if (isDone) {
             checkAnimStarted = false
-            kotlinx.coroutines.delay(30)
+            delay(30)
             checkAnimStarted = true
         }
     }
     val checkScale by animateFloatAsState(
-        targetValue = if (isDone && checkAnimStarted) 1f else if (isDone) 0.88f else 1f,
+        targetValue   = if (isDone && checkAnimStarted) 1f else if (isDone) 0.88f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness    = Spring.StiffnessMedium
@@ -372,27 +543,27 @@ private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
-                checked = isDone,
+                checked         = isDone,
                 onCheckedChange = { if (!isDone) onCheck() },
-                enabled = !isDone
+                enabled         = !isDone
             )
             Text(
-                text = task.title,
-                fontWeight = if (isDone) FontWeight.Normal else FontWeight.Medium,
-                fontSize = 14.sp,
-                textDecoration = if (isDone) TextDecoration.LineThrough else null,
-                color = if (isDone)
+                text            = task.title,
+                fontWeight      = if (isDone) FontWeight.Normal else FontWeight.Medium,
+                fontSize        = 14.sp,
+                textDecoration  = if (isDone) TextDecoration.LineThrough else null,
+                color           = if (isDone)
                     MaterialTheme.colorScheme.onSurfaceVariant
                 else
                     MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
+                modifier        = Modifier.weight(1f)
             )
             if (!isDone) {
                 Text(
                     if (isCore) "+10" else "+5",
-                    fontSize = 11.sp,
+                    fontSize   = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isCore)
+                    color      = if (isCore)
                         MaterialTheme.colorScheme.primary
                     else
                         MaterialTheme.colorScheme.secondary
