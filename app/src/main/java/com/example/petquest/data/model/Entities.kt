@@ -7,7 +7,7 @@ data class PetEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val type: PetType,
-    val personality: Personality,
+    val virtue: Virtue,
     val bondPoints: Int = 0,
     val bondLevel: Int = 1,
     val isVerified: Boolean = false,

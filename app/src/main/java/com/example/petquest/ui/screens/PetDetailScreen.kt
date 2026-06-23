@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
-import com.example.petquest.data.model.Personality
 import com.example.petquest.viewmodel.LevelUpEvent
 import com.example.petquest.viewmodel.PetQuestViewModel
 
@@ -53,11 +52,10 @@ fun PetDetailScreen(
 
     if (showEditDialog && pet != null) {
         EditPetDialog(
-            currentName        = pet.name,
-            currentPersonality = pet.personality,
-            onDismiss          = { showEditDialog = false },
-            onConfirm          = { newName, newPersonality ->
-                viewModel.editPet(pet.id, newName, newPersonality)
+            currentName = pet.name,
+            onDismiss   = { showEditDialog = false },
+            onConfirm   = { newName ->
+                viewModel.editPet(pet.id, newName)
                 showEditDialog = false
             }
         )
@@ -190,7 +188,7 @@ fun PetDetailScreen(
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 StatCard(Modifier.weight(1f), "🎯", pet.type.name,        "Type")
-                StatCard(Modifier.weight(1f), "💫", pet.personality.name, "Vibe")
+                StatCard(Modifier.weight(1f), "💫", pet.virtue.name,      "Virtue")
             }
             Spacer(Modifier.height(10.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -245,19 +243,15 @@ fun PetDetailScreen(
     }
 }
 
-// ─── Edit Pet Dialog ──────────────────────────────────────────────────────────
+// ─── Edit Pet Dialog (name only — virtue is permanent) ───────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditPetDialog(
-    currentName:        String,
-    currentPersonality: Personality,
-    onDismiss:          () -> Unit,
-    onConfirm:          (String, Personality) -> Unit
+    currentName: String,
+    onDismiss:   () -> Unit,
+    onConfirm:   (String) -> Unit
 ) {
-    var name               by remember { mutableStateOf(currentName) }
-    var selectedPersonality by remember { mutableStateOf(currentPersonality) }
-    var expanded           by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf(currentName) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -273,33 +267,8 @@ private fun EditPetDialog(
                     modifier      = Modifier.fillMaxWidth()
                 )
 
-                ExposedDropdownMenuBox(
-                    expanded         = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
-                    OutlinedTextField(
-                        value         = selectedPersonality.name,
-                        onValueChange = {},
-                        readOnly      = true,
-                        label         = { Text("Personality") },
-                        trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                        modifier      = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded         = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        Personality.entries.forEach { p ->
-                            DropdownMenuItem(
-                                text    = { Text(p.name) },
-                                onClick = { selectedPersonality = p; expanded = false }
-                            )
-                        }
-                    }
-                }
-
                 Text(
-                    "Note: pet type cannot be changed after creation.",
+                    "Note: pet type and virtue cannot be changed after creation.",
                     fontSize = 12.sp,
                     color    = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -307,7 +276,7 @@ private fun EditPetDialog(
         },
         confirmButton = {
             Button(
-                onClick  = { onConfirm(name, selectedPersonality) },
+                onClick  = { onConfirm(name) },
                 enabled  = name.isNotBlank()
             ) {
                 Text("Save", fontWeight = FontWeight.Bold)

@@ -131,10 +131,10 @@ class PetQuestViewModel(
         }
     }
 
-    fun editPet(petId: Int, newName: String, newPersonality: Personality) {
+    fun editPet(petId: Int, newName: String) {
         viewModelScope.launch {
             try {
-                petRepository.updatePet(petId, newName.trim(), newPersonality)
+                petRepository.updatePet(petId, newName.trim())
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "editPet error", e)
             }
@@ -243,16 +243,13 @@ class PetQuestViewModel(
             .shuffled(rng)
             .take(2)
 
-        // Draw 2 personality-specific core tasks
-        val personalityCore = TaskPools.personalityCorePool(pet.personality)
+        // Draw 2 virtue-specific core tasks
+        val virtueCore = TaskPools.virtueCorePool(pet.virtue)
             .map { it.replace("{name}", pet.name) }
             .shuffled(rng)
             .take(2)
 
         // Draw 4 optional tasks from the combined species + universal optional pool.
-        // Species-specific tasks are prepended so they appear proportionally more often
-        // (they have a smaller pool, so shuffling the full combined list naturally
-        // gives them weight without forcing them to always appear).
         val speciesOptionals  = TaskPools.speciesOptionalPool(pet.type)
             .map { it.replace("{name}", pet.name) }
         val universalOptionals = TaskPools.UNIVERSAL_OPTIONAL
@@ -262,7 +259,7 @@ class PetQuestViewModel(
             .take(4)
 
         // Insert CORE tasks
-        (universalCore + personalityCore).forEach { title ->
+        (universalCore + virtueCore).forEach { title ->
             petRepository.insertTask(
                 TaskEntity(petId = pet.id, title = title, type = TaskType.CORE, date = today)
             )

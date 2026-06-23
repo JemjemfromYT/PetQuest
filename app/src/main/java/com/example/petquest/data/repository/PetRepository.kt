@@ -24,8 +24,8 @@ class PetRepository(private val dao: PetQuestDao) {
     suspend fun verifyPet(petId: Int, photoUri: String) = dao.verifyPet(petId, photoUri)
     suspend fun unlockAchievement(id: Int) = dao.unlockAchievement(id)
 
-    suspend fun updatePet(petId: Int, name: String, personality: Personality) =
-        dao.updatePet(petId, name, personality)
+    suspend fun updatePet(petId: Int, name: String) =
+        dao.updatePet(petId, name)
 
     suspend fun deletePet(petId: Int) {
         dao.deleteTasksForPet(petId)

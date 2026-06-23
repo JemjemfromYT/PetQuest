@@ -8,7 +8,7 @@ package com.example.petquest.data.model
  * day-to-day variety:
  *
  *   - UNIVERSAL_CORE:    10 tasks → 2 drawn daily   → repeats after ~45 days minimum
- *   - personality pools:  8 tasks → 2 drawn daily   → repeats after ~28 days minimum
+ *   - virtue pools:       8 tasks → 2 drawn daily   → repeats after ~28 days minimum
  *   - UNIVERSAL_OPTIONAL: 12 tasks → 4 drawn daily  → 495 combinations, ~124 days
  *   - species optionals:  2–3 extra tasks mixed in for relevant species
  *
@@ -18,7 +18,7 @@ package com.example.petquest.data.model
 object TaskPools {
 
     // ─── Universal Core Pool (10 tasks — draw 2 daily) ────────────────────────
-    // Applied to every pet regardless of species or personality.
+    // Applied to every pet regardless of species or virtue.
 
     val UNIVERSAL_CORE = listOf(
         "Feed {name}",
@@ -33,32 +33,10 @@ object TaskPools {
         "Make sure {name} has everything they need to be happy"
     )
 
-    // ─── Per-Personality Core Pools (8 tasks each — draw 2 daily) ─────────────
-    // Selected based on the pet's personality trait.
+    // ─── Per-Virtue Core Pools (8 tasks each — draw 2 daily) ──────────────────
+    // Selected based on the pet's dominant virtue.
 
-    private val PLAYFUL_CORE = listOf(
-        "Play with {name} for 10 minutes",
-        "Try a new toy or activity with {name}",
-        "Play a chase or fetch game with {name}",
-        "Let {name} explore a new area safely",
-        "Set up an obstacle or puzzle challenge for {name}",
-        "Do something energetic and fun with {name}",
-        "Play {name}'s favourite game today",
-        "Tire {name} out with an active play session"
-    )
-
-    private val LAZY_CORE = listOf(
-        "Create a cosy, comfortable rest spot for {name}",
-        "Spend calm, quiet time sitting beside {name}",
-        "Give {name} a gentle pet and a cuddle",
-        "Let {name} sleep undisturbed for a while",
-        "Provide {name} with a warm, comfortable area to relax",
-        "Make sure {name} isn't being overstimulated today",
-        "Offer {name} a slow, gentle, relaxing activity",
-        "Sit quietly with {name} without any distractions"
-    )
-
-    private val CURIOUS_CORE = listOf(
+    private val WISDOM_CORE = listOf(
         "Let {name} explore a safe new space",
         "Introduce {name} to a new safe object to investigate",
         "Offer {name} a puzzle or enrichment activity",
@@ -69,46 +47,56 @@ object TaskPools {
         "Create a foraging or searching challenge for {name}"
     )
 
-    private val FRIENDLY_CORE = listOf(
+    private val DILIGENCE_CORE = listOf(
+        "Stick to {name}'s regular feeding schedule today",
+        "Complete a full routine check on {name}'s health and environment",
+        "Clean and tidy {name}'s space thoroughly",
+        "Play with {name} for a full 10 minutes without distractions",
+        "Check and replenish all of {name}'s supplies",
+        "Log a note about {name}'s behaviour or health today",
+        "Spend focused, uninterrupted time with {name}",
+        "Review and refresh {name}'s enrichment setup"
+    )
+
+    private val TEMPERANCE_CORE = listOf(
+        "Create a cosy, comfortable rest spot for {name}",
+        "Spend calm, quiet time sitting beside {name}",
+        "Give {name} a gentle pet and a cuddle",
+        "Let {name} sleep undisturbed for a while",
+        "Provide {name} with a warm, comfortable area to relax",
+        "Make sure {name} isn't being overstimulated today",
+        "Offer {name} a slow, gentle, relaxing activity",
+        "Sit quietly with {name} without any distractions"
+    )
+
+    private val COURAGE_CORE = listOf(
+        "Introduce {name} to something new they haven't encountered before",
+        "Redirect {name}'s energy into a bold, active challenge",
+        "Set up a safe space where {name} can explore freely",
+        "Give {name} an enrichment puzzle or challenge to solve",
+        "Provide {name} something to climb, rearrange, or conquer",
+        "Channel {name}'s spirit into a taught trick or new skill",
+        "Give {name} a foraging or hiding-and-seeking game",
+        "Try something energetic and adventurous with {name}"
+    )
+
+    private val COMPASSION_CORE = listOf(
         "Spend quality social time with {name}",
         "Let {name} greet you warmly and enthusiastically",
         "Practise a friendly behaviour or a fun trick with {name}",
-        "Bring {name} into a family or group activity",
         "Give {name} attention in a social and interactive setting",
         "Reward {name} for their good social behaviour today",
         "Invite someone {name} knows and likes to spend time with them",
-        "Take {name} somewhere new to experience new sights and sounds"
+        "Take {name} somewhere new to experience new sights and sounds",
+        "Give {name} a long, affectionate cuddle or grooming session"
     )
 
-    private val SHY_CORE = listOf(
-        "Spend quiet, calm time near {name} without pressure",
-        "Let {name} approach you on their own terms today",
-        "Create or check a safe hiding or retreat spot for {name}",
-        "Keep {name}'s environment calm and low-stress today",
-        "Practise one small, positive trust-building moment with {name}",
-        "Let {name} set the pace for today's interaction",
-        "Avoid loud noises or sudden movements around {name}",
-        "Offer {name} a treat as a calm, positive reinforcement"
-    )
-
-    private val MISCHIEVOUS_CORE = listOf(
-        "Redirect {name}'s energy into a safe and fun activity",
-        "Give {name} an enrichment puzzle or challenge to solve",
-        "Set up a safe space where {name} can get into harmless trouble",
-        "Provide {name} a safe destructible toy or chewable item",
-        "Give {name} something to climb, rearrange, or explore freely",
-        "Channel {name}'s mischief into a taught trick or skill",
-        "Give {name} a foraging or hiding-and-seeking game",
-        "Tire {name} out productively so their energy goes somewhere fun"
-    )
-
-    fun personalityCorePool(personality: Personality): List<String> = when (personality) {
-        Personality.PLAYFUL     -> PLAYFUL_CORE
-        Personality.LAZY        -> LAZY_CORE
-        Personality.CURIOUS     -> CURIOUS_CORE
-        Personality.FRIENDLY    -> FRIENDLY_CORE
-        Personality.SHY         -> SHY_CORE
-        Personality.MISCHIEVOUS -> MISCHIEVOUS_CORE
+    fun virtueCorePool(virtue: Virtue): List<String> = when (virtue) {
+        Virtue.WISDOM      -> WISDOM_CORE
+        Virtue.DILIGENCE   -> DILIGENCE_CORE
+        Virtue.TEMPERANCE  -> TEMPERANCE_CORE
+        Virtue.COURAGE     -> COURAGE_CORE
+        Virtue.COMPASSION  -> COMPASSION_CORE
     }
 
     // ─── Universal Optional Pool (12 tasks — combined with species pool, draw 4) ─

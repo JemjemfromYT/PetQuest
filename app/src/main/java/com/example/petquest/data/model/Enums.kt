@@ -34,6 +34,39 @@ enum class PetType(val rarity: Rarity) {
     WOLF(Rarity.EPIC)
 }
 
-enum class Personality { PLAYFUL, LAZY, CURIOUS, FRIENDLY, SHY, MISCHIEVOUS }
+enum class Virtue { WISDOM, DILIGENCE, TEMPERANCE, COURAGE, COMPASSION }
+
+enum class Trait(val virtue: Virtue) {
+    // Wisdom
+    CURIOUS(Virtue.WISDOM),
+    OBSERVANT(Virtue.WISDOM),
+    ANALYTICAL(Virtue.WISDOM),
+    REFLECTIVE(Virtue.WISDOM),
+    INSIGHTFUL(Virtue.WISDOM),
+    // Diligence
+    DISCIPLINED(Virtue.DILIGENCE),
+    METICULOUS(Virtue.DILIGENCE),
+    CONSCIENTIOUS(Virtue.DILIGENCE),
+    RELIABLE(Virtue.DILIGENCE),
+    HARDWORKING(Virtue.DILIGENCE),
+    // Temperance
+    CALM(Virtue.TEMPERANCE),
+    MODERATE(Virtue.TEMPERANCE),
+    SELF_CONTROLLED(Virtue.TEMPERANCE),
+    PATIENT(Virtue.TEMPERANCE),
+    BALANCED(Virtue.TEMPERANCE),
+    // Courage
+    BRAVE(Virtue.COURAGE),
+    PROTECTIVE(Virtue.COURAGE),
+    CONFIDENT(Virtue.COURAGE),
+    BOLD(Virtue.COURAGE),
+    FEARLESS(Virtue.COURAGE),
+    // Compassion
+    CARING(Virtue.COMPASSION),
+    FRIENDLY(Virtue.COMPASSION),
+    LOYAL(Virtue.COMPASSION),
+    AFFECTIONATE(Virtue.COMPASSION),
+    EMPATHETIC(Virtue.COMPASSION)
+}
 
 enum class TaskType { CORE, OPTIONAL }

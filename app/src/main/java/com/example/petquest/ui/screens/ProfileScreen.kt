@@ -557,7 +557,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
             )
 
             Text(
-                pet.personality.name,
+                pet.virtue.name,
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

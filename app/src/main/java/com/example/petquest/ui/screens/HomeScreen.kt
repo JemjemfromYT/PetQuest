@@ -127,7 +127,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 }
             }
 
-            // ── Collection progress card (V1.2) ─────────────────────────────
+            // ── Collection progress card ─────────────────────────────────────
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -236,7 +236,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(pet.name, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                                 Text(
-                                    "${pet.type.name.replace("_", " ")}  •  ${pet.personality.name}",
+                                    "${pet.type.name.replace("_", " ")}  •  ${pet.virtue.name}",
                                     fontSize = 13.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

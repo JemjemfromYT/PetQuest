@@ -2,6 +2,9 @@ package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -21,15 +24,28 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.petquest.data.model.*
 
+/**
+ * Calculates the dominant Virtue from exactly 5 selected traits.
+ * Tally each trait's virtue; the virtue with the highest count wins.
+ * Ties are broken by the Virtue enum declaration order (WISDOM first).
+ */
+private fun calculateVirtue(traits: Set<Trait>): Virtue {
+    val tally = traits.groupingBy { it.virtue }.eachCount()
+    return Virtue.entries.maxWithOrNull(
+        compareBy { tally.getOrDefault(it, 0) }
+    ) ?: Virtue.WISDOM
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
-    var petName             by remember { mutableStateOf("") }
-    var expandedType        by remember { mutableStateOf(false) }
-    var selectedType        by remember { mutableStateOf(PetType.DOG) }
-    var typeSearchQuery     by remember { mutableStateOf("") }
-    var expandedPersonality by remember { mutableStateOf(false) }
-    var selectedPersonality by remember { mutableStateOf(Personality.PLAYFUL) }
+    var petName         by remember { mutableStateOf("") }
+    var expandedType    by remember { mutableStateOf(false) }
+    var selectedType    by remember { mutableStateOf(PetType.DOG) }
+    var typeSearchQuery by remember { mutableStateOf("") }
+
+    val selectedTraits  = remember { mutableStateListOf<Trait>() }
+    val requiredTraits  = 5
 
     val filteredTypes = remember(typeSearchQuery) {
         PetType.entries.filter {
@@ -87,6 +103,7 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
             )
             Spacer(Modifier.height(20.dp))
 
+            // ── Pet type dropdown ──────────────────────────────────────────────
             ExposedDropdownMenuBox(
                 expanded = expandedType,
                 onExpandedChange = {
@@ -161,30 +178,85 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                     }
                 }
             }
-            Spacer(Modifier.height(20.dp))
 
-            ExposedDropdownMenuBox(
-                expanded = expandedPersonality,
-                onExpandedChange = { expandedPersonality = !expandedPersonality }
+            Spacer(Modifier.height(28.dp))
+
+            // ── Trait picker ──────────────────────────────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
-                    value = selectedPersonality.name,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Personality") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expandedPersonality) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth()
+                Text(
+                    "Choose 5 Traits",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
-                ExposedDropdownMenu(
-                    expanded = expandedPersonality,
-                    onDismissRequest = { expandedPersonality = false }
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = if (selectedTraits.size == requiredTraits)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant
                 ) {
-                    Personality.entries.forEach { p ->
-                        DropdownMenuItem(
-                            text = { Text(p.name) },
-                            onClick = { selectedPersonality = p; expandedPersonality = false }
-                        )
-                    }
+                    Text(
+                        "${selectedTraits.size} / $requiredTraits",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (selectedTraits.size == requiredTraits)
+                            MaterialTheme.colorScheme.onPrimary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(4.dp))
+
+            Text(
+                "Pick exactly 5 traits that describe your pet's character.",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            // Trait chips grid — fixed height so the outer scroll works
+            val allTraits = Trait.entries
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                userScrollEnabled = true
+            ) {
+                items(allTraits) { trait ->
+                    val isSelected = trait in selectedTraits
+                    val isDisabled = !isSelected && selectedTraits.size >= requiredTraits
+
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = {
+                            if (isSelected) {
+                                selectedTraits.remove(trait)
+                            } else if (!isDisabled) {
+                                selectedTraits.add(trait)
+                            }
+                        },
+                        label = {
+                            Text(
+                                trait.name.replace("_", " "),
+                                fontSize = 12.sp,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2
+                            )
+                        },
+                        enabled = !isDisabled || isSelected,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
 
@@ -192,14 +264,17 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
 
             Button(
                 onClick = {
+                    val virtue = calculateVirtue(selectedTraits.toSet())
                     petToSave = PetEntity(
-                        name        = petName.trim(),
-                        type        = selectedType,
-                        personality = selectedPersonality
+                        name   = petName.trim(),
+                        type   = selectedType,
+                        virtue = virtue
                     )
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                enabled = petName.isNotBlank()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                enabled = petName.isNotBlank() && selectedTraits.size == requiredTraits
             ) {
                 Text("Add Pet 🐾", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
