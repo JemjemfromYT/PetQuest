@@ -89,17 +89,13 @@ fun TasksScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                // Virtue emblem as tab identity
-                                val virtueInfo = com.example.petquest.ui.VirtueConfig[pet.virtue]
+                                // Pet species emoji as tab icon — quick species recognition
                                 Box(
-                                    modifier = Modifier.size(28.dp),
                                     contentAlignment = Alignment.BottomEnd
                                 ) {
-                                    Image(
-                                        painter = painterResource(id = virtueInfo.emblemRes),
-                                        contentDescription = "${pet.virtue.name} emblem",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Fit
+                                    Text(
+                                        text = petEmoji(pet.type.name),
+                                        fontSize = 24.sp
                                     )
                                     if (isLocked) {
                                         Icon(
