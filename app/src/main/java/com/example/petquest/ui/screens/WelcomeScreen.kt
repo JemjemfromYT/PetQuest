@@ -1,41 +1,99 @@
 package com.example.petquest.ui.screens
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.petquest.R
 
 @Composable
 fun WelcomeScreen(onGetStarted: () -> Unit) {
+    var started by remember { mutableStateOf(false) }
+
+    // Logo scale-in with spring
+    val logoScale by animateFloatAsState(
+        targetValue   = if (started) 1f else 0.6f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness    = Spring.StiffnessLow
+        ),
+        label = "logo_scale"
+    )
+
+    // Content fade-in
+    val contentAlpha by animateFloatAsState(
+        targetValue   = if (started) 1f else 0f,
+        animationSpec = tween(durationMillis = 600, delayMillis = 350),
+        label         = "content_alpha"
+    )
+
+    // Button fade-in delayed further
+    val buttonAlpha by animateFloatAsState(
+        targetValue   = if (started) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 700),
+        label         = "button_alpha"
+    )
+
+    LaunchedEffect(Unit) { started = true }
+
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("🐾", fontSize = 80.sp)
+        // App logo — PNG replaces 🐾 emoji
+        // Replace R.drawable.ic_launcher_foreground with a dedicated logo PNG
+        // when available. painterResource() makes it a 1-line swap.
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            contentDescription = "PetQuest",
+            modifier = Modifier
+                .size(120.dp)
+                .scale(logoScale),
+            contentScale = ContentScale.Fit
+        )
+
         Spacer(Modifier.height(24.dp))
+
         Text(
             "PetQuest",
-            fontSize = 42.sp,
+            fontSize   = 42.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.primary
+            color      = MaterialTheme.colorScheme.primary,
+            modifier   = Modifier.alpha(contentAlpha)
         )
+
         Spacer(Modifier.height(12.dp))
+
         Text(
-            "Build real bonds with real pets through daily quests and adventures!",
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            "Build real bonds with real pets through daily quests and adventures.",
+            fontSize   = 16.sp,
+            textAlign  = TextAlign.Center,
+            color      = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier   = Modifier.alpha(contentAlpha)
         )
+
         Spacer(Modifier.height(48.dp))
+
         Button(
-            onClick = onGetStarted,
-            modifier = Modifier.fillMaxWidth().height(56.dp)
+            onClick  = onGetStarted,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .alpha(buttonAlpha)
         ) {
             Text("Get Started", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }

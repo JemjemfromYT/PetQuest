@@ -1,19 +1,20 @@
 package com.example.petquest.ui.screens
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.petquest.R
 import com.example.petquest.data.model.PetType
 import com.example.petquest.data.model.Rarity
 import com.example.petquest.viewmodel.PetQuestViewModel
@@ -40,6 +41,13 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
         else PetType.entries.filter { it.rarity == selectedRarity }
     }
 
+    // Animated collection progress
+    val collectionProgress by animateFloatAsState(
+        targetValue = if (totalSpecies == 0) 0f else collectedCount / totalSpecies.toFloat(),
+        animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
+        label = "encyclopedia_progress"
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,7 +60,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
-            // ── Collection Progress Header ──────────────────────────────────
+            // ── Collection Progress Header ───────────────────────────────────
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -82,7 +90,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                     }
                     Spacer(Modifier.height(8.dp))
                     LinearProgressIndicator(
-                        progress = { if (totalSpecies == 0) 0f else collectedCount / totalSpecies.toFloat() },
+                        progress = { collectionProgress },
                         modifier = Modifier.fillMaxWidth().height(10.dp)
                     )
                     Spacer(Modifier.height(4.dp))
@@ -120,7 +128,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                 }
             }
 
-            // ── Rarity Stats Row ────────────────────────────────────────────
+            // ── Rarity Stats Row ─────────────────────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -156,7 +164,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                 }
             }
 
-            // ── Rarity Filter Tabs ──────────────────────────────────────────
+            // ── Rarity Filter Tabs ───────────────────────────────────────────
             ScrollableTabRow(
                 selectedTabIndex = rarityTabs.indexOf(selectedRarity),
                 edgePadding = 16.dp,
@@ -179,7 +187,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
 
             Spacer(Modifier.height(8.dp))
 
-            // ── Species Grid ────────────────────────────────────────────────
+            // ── Species Grid ─────────────────────────────────────────────────
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -200,8 +208,19 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
 private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
     val rarityColor = encyclopediaRarityColor(petType.rarity)
 
+    // Fade in on first appearance
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(petType.name) { visible = true }
+    val alpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = tween(durationMillis = 250),
+        label = "species_alpha_${petType.name}"
+    )
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(alpha),
         elevation = CardDefaults.cardElevation(if (isCollected) 4.dp else 1.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isCollected)
@@ -217,22 +236,58 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Box(contentAlignment = Alignment.TopEnd, modifier = Modifier.fillMaxWidth()) {
+            Box(
+                contentAlignment = Alignment.TopEnd,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = if (isCollected) petEmoji(petType.name) else "❓",
-                        fontSize = 42.sp,
-                        color = if (isCollected) Color.Unspecified
-                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-                    )
+                    // PNG-ready: replace with per-species drawable when artwork available.
+                    // Uncollected species show a lock placeholder instead of ❓ emoji.
+                    Surface(
+                        modifier = Modifier.size(52.dp),
+                        shape = MaterialTheme.shapes.medium,
+                        color = if (isCollected)
+                            rarityColor.copy(alpha = 0.12f)
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            if (isCollected) {
+                                // First two letters of species name as monogram
+                                Text(
+                                    petType.name.take(2),
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = rarityColor
+                                )
+                            } else {
+                                // Locked appearance — not emoji
+                                Text(
+                                    "?",
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                )
+                            }
+                        }
+                    }
                 }
+
                 if (isCollected) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Collected",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    Surface(
+                        modifier = Modifier.size(18.dp),
+                        shape    = MaterialTheme.shapes.extraSmall,
+                        color    = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                "✓",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 }
             }
 

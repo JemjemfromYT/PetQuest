@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import com.example.petquest.R
@@ -62,6 +63,20 @@ fun ProfileScreen(
     val speciesCount      = collectedSpecies.size
     val totalSpecies      = PetType.entries.size
     val hasCompletedToday = tasks.any { it.isCompleted }
+
+    // Animated XP progress
+    val xpProgress by animateFloatAsState(
+        targetValue = (totalBondPoints % 100) / 100f,
+        animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
+        label = "xp_progress"
+    )
+
+    // Animated species progress
+    val speciesProgress by animateFloatAsState(
+        targetValue = if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat(),
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
+        label = "species_progress"
+    )
 
     // ── Secret 5-tap admin access ──────────────────────────────────────────
     var tapCount      by remember { mutableIntStateOf(0) }
@@ -156,11 +171,13 @@ fun ProfileScreen(
             TopAppBar(
                 title = { Text("Profile", fontWeight = FontWeight.Bold) },
                 actions = {
+                    // Admin button intentionally hidden from main UI (opacity 0)
+                    // Use secret 5-tap on Level card instead
                     IconButton(onClick = onAdminClick) {
                         Icon(
                             Icons.Default.Build,
                             contentDescription = "Admin",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4f)
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0f)
                         )
                     }
                 },
@@ -175,7 +192,7 @@ fun ProfileScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ── Level card ─────────────────────────────────────────────────
+            // ── Level card ──────────────────────────────────────────────────
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -217,7 +234,7 @@ fun ProfileScreen(
                         }
                         Spacer(Modifier.height(8.dp))
                         LinearProgressIndicator(
-                            progress = { (totalBondPoints % 100) / 100f },
+                            progress = { xpProgress },
                             modifier = Modifier.fillMaxWidth().height(10.dp)
                         )
                         Spacer(Modifier.height(4.dp))
@@ -230,19 +247,34 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Stats row ──────────────────────────────────────────────────
+            // ── Stats row ───────────────────────────────────────────────────
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    StatCard(Modifier.weight(1f), "$streak",         "Streak",   dimmed = !hasCompletedToday)
-                    StatCard(Modifier.weight(1f), "$totalBondPoints","Bond Pts")
-                    StatCard(Modifier.weight(1f), "$unlockedCount",  "Awards")
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        value = "$streak",
+                        label = "Streak",
+                        iconRes = R.drawable.ic_streak,
+                        dimmed = !hasCompletedToday
+                    )
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        value = "$totalBondPoints",
+                        label = "Bond Pts",
+                        iconRes = R.drawable.ic_bondpoints
+                    )
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        value = "$unlockedCount",
+                        label = "Awards"
+                    )
                 }
             }
 
-            // ── Collection progress card ───────────────────────────────────
+            // ── Collection progress card ─────────────────────────────────────
             item {
                 Card(
                     modifier = Modifier
@@ -258,7 +290,11 @@ fun ProfileScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Species Collected", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text(
+                                "Species Collected",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
                             Text(
                                 "$speciesCount / $totalSpecies",
                                 fontWeight = FontWeight.ExtraBold,
@@ -268,12 +304,12 @@ fun ProfileScreen(
                         }
                         Spacer(Modifier.height(6.dp))
                         LinearProgressIndicator(
-                            progress = { if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat() },
+                            progress = { speciesProgress },
                             modifier = Modifier.fillMaxWidth().height(6.dp)
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "$collectionPercentage% complete  •  Tap Collection tab to explore",
+                            "$collectionPercentage% complete  •  Tap Collection to explore",
                             fontSize = 11.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -281,7 +317,7 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Pet collection header ──────────────────────────────────────
+            // ── Pet collection header ────────────────────────────────────────
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -297,22 +333,13 @@ fun ProfileScreen(
 
             if (pets.isEmpty()) {
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                "No pets yet! Tap + to add one.",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+                    EmptyStateCard(
+                        imageRes = R.drawable.empty_collection,
+                        title = "No Pets Yet",
+                        description = "Tap the + button to add your first pet.",
+                        actionLabel = "Add a Pet",
+                        onAction = onAddPetClick
+                    )
                 }
             } else {
                 item {
@@ -333,7 +360,7 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Settings card ──────────────────────────────────────────────
+            // ── Settings card ────────────────────────────────────────────────
             item {
                 SettingsCard(
                     notificationsEnabled = notificationsEnabled,
@@ -349,7 +376,7 @@ fun ProfileScreen(
     }
 }
 
-// ─── Settings Card ─────────────────────────────────────────────────────────
+// ─── Settings Card ──────────────────────────────────────────────────────────
 
 @Composable
 private fun SettingsCard(
@@ -451,8 +478,6 @@ private fun SettingsCard(
     }
 }
 
-// ─── Time formatter ────────────────────────────────────────────────────────
-
 private fun formatTime(hour: Int, minute: Int): String {
     val amPm = if (hour < 12) "AM" else "PM"
     val h12  = when {
@@ -463,7 +488,7 @@ private fun formatTime(hour: Int, minute: Int): String {
     return String.format(Locale.getDefault(), "%d:%02d %s", h12, minute, amPm)
 }
 
-// ─── Pet Collection Card ────────────────────────────────────────────────────
+// ─── Pet Collection Card ─────────────────────────────────────────────────────
 
 @Composable
 private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
@@ -487,14 +512,21 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Pet species emoji
+            // Virtue emblem as primary visual identity (replaces emoji)
             Surface(
                 modifier = Modifier.size(72.dp),
                 shape = MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.secondaryContainer
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(petEmoji(pet.type.name), fontSize = 38.sp)
+                    Image(
+                        painter = painterResource(id = virtueInfo.emblemRes),
+                        contentDescription = "${pet.virtue.name} emblem",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        contentScale = ContentScale.Fit
+                    )
                 }
             }
 
@@ -549,33 +581,24 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 )
             }
 
-            // Bond progress bar
+            // Animated bond progress bar
+            val bondProgress by animateFloatAsState(
+                targetValue = (pet.bondPoints % 100) / 100f,
+                animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
+                label = "card_bond_${pet.id}"
+            )
             LinearProgressIndicator(
-                progress = { (pet.bondPoints % 100) / 100f },
-                modifier = Modifier.fillMaxWidth().height(4.dp)
+                progress = { bondProgress },
+                modifier = Modifier.fillMaxWidth().height(4.dp),
+                color = rarityColor
             )
 
-            // Virtue emblem + name (no fantasy title)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Image(
-                    painter            = painterResource(id = virtueInfo.emblemRes),
-                    contentDescription = "${pet.virtue.name} emblem",
-                    modifier           = Modifier.size(22.dp),
-                    contentScale       = ContentScale.Fit
-                )
-                Spacer(Modifier.width(5.dp))
-                Text(
-                    pet.virtue.name,
-                    fontSize   = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines   = 1,
-                    overflow   = TextOverflow.Ellipsis
-                )
-            }
+            // Virtue name below emblem (secondary)
+            Text(
+                pet.virtue.name,
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,20 +16,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.petquest.R
 import com.example.petquest.data.model.*
 
-/**
- * Calculates the dominant Virtue from exactly 5 selected traits.
- * Tally each trait's virtue; the virtue with the highest count wins.
- * Ties are broken by the Virtue enum declaration order (WISDOM first).
- */
 private fun calculateVirtue(traits: Set<Trait>): Virtue {
     val tally = traits.groupingBy { it.virtue }.eachCount()
     return Virtue.entries.maxWithOrNull(
@@ -84,11 +81,30 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
         ) {
             Spacer(Modifier.height(8.dp))
 
-            Text(petEmoji(selectedType.name), fontSize = 80.sp)
-            Spacer(Modifier.height(4.dp))
+            // Pet type visual — PNG placeholder replaces large emoji
+            // This area will show the actual pet illustration once PNG files are added.
+            // Swap ic_locked for a per-species drawable when artwork is ready.
+            Surface(
+                modifier = Modifier.size(100.dp),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.secondaryContainer
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_locked),
+                        contentDescription = selectedType.name.replace("_", " "),
+                        modifier = Modifier.size(56.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
             Text(
                 selectedType.name.replace("_", " "),
                 fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
@@ -101,6 +117,7 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
+
             Spacer(Modifier.height(20.dp))
 
             // ── Pet type dropdown ──────────────────────────────────────────────
@@ -112,7 +129,7 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                 }
             ) {
                 OutlinedTextField(
-                    value = "${petEmoji(selectedType.name)} ${selectedType.name.replace("_", " ")}",
+                    value = selectedType.name.replace("_", " "),
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Pet Type") },
@@ -152,9 +169,14 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                                 text = {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        Text(petEmoji(type.name), fontSize = 20.sp)
+                                        // Rarity color dot instead of emoji
+                                        Surface(
+                                            modifier = Modifier.size(10.dp),
+                                            shape = MaterialTheme.shapes.extraSmall,
+                                            color = rarityColor(type.rarity)
+                                        ) {}
                                         Column {
                                             Text(
                                                 type.name.replace("_", " "),
@@ -181,7 +203,7 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
 
             Spacer(Modifier.height(28.dp))
 
-            // ── Trait picker ──────────────────────────────────────────────────
+            // ── Trait picker ───────────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -222,7 +244,6 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
 
             Spacer(Modifier.height(12.dp))
 
-            // Trait chips grid — fixed height so the outer scroll works
             val allTraits = Trait.entries
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
@@ -276,7 +297,7 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                     .height(56.dp),
                 enabled = petName.isNotBlank() && selectedTraits.size == requiredTraits
             ) {
-                Text("Add Pet 🐾", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Add Pet", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -302,13 +323,13 @@ private fun rarityColor(rarity: Rarity) = when (rarity) {
 private fun CelebrationDialog(petName: String, petTypeName: String, onDismiss: () -> Unit) {
     var started by remember { mutableStateOf(false) }
 
-    val emojiScale by animateFloatAsState(
+    val iconScale by animateFloatAsState(
         targetValue  = if (started) 1f else 0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness    = Spring.StiffnessMediumLow
         ),
-        label = "emoji_scale"
+        label = "icon_scale"
     )
     val contentAlpha by animateFloatAsState(
         targetValue  = if (started) 1f else 0f,
@@ -333,12 +354,16 @@ private fun CelebrationDialog(petName: String, petTypeName: String, onDismiss: (
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("🎉  ✨  🎊  ✨  🎉", fontSize = 20.sp)
-
-                Text(
-                    petEmoji(petTypeName),
-                    fontSize = 88.sp,
-                    modifier = Modifier.scale(emojiScale)
+                // PNG artwork replaces emoji decorations
+                // ic_verified serves as a celebration icon; replace with a
+                // dedicated celebration PNG when artwork is available.
+                Image(
+                    painter = painterResource(id = R.drawable.ic_verified),
+                    contentDescription = "New pet added",
+                    modifier = Modifier
+                        .size(88.dp)
+                        .scale(iconScale),
+                    contentScale = ContentScale.Fit
                 )
 
                 Text(
@@ -351,7 +376,7 @@ private fun CelebrationDialog(petName: String, petTypeName: String, onDismiss: (
                 )
 
                 Text(
-                    "Your new ${petTypeName.replace("_", " ").lowercase()} companion is ready for adventures! 🚀",
+                    "Your new ${petTypeName.replace("_", " ").lowercase()} companion is ready for adventures.",
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -362,9 +387,12 @@ private fun CelebrationDialog(petName: String, petTypeName: String, onDismiss: (
 
                 Button(
                     onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .alpha(contentAlpha)
                 ) {
-                    Text("Let's Go! 🐾", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Let's Go!", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

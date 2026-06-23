@@ -5,11 +5,11 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
+import com.example.petquest.R
 import com.example.petquest.viewmodel.PetQuestViewModel
 import java.io.File
 
@@ -80,7 +82,6 @@ fun PetVerificationScreen(
         else permissionLauncher.launch(android.Manifest.permission.CAMERA)
     }
 
-    // ── Success dialog shown after verification completes ─────────────────────
     if (showSuccessDialog && pet != null) {
         VerificationSuccessDialog(
             petName     = pet.name,
@@ -133,14 +134,16 @@ fun PetVerificationScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     listOf("Tasks", "Bond Pts", "Streaks").forEach { label ->
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.CheckCircle,
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_verified),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(20.dp),
+                                contentScale = ContentScale.Fit
                             )
-                            Spacer(Modifier.height(2.dp))
                             Text(
                                 label,
                                 fontSize = 11.sp,
@@ -167,14 +170,23 @@ fun PetVerificationScreen(
                         contentScale = ContentScale.Crop
                     )
                 } else {
+                    // PNG placeholder — replaces 📷 emoji
                     Box(Modifier.fillMaxSize(), Alignment.Center) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Text("📷", fontSize = 64.sp)
-                            Spacer(Modifier.height(8.dp))
-                            Text("No photo yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_locked),
+                                contentDescription = "No photo",
+                                modifier = Modifier.size(64.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                            Text(
+                                "No photo yet",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp
+                            )
                         }
                     }
                 }
@@ -186,7 +198,7 @@ fun PetVerificationScreen(
             ) {
                 Icon(Icons.Default.CameraAlt, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Take Photo")
+                Text("Take Photo", fontWeight = FontWeight.SemiBold)
             }
 
             OutlinedButton(
@@ -195,12 +207,11 @@ fun PetVerificationScreen(
             ) {
                 Icon(Icons.Default.Image, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Choose from Gallery")
+                Text("Choose from Gallery", fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(Modifier.weight(1f))
 
-            // Confirm button — triggers verification and shows success dialog
             Button(
                 onClick = {
                     photoUri?.let { uri ->
@@ -224,7 +235,7 @@ fun PetVerificationScreen(
     }
 }
 
-// ─── Verification Success Dialog ──────────────────────────────────────────────
+// ─── Verification Success Dialog — replaces emoji decorations with PNG ─────────
 
 @Composable
 private fun VerificationSuccessDialog(
@@ -265,15 +276,15 @@ private fun VerificationSuccessDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Text("🎉  ✨  🎊  ✨  🎉", fontSize = 20.sp)
-
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
+                // PNG artwork replaces emoji row and icon — painterResource allows
+                // easy swap when verification_success.png is provided
+                Image(
+                    painter = painterResource(id = R.drawable.verification_success),
                     contentDescription = "Verified",
-                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
                     modifier = Modifier
-                        .size(88.dp)
-                        .scale(iconScale)
+                        .size(100.dp)
+                        .scale(iconScale),
+                    contentScale = ContentScale.Fit
                 )
 
                 Text(
@@ -294,7 +305,6 @@ private fun VerificationSuccessDialog(
                     modifier   = Modifier.alpha(contentAlpha)
                 )
 
-                // Unlocked features row
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -322,11 +332,11 @@ private fun VerificationSuccessDialog(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.CheckCircle,
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_verified),
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                    modifier = Modifier.size(14.dp)
+                                    modifier = Modifier.size(14.dp),
+                                    contentScale = ContentScale.Fit
                                 )
                                 Text(
                                     feature,
@@ -350,7 +360,7 @@ private fun VerificationSuccessDialog(
                         containerColor = MaterialTheme.colorScheme.tertiary
                     )
                 ) {
-                    Text("Let's Go! 🐾", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Let's Go!", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

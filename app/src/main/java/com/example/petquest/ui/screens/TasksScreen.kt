@@ -1,19 +1,23 @@
 package com.example.petquest.ui.screens
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.petquest.R
 import com.example.petquest.data.model.TaskEntity
 import com.example.petquest.data.model.TaskType
 import com.example.petquest.viewmodel.PetQuestViewModel
@@ -41,32 +45,29 @@ fun TasksScreen(
             )
         }
     ) { padding ->
+        // ── Empty state: no pets ──────────────────────────────────────────────
         if (pets.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        "No tasks yet",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "Add a pet to get started.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                EmptyStateCard(
+                    imageRes = R.drawable.empty_tasks,
+                    title = "No Tasks Yet",
+                    description = "Add a pet and verify them to start receiving daily tasks.",
+                    actionLabel = "Go to Profile",
+                    onAction = {}
+                )
             }
             return@Scaffold
         }
 
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
-            // ── Pet tab row ──────────────────────────────────────────────────
+            // ── Pet tab row ───────────────────────────────────────────────────
             ScrollableTabRow(
                 selectedTabIndex = safeTab,
                 edgePadding = 16.dp,
@@ -82,15 +83,28 @@ fun TasksScreen(
                         selected = safeTab == index,
                         onClick  = { selectedTab = index },
                         text = {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(contentAlignment = Alignment.BottomEnd) {
-                                    Text(petEmoji(pet.type.name), fontSize = 22.sp)
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                // Virtue emblem as tab identity
+                                val virtueInfo = com.example.petquest.ui.VirtueConfig[pet.virtue]
+                                Box(
+                                    modifier = Modifier.size(28.dp),
+                                    contentAlignment = Alignment.BottomEnd
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = virtueInfo.emblemRes),
+                                        contentDescription = "${pet.virtue.name} emblem",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Fit
+                                    )
                                     if (isLocked) {
                                         Icon(
                                             imageVector = Icons.Default.Lock,
                                             contentDescription = "Locked",
                                             tint = MaterialTheme.colorScheme.error,
-                                            modifier = Modifier.size(12.dp)
+                                            modifier = Modifier.size(10.dp)
                                         )
                                     }
                                 }
@@ -123,12 +137,11 @@ fun TasksScreen(
                 }
             }
 
-            // ── Tasks for selected pet ───────────────────────────────────────
+            // ── Tasks for selected pet ────────────────────────────────────────
             val selectedPet = pets.getOrNull(safeTab)
-
             if (selectedPet == null) return@Column
 
-            // ── Verification gate ────────────────────────────────────────────
+            // ── Verification gate ─────────────────────────────────────────────
             if (!selectedPet.isVerified) {
                 Box(
                     modifier = Modifier
@@ -150,11 +163,11 @@ fun TasksScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.size(48.dp)
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_locked),
+                                contentDescription = "Locked",
+                                modifier = Modifier.size(56.dp),
+                                contentScale = ContentScale.Fit
                             )
 
                             Text(
@@ -179,13 +192,10 @@ fun TasksScreen(
                                     containerColor = MaterialTheme.colorScheme.error
                                 )
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Warning,
-                                    contentDescription = null
-                                )
+                                Icon(Icons.Default.Lock, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    "Verify Pet",
+                                    "Verify ${selectedPet.name}",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -196,21 +206,36 @@ fun TasksScreen(
                 return@Column
             }
 
-            // ── Normal task list (verified pets only) ────────────────────────
+            // ── Normal task list (verified pets only) ─────────────────────────
             val petTasks  = tasks.filter { it.petId == selectedPet.id }
             val core      = petTasks.filter { it.type == TaskType.CORE }
             val optional  = petTasks.filter { it.type == TaskType.OPTIONAL }
             val doneCount = petTasks.count { it.isCompleted }
 
             if (petTasks.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        "No tasks for ${selectedPet.name}",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    EmptyStateCard(
+                        imageRes = R.drawable.empty_tasks,
+                        title = "All Done!",
+                        description = "${selectedPet.name} has no tasks remaining for today.",
+                        actionLabel = "Check Back Tomorrow",
+                        onAction = {}
                     )
                 }
                 return@Column
             }
+
+            // Animated progress
+            val taskProgress by animateFloatAsState(
+                targetValue = doneCount / petTasks.size.toFloat(),
+                animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+                label = "task_progress"
+            )
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -244,7 +269,7 @@ fun TasksScreen(
                             }
                             Spacer(Modifier.height(8.dp))
                             LinearProgressIndicator(
-                                progress = { doneCount / petTasks.size.toFloat() },
+                                progress = { taskProgress },
                                 modifier = Modifier.fillMaxWidth().height(8.dp)
                             )
                         }
@@ -311,8 +336,29 @@ private fun TaskTypeHeader(
 @Composable
 private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
     val isDone = task.isCompleted
+
+    // Completion scale pop
+    var checkAnimStarted by remember { mutableStateOf(isDone) }
+    LaunchedEffect(isDone) {
+        if (isDone) {
+            checkAnimStarted = false
+            kotlinx.coroutines.delay(30)
+            checkAnimStarted = true
+        }
+    }
+    val checkScale by animateFloatAsState(
+        targetValue = if (isDone && checkAnimStarted) 1f else if (isDone) 0.88f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness    = Spring.StiffnessMedium
+        ),
+        label = "check_scale_${task.id}"
+    )
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(checkScale),
         colors = CardDefaults.cardColors(
             containerColor = if (isDone)
                 MaterialTheme.colorScheme.surfaceVariant

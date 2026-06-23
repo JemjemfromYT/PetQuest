@@ -8,11 +8,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -26,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
+import com.example.petquest.R
 import com.example.petquest.data.model.Virtue
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.LevelUpEvent
@@ -52,7 +50,7 @@ fun PetDetailScreen(
         }
     }
 
-    // ── Dialogs ──────────────────────────────────────────────────────────────
+    // ── Dialogs ───────────────────────────────────────────────────────────────
 
     if (showEditDialog && pet != null) {
         EditPetDialog(
@@ -101,7 +99,7 @@ fun PetDetailScreen(
         LevelUpDialog(event = event, onDismiss = { levelUpEvent = null })
     }
 
-    // ── Main scaffold ─────────────────────────────────────────────────────────
+    // ── Main scaffold ──────────────────────────────────────────────────────────
 
     Scaffold(
         topBar = {
@@ -149,6 +147,25 @@ fun PetDetailScreen(
             else       -> MaterialTheme.colorScheme.error
         }
 
+        // Fade-in for the virtue card
+        var virtueVisible by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            kotlinx.coroutines.delay(200)
+            virtueVisible = true
+        }
+        val virtueAlpha by animateFloatAsState(
+            targetValue = if (virtueVisible) 1f else 0f,
+            animationSpec = tween(durationMillis = 400),
+            label = "virtue_alpha"
+        )
+
+        // Animated bond progress
+        val bondProgress by animateFloatAsState(
+            targetValue = (pet.bondPoints % 100) / 100f,
+            animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
+            label = "bond_progress"
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -157,7 +174,7 @@ fun PetDetailScreen(
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Photo or emoji ────────────────────────────────────────────────
+            // ── Photo or placeholder ───────────────────────────────────────────
             Card(
                 modifier  = Modifier.size(200.dp),
                 elevation = CardDefaults.cardElevation(8.dp)
@@ -170,8 +187,14 @@ fun PetDetailScreen(
                         contentScale       = ContentScale.Crop
                     )
                 } else {
+                    // PNG placeholder — replace with actual pet artwork later
                     Box(Modifier.fillMaxSize(), Alignment.Center) {
-                        Text(petEmoji(pet.type.name), fontSize = 80.sp)
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_locked),
+                            contentDescription = "No photo",
+                            modifier = Modifier.size(80.dp),
+                            contentScale = ContentScale.Fit
+                        )
                     }
                 }
             }
@@ -189,21 +212,31 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // ── Stat cards: Type | Bond Level | Bond Points ───────────────────
+            // ── Stat cards: Type | Bond Level | Bond Points ────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 StatCard(Modifier.weight(1f), pet.type.name.replace("_", " "), "Type")
-                StatCard(Modifier.weight(1f), "Lv.${pet.bondLevel}",           "Bond Level")
-                StatCard(Modifier.weight(1f), "${pet.bondPoints}",              "Bond Pts")
+                StatCard(
+                    Modifier.weight(1f),
+                    "Lv.${pet.bondLevel}",
+                    "Bond Level",
+                    iconRes = R.drawable.ic_level
+                )
+                StatCard(
+                    Modifier.weight(1f),
+                    "${pet.bondPoints}",
+                    "Bond Pts",
+                    iconRes = R.drawable.ic_bondpoints
+                )
             }
 
             Spacer(Modifier.height(12.dp))
 
-            // ── Bond progress bar ─────────────────────────────────────────────
+            // ── Animated bond progress bar ─────────────────────────────────────
             LinearProgressIndicator(
-                progress = { (pet.bondPoints % 100) / 100f },
+                progress = { bondProgress },
                 modifier = Modifier.fillMaxWidth().height(8.dp)
             )
             Text(
@@ -214,12 +247,14 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ── Virtue Identity Card ──────────────────────────────────────────
-            VirtueIdentityCard(virtue = pet.virtue)
+            // ── Virtue Identity Card (fades in) ────────────────────────────────
+            Box(modifier = Modifier.alpha(virtueAlpha)) {
+                VirtueIdentityCard(virtue = pet.virtue)
+            }
 
             Spacer(Modifier.height(20.dp))
 
-            // ── Verification Status Section ───────────────────────────────────
+            // ── Verification Status Section ────────────────────────────────────
             if (pet.isVerified) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -235,11 +270,11 @@ fun PetDetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_verified),
                             contentDescription = "Verified",
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(56.dp),
+                            contentScale = ContentScale.Fit
                         )
                         Text(
                             "Pet Verified",
@@ -260,7 +295,7 @@ fun PetDetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            listOf("Tasks ✓", "Bond Pts ✓", "Streaks ✓").forEach { label ->
+                            listOf("Tasks", "Bond Pts", "Streaks").forEach { label ->
                                 Surface(
                                     shape = MaterialTheme.shapes.small,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.15f)
@@ -292,11 +327,11 @@ fun PetDetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_locked),
                             contentDescription = "Unverified",
-                            tint = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(56.dp),
+                            contentScale = ContentScale.Fit
                         )
                         Text(
                             "Verification Required",
@@ -317,12 +352,6 @@ fun PetDetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(
-                                "Currently locked:",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
                             listOf(
                                 "Complete tasks",
                                 "Earn bond points",
@@ -333,11 +362,12 @@ fun PetDetailScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Lock,
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_locked),
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
-                                        modifier = Modifier.size(14.dp)
+                                        modifier = Modifier.size(14.dp),
+                                        contentScale = ContentScale.Fit,
+                                        alpha = 0.55f
                                     )
                                     Text(
                                         feature,
@@ -358,7 +388,7 @@ fun PetDetailScreen(
                             Icon(Icons.Default.CameraAlt, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "Verify My Pet Now",
+                                "Verify My Pet",
                                 fontSize   = 15.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -372,7 +402,7 @@ fun PetDetailScreen(
     }
 }
 
-// ─── Virtue Identity Card — no fantasy title, emblem + virtue name only ───────
+// ─── Virtue Identity Card — emblem dominant, no fantasy title ─────────────────
 
 @Composable
 fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
@@ -392,15 +422,17 @@ fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            // Emblem is the identity — visually largest element
             Image(
                 painter            = painterResource(id = info.emblemRes),
                 contentDescription = "${virtue.name} emblem",
-                modifier           = Modifier.size(88.dp),
+                modifier           = Modifier.size(96.dp),
                 contentScale       = ContentScale.Fit
             )
 
             Spacer(Modifier.height(4.dp))
 
+            // Virtue name — secondary to emblem
             Text(
                 text       = virtue.name,
                 fontSize   = 20.sp,
@@ -418,7 +450,7 @@ fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
     }
 }
 
-// ─── Edit Pet Dialog ──────────────────────────────────────────────────────────
+// ─── Edit Pet Dialog ───────────────────────────────────────────────────────────
 
 @Composable
 private fun EditPetDialog(
@@ -461,13 +493,13 @@ private fun EditPetDialog(
     )
 }
 
-// ─── Level-Up Celebration Dialog ─────────────────────────────────────────────
+// ─── Level-Up Celebration Dialog ──────────────────────────────────────────────
 
 @Composable
 fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
     var started by remember { mutableStateOf(false) }
 
-    val emojiScale by animateFloatAsState(
+    val iconScale by animateFloatAsState(
         targetValue   = if (started) 1f else 0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -498,10 +530,14 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    "🏅",
-                    fontSize = 88.sp,
-                    modifier = Modifier.scale(emojiScale)
+                // Replace emoji medal with PNG artwork
+                Image(
+                    painter = painterResource(id = R.drawable.ic_level),
+                    contentDescription = "Level Up",
+                    modifier = Modifier
+                        .size(88.dp)
+                        .scale(iconScale),
+                    contentScale = ContentScale.Fit
                 )
 
                 Text(
@@ -547,19 +583,11 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                             "Lv.${event.newLevel}",
                             modifier   = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
                             fontSize   = 16.sp,
-                            fontWeight = FontWeight.ExtraBold,
+                            fontWeight = FontWeight.Bold,
                             color      = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
-
-                Text(
-                    "Keep completing tasks to reach the next level!",
-                    fontSize  = 13.sp,
-                    textAlign = TextAlign.Center,
-                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier  = Modifier.alpha(contentAlpha)
-                )
 
                 Spacer(Modifier.height(4.dp))
 
@@ -568,10 +596,7 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
-                        .alpha(contentAlpha),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                        .alpha(contentAlpha)
                 ) {
                     Text("Keep Going!", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
