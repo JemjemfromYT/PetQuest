@@ -80,6 +80,10 @@ class PetQuestViewModel(
     private val _levelUpEvent = MutableSharedFlow<LevelUpEvent>()
     val levelUpEvent: SharedFlow<LevelUpEvent> = _levelUpEvent.asSharedFlow()
 
+    // Emits the ID of a newly added pet so navigation can route to verification
+    private val _newPetIdEvent = MutableSharedFlow<Int>()
+    val newPetIdEvent: SharedFlow<Int> = _newPetIdEvent.asSharedFlow()
+
     init {
         viewModelScope.launch {
             try {
@@ -125,6 +129,8 @@ class PetQuestViewModel(
                 val inserted = pets.maxByOrNull { it.id } ?: return@launch
                 generateTasksForPet(inserted)
                 checkAndUnlockAchievements()
+                // Emit the new pet's ID so the UI can navigate to verification
+                _newPetIdEvent.emit(inserted.id)
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "addPet error", e)
             }
@@ -155,8 +161,12 @@ class PetQuestViewModel(
     fun completeTask(task: TaskEntity) {
         viewModelScope.launch {
             try {
-                petRepository.completeTask(task.id)
                 val pet = allPets.value.find { it.id == task.petId } ?: return@launch
+
+                // Verification gate: unverified pets cannot earn points, streaks, or achievements
+                if (!pet.isVerified) return@launch
+
+                petRepository.completeTask(task.id)
 
                 val points    = if (task.type == TaskType.CORE) 10 else 5
                 val oldLevel  = pet.bondLevel
@@ -221,14 +231,6 @@ class PetQuestViewModel(
     }
 
     // ─── Rotating daily task generation ───────────────────────────────────────
-    //
-    // Selection is deterministic per (petId, date) pair:
-    //   - same tasks all day for a given pet
-    //   - different tasks tomorrow
-    //   - different tasks across pets on the same day
-    //
-    // Seed formula: (date.hashCode() * 31) + petId
-    // Kotlin's String.hashCode() is specified stable across JVM versions.
 
     private suspend fun generateTasksForPet(pet: PetEntity) {
         if (petRepository.hasTasksForPet(pet.id)) return
@@ -237,19 +239,16 @@ class PetQuestViewModel(
         val seed  = (today.hashCode().toLong() * 31L) + pet.id.toLong()
         val rng   = Random(seed)
 
-        // Draw 2 universal core tasks
         val universalCore = TaskPools.UNIVERSAL_CORE
             .map { it.replace("{name}", pet.name) }
             .shuffled(rng)
             .take(2)
 
-        // Draw 2 virtue-specific core tasks
         val virtueCore = TaskPools.virtueCorePool(pet.virtue)
             .map { it.replace("{name}", pet.name) }
             .shuffled(rng)
             .take(2)
 
-        // Draw 4 optional tasks from the combined species + universal optional pool.
         val speciesOptionals  = TaskPools.speciesOptionalPool(pet.type)
             .map { it.replace("{name}", pet.name) }
         val universalOptionals = TaskPools.UNIVERSAL_OPTIONAL
@@ -258,14 +257,12 @@ class PetQuestViewModel(
             .shuffled(rng)
             .take(4)
 
-        // Insert CORE tasks
         (universalCore + virtueCore).forEach { title ->
             petRepository.insertTask(
                 TaskEntity(petId = pet.id, title = title, type = TaskType.CORE, date = today)
             )
         }
 
-        // Insert OPTIONAL tasks
         allOptionals.forEach { title ->
             petRepository.insertTask(
                 TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL, date = today)

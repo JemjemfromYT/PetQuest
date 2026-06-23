@@ -3,6 +3,9 @@ package com.example.petquest.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -17,13 +20,15 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TasksScreen(viewModel: PetQuestViewModel) {
+fun TasksScreen(
+    viewModel: PetQuestViewModel,
+    onVerifyPet: (Int) -> Unit
+) {
     val tasks by viewModel.todaysTasks.collectAsState()
     val pets  by viewModel.allPets.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    // Clamp selected tab if pets change
     val safeTab = if (pets.isEmpty()) 0 else selectedTab.coerceIn(0, pets.lastIndex)
 
     Scaffold(
@@ -66,23 +71,40 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                     val petTasks  = tasks.filter { it.petId == pet.id }
                     val donePet   = petTasks.count { it.isCompleted }
                     val allDone   = petTasks.isNotEmpty() && donePet == petTasks.size
+                    val isLocked  = !pet.isVerified
 
                     Tab(
                         selected = safeTab == index,
                         onClick  = { selectedTab = index },
                         text = {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    petEmoji(pet.type.name),
-                                    fontSize = 22.sp
-                                )
+                                // Show lock overlay on emoji for unverified pets
+                                Box(contentAlignment = Alignment.BottomEnd) {
+                                    Text(petEmoji(pet.type.name), fontSize = 22.sp)
+                                    if (isLocked) {
+                                        Icon(
+                                            imageVector = Icons.Default.Lock,
+                                            contentDescription = "Locked",
+                                            tint = MaterialTheme.colorScheme.error,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
                                 Text(
                                     pet.name,
                                     fontSize = 12.sp,
                                     fontWeight = if (safeTab == index) FontWeight.Bold else FontWeight.Normal,
                                     maxLines = 1
                                 )
-                                if (petTasks.isNotEmpty()) {
+                                // Unverified shows "Locked", verified shows progress
+                                if (isLocked) {
+                                    Text(
+                                        "Locked",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.error,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                } else if (petTasks.isNotEmpty()) {
                                     Text(
                                         if (allDone) "✅ Done" else "$donePet/${petTasks.size}",
                                         fontSize = 10.sp,
@@ -103,6 +125,112 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
 
             if (selectedPet == null) return@Column
 
+            // ── Verification gate ────────────────────────────────────────────
+            if (!selectedPet.isVerified) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        ),
+                        elevation = CardDefaults.cardElevation(4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(28.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.size(48.dp)
+                            )
+
+                            Text(
+                                "Verification Required",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Text(
+                                "${selectedPet.name} must be verified before they can complete tasks and earn bond points.",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                textAlign = TextAlign.Center
+                            )
+
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.2f)
+                            )
+
+                            Column(
+                                horizontalAlignment = Alignment.Start,
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    "Locked until verified:",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                listOf("Task completion", "Bond points", "Streaks", "Achievements").forEach { item ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Lock,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                        Text(
+                                            item,
+                                            fontSize = 13.sp,
+                                            color = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(Modifier.height(4.dp))
+
+                            Button(
+                                onClick  = { onVerifyPet(selectedPet.id) },
+                                modifier = Modifier.fillMaxWidth().height(52.dp),
+                                colors   = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Warning,
+                                    contentDescription = null
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "Verify Pet",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+                return@Column
+            }
+
+            // ── Normal task list (verified pets only) ────────────────────────
             val petTasks  = tasks.filter { it.petId == selectedPet.id }
             val core      = petTasks.filter { it.type == TaskType.CORE }
             val optional  = petTasks.filter { it.type == TaskType.OPTIONAL }
@@ -121,7 +249,6 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Progress card
                 item(key = "progress") {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -156,7 +283,6 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                     }
                 }
 
-                // Core tasks
                 if (core.isNotEmpty()) {
                     item(key = "core_header") {
                         TaskTypeHeader(
@@ -171,7 +297,6 @@ fun TasksScreen(viewModel: PetQuestViewModel) {
                     }
                 }
 
-                // Optional tasks
                 if (optional.isNotEmpty()) {
                     item(key = "opt_header") {
                         Spacer(Modifier.height(4.dp))

@@ -8,8 +8,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -219,31 +222,154 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ── Verification section ──────────────────────────────────────────
+            // ── Verification Status Section (large, prominent) ────────────────
             if (pet.isVerified) {
+                // ── Verified state: green/tertiary card ───────────────────────
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors   = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                    )
+                    ),
+                    elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    Row(
-                        modifier          = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Text("✅", fontSize = 24.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Text("Pet Verified!", fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Verified",
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text(
+                            "Pet Verified",
+                            fontSize   = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                        Text(
+                            "${pet.name} is fully active — tasks, bond points, and streaks are all enabled.",
+                            fontSize  = 13.sp,
+                            textAlign = TextAlign.Center,
+                            color     = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.3f)
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            listOf("Tasks ✓", "Bond Pts ✓", "Streaks ✓").forEach { label ->
+                                Surface(
+                                    shape = MaterialTheme.shapes.small,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        label,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             } else {
-                Button(
-                    onClick  = onVerifyClick,
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                // ── Unverified state: warning card ────────────────────────────
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors   = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Verify My Pet (Take Photo)", fontSize = 15.sp)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Unverified",
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text(
+                            "Verification Required",
+                            fontSize   = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Text(
+                            "${pet.name} is locked until verified. Take a photo of your pet to unlock all features.",
+                            fontSize  = 13.sp,
+                            textAlign = TextAlign.Center,
+                            color     = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.3f)
+                        )
+                        // Locked features list
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                "Currently locked:",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                            listOf(
+                                "Complete tasks",
+                                "Earn bond points",
+                                "Increase streaks",
+                                "Unlock achievements"
+                            ).forEach { feature ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        feature,
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Button(
+                            onClick  = onVerifyClick,
+                            modifier = Modifier.fillMaxWidth().height(52.dp),
+                            colors   = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Icon(Icons.Default.CameraAlt, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Verify My Pet Now",
+                                fontSize   = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
 
@@ -272,7 +398,6 @@ fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            // Large emblem
             Image(
                 painter            = painterResource(id = info.emblemRes),
                 contentDescription = "${virtue.name} emblem",
@@ -282,7 +407,6 @@ fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
 
             Spacer(Modifier.height(4.dp))
 
-            // Virtue name (e.g. WISDOM)
             Text(
                 text       = virtue.name,
                 fontSize   = 20.sp,
@@ -290,7 +414,6 @@ fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
                 color      = MaterialTheme.colorScheme.primary
             )
 
-            // Virtue title (e.g. "The Sage")
             Text(
                 text       = info.title,
                 fontSize   = 15.sp,
@@ -298,7 +421,6 @@ fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
                 color      = MaterialTheme.colorScheme.onSecondaryContainer
             )
 
-            // Virtue description
             Text(
                 text      = info.description,
                 fontSize  = 13.sp,
@@ -309,7 +431,7 @@ fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
     }
 }
 
-// ─── Edit Pet Dialog (name only — virtue is permanent) ───────────────────────
+// ─── Edit Pet Dialog ──────────────────────────────────────────────────────────
 
 @Composable
 private fun EditPetDialog(

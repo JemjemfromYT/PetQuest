@@ -5,10 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -226,23 +230,49 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 }
             } else {
                 items(pets) { pet ->
-                    val virtueInfo = VirtueConfig[pet.virtue]
+                    val virtueInfo  = VirtueConfig[pet.virtue]
+                    val isVerified  = pet.isVerified
+
+                    // Unverified cards are greyed out and reduced in opacity
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .alpha(if (isVerified) 1f else 0.55f)
                             .clickable { navController.navigate("pet_detail/${pet.id}") },
-                        elevation = CardDefaults.cardElevation(3.dp)
+                        elevation = CardDefaults.cardElevation(if (isVerified) 3.dp else 0.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isVerified)
+                                MaterialTheme.colorScheme.surface
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant
+                        )
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Pet species emoji
-                            Text(petEmoji(pet.type.name), fontSize = 38.sp)
+                            // Pet species emoji — with lock overlay for unverified
+                            Box(contentAlignment = Alignment.BottomEnd) {
+                                Text(petEmoji(pet.type.name), fontSize = 38.sp)
+                                if (!isVerified) {
+                                    Surface(
+                                        shape = MaterialTheme.shapes.extraSmall,
+                                        color = MaterialTheme.colorScheme.errorContainer,
+                                        modifier = Modifier.size(16.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Lock,
+                                            contentDescription = "Locked",
+                                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                                            modifier = Modifier.padding(2.dp)
+                                        )
+                                    }
+                                }
+                            }
 
                             Spacer(Modifier.width(12.dp))
 
-                            // Pet name + species
+                            // Pet name + species + verification label
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     pet.name,
@@ -256,6 +286,21 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                                if (!isVerified) {
+                                    Spacer(Modifier.height(3.dp))
+                                    Surface(
+                                        shape = MaterialTheme.shapes.extraSmall,
+                                        color = MaterialTheme.colorScheme.errorContainer
+                                    ) {
+                                        Text(
+                                            "Verification Required",
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+                                }
                             }
 
                             Spacer(Modifier.width(10.dp))
@@ -291,15 +336,51 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                             Spacer(Modifier.width(10.dp))
 
-                            // Bond level + verified badge
+                            // Bond level + verified badge (chip design) or lock icon
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
                                     "Lv.${pet.bondLevel}",
                                     fontWeight = FontWeight.Bold,
-                                    color      = MaterialTheme.colorScheme.primary,
+                                    color      = if (isVerified)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize   = 13.sp
                                 )
-                                if (pet.isVerified) Text("✅", fontSize = 13.sp)
+                                Spacer(Modifier.height(4.dp))
+                                if (isVerified) {
+                                    // Clean badge/chip replacing the old ✅ emoji
+                                    Surface(
+                                        shape = MaterialTheme.shapes.extraSmall,
+                                        color = MaterialTheme.colorScheme.tertiaryContainer
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Shield,
+                                                contentDescription = "Verified",
+                                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                modifier = Modifier.size(10.dp)
+                                            )
+                                            Text(
+                                                "Verified",
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = "Unverified",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
                             }
                         }
                     }

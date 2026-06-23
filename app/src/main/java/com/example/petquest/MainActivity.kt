@@ -1,17 +1,3 @@
-// ============================================================
-// FILE: app/src/main/java/com/example/petquest/MainActivity.kt
-//       (COMPLETE FILE — NO CHANGES REQUIRED)
-//
-// V1.5 NAVIGATION ANALYSIS:
-//   - Settings are embedded inline inside ProfileScreen as a card.
-//   - No new navigation route is needed for a dedicated Settings screen.
-//   - The notification toggle and time picker live at the bottom of the
-//     existing Profile tab — this matches the current single-screen-per-tab
-//     architecture used throughout the app.
-//   - MainActivity.kt is reproduced here in full for copy-paste verification,
-//     but you do NOT need to modify it for V1.5.
-// ============================================================
-
 package com.example.petquest
 
 import android.os.Bundle
@@ -69,14 +55,18 @@ class MainActivity : ComponentActivity() {
                             BenefitsScreen { nav.navigate("add_pet") }
                         }
                         composable("add_pet") {
-                            AddPetScreen(
-                                onBackClick = { nav.popBackStack() },
-                                onSavePet   = { pet ->
-                                    vm.addPet(pet)
-                                    nav.navigate("main") {
+                            // After pet is saved, wait for the ViewModel to emit the new pet ID
+                            // then navigate directly to verification (not "main")
+                            LaunchedEffect(vm) {
+                                vm.newPetIdEvent.collect { petId ->
+                                    nav.navigate("pet_verify/$petId") {
                                         popUpTo("welcome") { inclusive = true }
                                     }
                                 }
+                            }
+                            AddPetScreen(
+                                onBackClick = { nav.popBackStack() },
+                                onSavePet   = { pet -> vm.addPet(pet) }
                             )
                         }
                         composable("main") {
@@ -98,16 +88,27 @@ class MainActivity : ComponentActivity() {
                             PetVerificationScreen(
                                 petId     = id,
                                 viewModel = vm,
-                                onDone    = { nav.popBackStack() }
+                                onDone    = {
+                                    // After verification, go to main (clearing the back stack
+                                    // so the user doesn't land back on the verification screen)
+                                    nav.navigate("main") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
                             )
                         }
                         composable("add_more_pet") {
+                            // Same pattern: navigate to verification after adding
+                            LaunchedEffect(vm) {
+                                vm.newPetIdEvent.collect { petId ->
+                                    nav.navigate("pet_verify/$petId") {
+                                        popUpTo("main") { inclusive = false }
+                                    }
+                                }
+                            }
                             AddPetScreen(
                                 onBackClick = { nav.popBackStack() },
-                                onSavePet   = { pet ->
-                                    vm.addPet(pet)
-                                    nav.popBackStack()
-                                }
+                                onSavePet   = { pet -> vm.addPet(pet) }
                             )
                         }
                         composable("admin") {
@@ -177,7 +178,10 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
         Box(Modifier.padding(padding)) {
             when (tab) {
                 0 -> HomeScreen(viewModel, outerNav)
-                1 -> TasksScreen(viewModel)
+                1 -> TasksScreen(
+                    viewModel    = viewModel,
+                    onVerifyPet  = { petId -> outerNav.navigate("pet_verify/$petId") }
+                )
                 2 -> EncyclopediaScreen(viewModel)
                 3 -> AchievementsScreen(viewModel)
                 4 -> ProfileScreen(
