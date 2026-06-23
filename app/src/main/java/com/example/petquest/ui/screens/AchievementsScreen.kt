@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.petquest.R
 import com.example.petquest.viewmodel.PetQuestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

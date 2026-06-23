@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Shackle (top arc of padlock) -->
+    <path
+        android:strokeColor="#78909C"
+        android:strokeWidth="2"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M8,11 L8,8 C8,5.79 9.79,4 12,4 C14.21,4 16,5.79 16,8 L16,11" />
+
+    <!-- Lock body -->
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M5,11 C5,10.45 5.45,10 6,10 L18,10 C18.55,10 19,10.45 19,11 L19,20 C19,20.55 18.55,21 18,21 L6,21 C5.45,21 5,20.55 5,20 Z" />
+
+    <!-- Keyhole -->
+    <path
+        android:fillColor="#546E7A"
+        android:pathData="M12,14 C11.45,14 11,14.45 11,15 C11,15.35 11.19,15.65 11.47,15.83 L11,18 L13,18 L12.53,15.83 C12.81,15.65 13,15.35 13,15 C13,14.45 12.55,14 12,14 Z" />
+
+</vector>
