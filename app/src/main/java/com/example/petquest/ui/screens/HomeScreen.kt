@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,12 +50,25 @@ fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
 }
 
 @Composable
-fun StatCard(modifier: Modifier = Modifier, emoji: String, value: String, label: String) {
+fun StatCard(
+    modifier: Modifier = Modifier,
+    emoji: String,
+    value: String,
+    label: String,
+    dimmed: Boolean = false
+) {
+    val containerColor = if (dimmed)
+        MaterialTheme.colorScheme.surfaceVariant
+    else
+        MaterialTheme.colorScheme.secondaryContainer
+    val contentColor = if (dimmed)
+        MaterialTheme.colorScheme.onSurfaceVariant
+    else
+        MaterialTheme.colorScheme.onSecondaryContainer
+
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Column(
             modifier = Modifier
@@ -63,8 +77,8 @@ fun StatCard(modifier: Modifier = Modifier, emoji: String, value: String, label:
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(emoji, fontSize = 22.sp)
-            Text(value, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text(emoji, fontSize = 22.sp, color = if (dimmed) contentColor else Color.Unspecified)
+            Text(value, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = contentColor)
             Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -107,9 +121,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    StatCard(Modifier.weight(1f), "🔥", "$streak",           "Streak")
-                    StatCard(Modifier.weight(1f), "⭐", "$totalBondPoints",  "Bond Pts")
-                    StatCard(Modifier.weight(1f), "🎖️", "Lv.$userLevel",    "Level")
+                    StatCard(Modifier.weight(1f), "🔥", "$streak",          "Streak",   dimmed = doneTasks == 0)
+                    StatCard(Modifier.weight(1f), "⭐", "$totalBondPoints", "Bond Pts")
+                    StatCard(Modifier.weight(1f), "🎖️", "Lv.$userLevel",   "Level")
                 }
             }
 

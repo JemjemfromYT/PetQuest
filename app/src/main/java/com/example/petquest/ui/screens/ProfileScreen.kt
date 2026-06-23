@@ -56,6 +56,7 @@ fun ProfileScreen(
     val userLevel            by viewModel.userLevel.collectAsState()
     val totalBondPoints      by viewModel.totalBondPoints.collectAsState()
     val streak               by viewModel.userStreak.collectAsState()
+    val tasks                by viewModel.todaysTasks.collectAsState()
     val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
     val collectionPercentage by viewModel.collectionPercentage.collectAsState()
 
@@ -64,9 +65,10 @@ fun ProfileScreen(
     val notificationHour     by viewModel.notificationHour.collectAsState()
     val notificationMinute   by viewModel.notificationMinute.collectAsState()
 
-    val unlockedCount = achievements.count { it.isUnlocked }
-    val speciesCount  = collectedSpecies.size
-    val totalSpecies  = PetType.entries.size
+    val unlockedCount       = achievements.count { it.isUnlocked }
+    val speciesCount        = collectedSpecies.size
+    val totalSpecies        = PetType.entries.size
+    val hasCompletedToday   = tasks.any { it.isCompleted }
 
     // ── Secret 5-tap admin access ──────────────────────────────────────────
     var tapCount      by remember { mutableIntStateOf(0) }
@@ -246,7 +248,7 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    StatCard(Modifier.weight(1f), "🔥", "$streak",         "Streak")
+                    StatCard(Modifier.weight(1f), "🔥", "$streak",          "Streak",   dimmed = !hasCompletedToday)
                     StatCard(Modifier.weight(1f), "⭐", "$totalBondPoints", "Bond Pts")
                     StatCard(Modifier.weight(1f), "🏆", "$unlockedCount",  "Awards")
                 }
