@@ -136,11 +136,7 @@ fun PetDetailScreen(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                if (pets.isEmpty()) {
-                    CircularProgressIndicator()
-                } else {
-                    LaunchedEffect(Unit) { onBackClick() }
-                }
+                CircularProgressIndicator()
             }
             return@Scaffold
         }
