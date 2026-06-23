@@ -123,21 +123,8 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                // Monogram replaces petEmoji() — first 2 letters of type
-                                Surface(
-                                    modifier = Modifier.size(34.dp),
-                                    shape = MaterialTheme.shapes.small,
-                                    color = MaterialTheme.colorScheme.secondaryContainer
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text(
-                                            pet.type.name.take(2),
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                                        )
-                                    }
-                                }
+                                // Pet species emoji as identity marker
+                                Text(petEmoji(pet.type.name), fontSize = 28.sp)
                                 Spacer(Modifier.width(10.dp))
                                 Text(
                                     pet.name,

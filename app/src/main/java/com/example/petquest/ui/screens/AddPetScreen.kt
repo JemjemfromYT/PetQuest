@@ -1,7 +1,6 @@
 package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -16,14 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.petquest.R
 import com.example.petquest.data.model.*
 
 private fun calculateVirtue(traits: Set<Trait>): Virtue {
@@ -81,30 +77,12 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
         ) {
             Spacer(Modifier.height(8.dp))
 
-            // Pet type visual — PNG placeholder replaces large emoji
-            // This area will show the actual pet illustration once PNG files are added.
-            // Swap ic_locked for a per-species drawable when artwork is ready.
-            Surface(
-                modifier = Modifier.size(100.dp),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.secondaryContainer
-            ) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_locked),
-                        contentDescription = selectedType.name.replace("_", " "),
-                        modifier = Modifier.size(56.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-
+            // Pet species emoji — live preview, updates as user selects type
+            Text(petEmoji(selectedType.name), fontSize = 80.sp)
+            Spacer(Modifier.height(4.dp))
             Text(
                 selectedType.name.replace("_", " "),
                 fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
@@ -129,7 +107,7 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                 }
             ) {
                 OutlinedTextField(
-                    value = selectedType.name.replace("_", " "),
+                    value = "${petEmoji(selectedType.name)} ${selectedType.name.replace("_", " ")}",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Pet Type") },
@@ -171,12 +149,7 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        // Rarity color dot instead of emoji
-                                        Surface(
-                                            modifier = Modifier.size(10.dp),
-                                            shape = MaterialTheme.shapes.extraSmall,
-                                            color = rarityColor(type.rarity)
-                                        ) {}
+                                        Text(petEmoji(type.name), fontSize = 20.sp)
                                         Column {
                                             Text(
                                                 type.name.replace("_", " "),
@@ -354,16 +327,10 @@ private fun CelebrationDialog(petName: String, petTypeName: String, onDismiss: (
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // PNG artwork replaces emoji decorations
-                // ic_verified serves as a celebration icon; replace with a
-                // dedicated celebration PNG when artwork is available.
-                Image(
-                    painter = painterResource(id = R.drawable.ic_verified),
-                    contentDescription = "New pet added",
-                    modifier = Modifier
-                        .size(88.dp)
-                        .scale(iconScale),
-                    contentScale = ContentScale.Fit
+                Text(
+                    petEmoji(petTypeName),
+                    fontSize = 88.sp,
+                    modifier = Modifier.scale(iconScale)
                 )
 
                 Text(
