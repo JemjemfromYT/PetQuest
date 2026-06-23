@@ -31,7 +31,8 @@ data class TaskEntity(
     val petId: Int,
     val title: String,
     val type: TaskType,
-    val isCompleted: Boolean = false
+    val isCompleted: Boolean = false,
+    val date: String = ""
 )
 
 @Entity(

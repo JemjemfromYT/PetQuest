@@ -29,8 +29,8 @@ interface PetQuestDao {
 
     // ─── Tasks ────────────────────────────────────────────────────────────────
 
-    @Query("SELECT * FROM tasks ORDER BY type ASC, id ASC")
-    fun getTodaysTasks(): Flow<List<TaskEntity>>
+    @Query("SELECT * FROM tasks WHERE date = :date ORDER BY type ASC, id ASC")
+    fun getTodaysTasks(date: String): Flow<List<TaskEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: TaskEntity)
@@ -44,8 +44,8 @@ interface PetQuestDao {
     @Query("DELETE FROM tasks WHERE petId = :petId")
     suspend fun deleteTasksForPet(petId: Int)
 
-    @Query("SELECT COUNT(*) FROM tasks WHERE petId = :petId")
-    suspend fun getTaskCountForPet(petId: Int): Int
+    @Query("SELECT COUNT(*) FROM tasks WHERE petId = :petId AND date = :date")
+    suspend fun getTaskCountForPet(petId: Int, date: String): Int
 
     // ─── Achievements ─────────────────────────────────────────────────────────
 

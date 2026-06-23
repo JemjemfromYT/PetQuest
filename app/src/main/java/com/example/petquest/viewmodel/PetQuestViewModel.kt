@@ -1,14 +1,3 @@
-// ============================================================
-// FILE: app/src/main/java/com/example/petquest/viewmodel/PetQuestViewModel.kt
-//       (COMPLETE FILE — replace fully)
-// CHANGES (V1.5):
-//   1. Added notificationsEnabled, notificationHour, notificationMinute StateFlows
-//   2. Added setNotificationsEnabled() function
-//   3. Added setReminderTime() function
-//   Note: WorkManager scheduling is intentionally handled by the UI layer
-//   (ProfileScreen) which owns Context. The ViewModel only manages DataStore.
-// ============================================================
-
 package com.example.petquest.viewmodel
 
 import android.util.Log
@@ -19,8 +8,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.random.Random
 
-// ─── Level-up event payload ────────────────────────────────────────────────
 data class LevelUpEvent(
     val petName: String,
     val oldLevel: Int,
@@ -32,13 +21,14 @@ class PetQuestViewModel(
     private val prefsRepository: UserPreferencesRepository
 ) : ViewModel() {
 
-    // ─── Existing StateFlows ───────────────────────────────────────────────
+    // ─── StateFlows ────────────────────────────────────────────────────────────
 
     val allPets: StateFlow<List<PetEntity>> =
         petRepository.allPets.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val todaysTasks: StateFlow<List<TaskEntity>> =
-        petRepository.todaysTasks.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        petRepository.getTodaysTasks(todayString())
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val allAchievements: StateFlow<List<AchievementEntity>> =
         petRepository.allAchievements.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -56,8 +46,6 @@ class PetQuestViewModel(
     val userLevel: StateFlow<Int> = totalBondPoints.map { points ->
         (points / 100) + 1
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
-
-    // ─── V1.2 Collection flows ─────────────────────────────────────────────
 
     val collectedSpecies: StateFlow<Set<PetType>> = allPets.map { pets ->
         pets.map { it.type }.toSet()
@@ -77,24 +65,18 @@ class PetQuestViewModel(
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
-    // ─── V1.5 Notification StateFlows ─────────────────────────────────────
-
-    /** Whether the user has enabled daily reminder notifications. */
     val notificationsEnabled: StateFlow<Boolean> =
         prefsRepository.notificationsEnabled
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    /** Hour component of the scheduled reminder (24-hour clock). Default 8. */
     val notificationHour: StateFlow<Int> =
         prefsRepository.notificationHour
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 8)
 
-    /** Minute component of the scheduled reminder. Default 0. */
     val notificationMinute: StateFlow<Int> =
         prefsRepository.notificationMinute
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    // ─── Level-up event stream ─────────────────────────────────────────────
     private val _levelUpEvent = MutableSharedFlow<LevelUpEvent>()
     val levelUpEvent: SharedFlow<LevelUpEvent> = _levelUpEvent.asSharedFlow()
 
@@ -108,7 +90,7 @@ class PetQuestViewModel(
         }
     }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────
+    // ─── Date helpers ──────────────────────────────────────────────────────────
 
     private fun todayString(): String =
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -118,6 +100,8 @@ class PetQuestViewModel(
         cal.add(Calendar.DAY_OF_YEAR, -1)
         return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
     }
+
+    // ─── Daily reset ───────────────────────────────────────────────────────────
 
     private suspend fun checkDailyReset() {
         val today = todayString()
@@ -130,7 +114,7 @@ class PetQuestViewModel(
         }
     }
 
-    // ─── Public actions ────────────────────────────────────────────────────
+    // ─── Public actions ────────────────────────────────────────────────────────
 
     fun addPet(pet: PetEntity) {
         viewModelScope.launch {
@@ -174,8 +158,8 @@ class PetQuestViewModel(
                 petRepository.completeTask(task.id)
                 val pet = allPets.value.find { it.id == task.petId } ?: return@launch
 
-                val points   = if (task.type == TaskType.CORE) 10 else 5
-                val oldLevel = pet.bondLevel
+                val points    = if (task.type == TaskType.CORE) 10 else 5
+                val oldLevel  = pet.bondLevel
                 val newPoints = pet.bondPoints + points
                 val newLevel  = (newPoints / 100) + 1
 
@@ -205,8 +189,8 @@ class PetQuestViewModel(
     }
 
     private suspend fun updateStreak() {
-        val today = todayString()
-        val last  = prefsRepository.lastStreakDate.first()
+        val today   = todayString()
+        val last    = prefsRepository.lastStreakDate.first()
         val current = prefsRepository.userStreak.first()
         if (last != today) {
             val yesterday = yesterdayString()
@@ -216,13 +200,6 @@ class PetQuestViewModel(
         }
     }
 
-    // ─── V1.5 Notification actions ─────────────────────────────────────────
-
-    /**
-     * Persist the notification enabled/disabled preference.
-     * The caller (ProfileScreen) is responsible for scheduling or cancelling
-     * the WorkManager job, since WorkManager requires a Context.
-     */
     fun setNotificationsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             try {
@@ -233,11 +210,6 @@ class PetQuestViewModel(
         }
     }
 
-    /**
-     * Persist the reminder time preference.
-     * The caller (ProfileScreen) is responsible for rescheduling the
-     * WorkManager job with the new time.
-     */
     fun setReminderTime(hour: Int, minute: Int) {
         viewModelScope.launch {
             try {
@@ -248,37 +220,63 @@ class PetQuestViewModel(
         }
     }
 
-    // ─── Personality-aware task generation ────────────────────────────────
+    // ─── Rotating daily task generation ───────────────────────────────────────
+    //
+    // Selection is deterministic per (petId, date) pair:
+    //   - same tasks all day for a given pet
+    //   - different tasks tomorrow
+    //   - different tasks across pets on the same day
+    //
+    // Seed formula: (date.hashCode() * 31) + petId
+    // Kotlin's String.hashCode() is specified stable across JVM versions.
 
     private suspend fun generateTasksForPet(pet: PetEntity) {
         if (petRepository.hasTasksForPet(pet.id)) return
 
-        val universalCore = listOf(
-            "Feed ${pet.name}",
-            "Give water to ${pet.name}"
-        )
-        val personalityCore = when (pet.personality) {
-            Personality.PLAYFUL     -> listOf("Play with ${pet.name}", "Chase toy with ${pet.name}")
-            Personality.LAZY        -> listOf("Relax with ${pet.name}", "Give ${pet.name} a cozy rest area")
-            Personality.CURIOUS     -> listOf("Explore something new with ${pet.name}", "Let ${pet.name} investigate a safe object")
-            Personality.FRIENDLY    -> listOf("Spend social time with ${pet.name}", "Introduce ${pet.name} to someone new")
-            Personality.SHY         -> listOf("Spend quiet time with ${pet.name}", "Create a calm space for ${pet.name}")
-            Personality.MISCHIEVOUS -> listOf("Give ${pet.name} an enrichment activity", "Redirect ${pet.name}'s energy positively")
-        }
+        val today = todayString()
+        val seed  = (today.hashCode().toLong() * 31L) + pet.id.toLong()
+        val rng   = Random(seed)
 
+        // Draw 2 universal core tasks
+        val universalCore = TaskPools.UNIVERSAL_CORE
+            .map { it.replace("{name}", pet.name) }
+            .shuffled(rng)
+            .take(2)
+
+        // Draw 2 personality-specific core tasks
+        val personalityCore = TaskPools.personalityCorePool(pet.personality)
+            .map { it.replace("{name}", pet.name) }
+            .shuffled(rng)
+            .take(2)
+
+        // Draw 4 optional tasks from the combined species + universal optional pool.
+        // Species-specific tasks are prepended so they appear proportionally more often
+        // (they have a smaller pool, so shuffling the full combined list naturally
+        // gives them weight without forcing them to always appear).
+        val speciesOptionals  = TaskPools.speciesOptionalPool(pet.type)
+            .map { it.replace("{name}", pet.name) }
+        val universalOptionals = TaskPools.UNIVERSAL_OPTIONAL
+            .map { it.replace("{name}", pet.name) }
+        val allOptionals = (speciesOptionals + universalOptionals)
+            .shuffled(rng)
+            .take(4)
+
+        // Insert CORE tasks
         (universalCore + personalityCore).forEach { title ->
-            petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.CORE))
+            petRepository.insertTask(
+                TaskEntity(petId = pet.id, title = title, type = TaskType.CORE, date = today)
+            )
         }
 
-        listOf(
-            "Brush ${pet.name}",
-            "Give ${pet.name} a treat",
-            "Take a photo of ${pet.name}",
-            "Clean ${pet.name}'s area"
-        ).forEach { title ->
-            petRepository.insertTask(TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL))
+        // Insert OPTIONAL tasks
+        allOptionals.forEach { title ->
+            petRepository.insertTask(
+                TaskEntity(petId = pet.id, title = title, type = TaskType.OPTIONAL, date = today)
+            )
         }
     }
+
+    // ─── Achievement unlocking ─────────────────────────────────────────────────
 
     private suspend fun checkAndUnlockAchievements() {
         val pets         = allPets.value
@@ -300,12 +298,12 @@ class PetQuestViewModel(
         if (prefsRepository.userStreak.first() >= 7) unlock("7-Day Streak")
 
         if (pets.any { it.type.rarity == Rarity.EPIC }) unlock("Epic Tamer")
-        if (Rarity.entries.all { it in ownedRarities }) unlock("Rarity Hunter")
-        if (distinctTypes.size >= 5)                    unlock("Species Collector")
-        if (distinctTypes.size >= 10)                   unlock("Animal Explorer")
+        if (Rarity.entries.all { it in ownedRarities })  unlock("Rarity Hunter")
+        if (distinctTypes.size >= 5)                     unlock("Species Collector")
+        if (distinctTypes.size >= 10)                    unlock("Animal Explorer")
     }
 
-    // ─── Admin / Debug Functions ───────────────────────────────────────────
+    // ─── Admin / Debug Functions ───────────────────────────────────────────────
 
     fun adminAddBondPoints(petId: Int, points: Int) {
         viewModelScope.launch {
