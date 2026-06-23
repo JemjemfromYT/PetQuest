@@ -44,8 +44,17 @@ class MainActivity : ComponentActivity() {
                         return@Surface
                     }
 
-                    val startDest = if (hasOnboarded == true) "main" else "welcome"
+                    // FIX: lock startDest with remember{} so it is computed ONCE and never
+                    // changes when hasOnboarded flips false→true mid-flow (which happens
+                    // inside addPet() via setOnboarded()). Without this, the NavHost graph
+                    // would be rebuilt and cancel the pending verification navigation.
+                    val startDest = remember { if (hasOnboarded == true) "main" else "welcome" }
                     val nav = rememberNavController()
+
+                    // FIX: collect pendingVerificationPetId (StateFlow) at the NavHost level
+                    // so the value is never lost between recompositions. Navigate as soon as
+                    // a non-null ID appears, then immediately clear it.
+                    val pendingVerifyId by vm.pendingVerificationPetId.collectAsState()
 
                     NavHost(nav, startDestination = startDest) {
                         composable("welcome") {
@@ -55,13 +64,13 @@ class MainActivity : ComponentActivity() {
                             BenefitsScreen { nav.navigate("add_pet") }
                         }
                         composable("add_pet") {
-                            // After pet is saved, wait for the ViewModel to emit the new pet ID
-                            // then navigate directly to verification (not "main")
-                            LaunchedEffect(vm) {
-                                vm.newPetIdEvent.collect { petId ->
-                                    nav.navigate("pet_verify/$petId") {
-                                        popUpTo("welcome") { inclusive = true }
-                                    }
+                            // Drive navigation from the top-level pendingVerifyId state.
+                            // LaunchedEffect re-runs whenever pendingVerifyId changes.
+                            LaunchedEffect(pendingVerifyId) {
+                                val id = pendingVerifyId ?: return@LaunchedEffect
+                                vm.clearPendingVerificationPetId()
+                                nav.navigate("pet_verify/$id") {
+                                    popUpTo("welcome") { inclusive = true }
                                 }
                             }
                             AddPetScreen(
@@ -89,8 +98,8 @@ class MainActivity : ComponentActivity() {
                                 petId     = id,
                                 viewModel = vm,
                                 onDone    = {
-                                    // After verification, go to main (clearing the back stack
-                                    // so the user doesn't land back on the verification screen)
+                                    // Clear any pending ID so it doesn't re-trigger navigation
+                                    vm.clearPendingVerificationPetId()
                                     nav.navigate("main") {
                                         popUpTo(0) { inclusive = true }
                                     }
@@ -98,12 +107,12 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("add_more_pet") {
-                            // Same pattern: navigate to verification after adding
-                            LaunchedEffect(vm) {
-                                vm.newPetIdEvent.collect { petId ->
-                                    nav.navigate("pet_verify/$petId") {
-                                        popUpTo("main") { inclusive = false }
-                                    }
+                            // Same pattern: pendingVerifyId drives navigation after insert
+                            LaunchedEffect(pendingVerifyId) {
+                                val id = pendingVerifyId ?: return@LaunchedEffect
+                                vm.clearPendingVerificationPetId()
+                                nav.navigate("pet_verify/$id") {
+                                    popUpTo("main") { inclusive = false }
                                 }
                             }
                             AddPetScreen(
@@ -128,7 +137,6 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     var tab by remember { mutableIntStateOf(0) }
 
-    // Global level-up dialog shown from any tab
     var levelUpEvent by remember { mutableStateOf<LevelUpEvent?>(null) }
     LaunchedEffect(viewModel) {
         viewModel.levelUpEvent.collect { event ->
@@ -179,16 +187,16 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
             when (tab) {
                 0 -> HomeScreen(viewModel, outerNav)
                 1 -> TasksScreen(
-                    viewModel    = viewModel,
-                    onVerifyPet  = { petId -> outerNav.navigate("pet_verify/$petId") }
+                    viewModel   = viewModel,
+                    onVerifyPet = { petId -> outerNav.navigate("pet_verify/$petId") }
                 )
                 2 -> EncyclopediaScreen(viewModel)
                 3 -> AchievementsScreen(viewModel)
                 4 -> ProfileScreen(
-                    viewModel               = viewModel,
-                    onAddPetClick           = { outerNav.navigate("add_more_pet") },
-                    onAdminClick            = { outerNav.navigate("admin") },
-                    onNavigateToCollection  = { tab = 2 }
+                    viewModel              = viewModel,
+                    onAddPetClick          = { outerNav.navigate("add_more_pet") },
+                    onAdminClick           = { outerNav.navigate("admin") },
+                    onNavigateToCollection = { tab = 2 }
                 )
             }
         }

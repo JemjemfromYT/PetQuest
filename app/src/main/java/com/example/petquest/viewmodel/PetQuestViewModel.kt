@@ -80,9 +80,15 @@ class PetQuestViewModel(
     private val _levelUpEvent = MutableSharedFlow<LevelUpEvent>()
     val levelUpEvent: SharedFlow<LevelUpEvent> = _levelUpEvent.asSharedFlow()
 
-    // Emits the ID of a newly added pet so navigation can route to verification
-    private val _newPetIdEvent = MutableSharedFlow<Int>()
-    val newPetIdEvent: SharedFlow<Int> = _newPetIdEvent.asSharedFlow()
+    // Holds the ID of a newly added pet that needs verification.
+    // StateFlow (not SharedFlow) so the value is never lost due to timing.
+    // Call clearPendingVerificationPetId() from the UI after navigating.
+    private val _pendingVerificationPetId = MutableStateFlow<Int?>(null)
+    val pendingVerificationPetId: StateFlow<Int?> = _pendingVerificationPetId.asStateFlow()
+
+    fun clearPendingVerificationPetId() {
+        _pendingVerificationPetId.value = null
+    }
 
     init {
         viewModelScope.launch {
@@ -129,8 +135,9 @@ class PetQuestViewModel(
                 val inserted = pets.maxByOrNull { it.id } ?: return@launch
                 generateTasksForPet(inserted)
                 checkAndUnlockAchievements()
-                // Emit the new pet's ID so the UI can navigate to verification
-                _newPetIdEvent.emit(inserted.id)
+                // Set the pending ID last so the UI sees it only after everything is ready.
+                // StateFlow holds this value until clearPendingVerificationPetId() is called.
+                _pendingVerificationPetId.value = inserted.id
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "addPet error", e)
             }
