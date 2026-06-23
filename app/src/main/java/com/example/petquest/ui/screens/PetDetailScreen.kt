@@ -48,9 +48,7 @@ fun PetDetailScreen(
 
     LaunchedEffect(Unit) {
         viewModel.levelUpEvent.collect { event ->
-            if (event.petName == pet?.name) {
-                levelUpEvent = event
-            }
+            if (event.petName == pet?.name) levelUpEvent = event
         }
     }
 
@@ -70,7 +68,6 @@ fun PetDetailScreen(
     if (showDeleteDialog && pet != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            icon             = { Text("🗑️", fontSize = 32.sp) },
             title            = { Text("Delete ${pet.name}?", fontWeight = FontWeight.Bold) },
             text             = {
                 Text(
@@ -197,9 +194,9 @@ fun PetDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                StatCard(Modifier.weight(1f), "🎯", pet.type.name.replace("_", " "), "Type")
-                StatCard(Modifier.weight(1f), "🏅", "Lv.${pet.bondLevel}",           "Bond Level")
-                StatCard(Modifier.weight(1f), "⭐", "${pet.bondPoints}",              "Bond Pts")
+                StatCard(Modifier.weight(1f), pet.type.name.replace("_", " "), "Type")
+                StatCard(Modifier.weight(1f), "Lv.${pet.bondLevel}",           "Bond Level")
+                StatCard(Modifier.weight(1f), "${pet.bondPoints}",              "Bond Pts")
             }
 
             Spacer(Modifier.height(12.dp))
@@ -222,9 +219,8 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ── Verification Status Section (large, prominent) ────────────────
+            // ── Verification Status Section ───────────────────────────────────
             if (pet.isVerified) {
-                // ── Verified state: green/tertiary card ───────────────────────
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors   = CardDefaults.cardColors(
@@ -282,7 +278,6 @@ fun PetDetailScreen(
                     }
                 }
             } else {
-                // ── Unverified state: warning card ────────────────────────────
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors   = CardDefaults.cardColors(
@@ -318,7 +313,6 @@ fun PetDetailScreen(
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.3f)
                         )
-                        // Locked features list
                         Column(
                             modifier = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -378,7 +372,7 @@ fun PetDetailScreen(
     }
 }
 
-// ─── Virtue Identity Card ─────────────────────────────────────────────────────
+// ─── Virtue Identity Card — no fantasy title, emblem + virtue name only ───────
 
 @Composable
 fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
@@ -415,13 +409,6 @@ fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
             )
 
             Text(
-                text       = info.title,
-                fontSize   = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-
-            Text(
                 text      = info.description,
                 fontSize  = 13.sp,
                 color     = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -443,7 +430,6 @@ private fun EditPetDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon             = { Text("✏️", fontSize = 28.sp) },
         title            = { Text("Edit Pet", fontWeight = FontWeight.Bold) },
         text             = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -454,7 +440,6 @@ private fun EditPetDialog(
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth()
                 )
-
                 Text(
                     "Note: pet type and virtue cannot be changed after creation.",
                     fontSize = 12.sp,
@@ -464,8 +449,8 @@ private fun EditPetDialog(
         },
         confirmButton = {
             Button(
-                onClick  = { onConfirm(name) },
-                enabled  = name.isNotBlank()
+                onClick = { onConfirm(name) },
+                enabled = name.isNotBlank()
             ) {
                 Text("Save", fontWeight = FontWeight.Bold)
             }
@@ -513,8 +498,6 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("🎉  ✨  🎊  ✨  🎉", fontSize = 20.sp)
-
                 Text(
                     "🏅",
                     fontSize = 88.sp,
@@ -571,20 +554,26 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                 }
 
                 Text(
-                    "Keep completing tasks to reach the next level! 🚀",
+                    "Keep completing tasks to reach the next level!",
                     fontSize  = 13.sp,
                     textAlign = TextAlign.Center,
                     color     = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier  = Modifier.alpha(contentAlpha)
                 )
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(4.dp))
 
                 Button(
                     onClick  = onDismiss,
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .alpha(contentAlpha),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
-                    Text("Awesome! 🐾", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Keep Going!", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

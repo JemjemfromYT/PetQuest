@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.*
@@ -57,10 +58,10 @@ fun ProfileScreen(
     val notificationHour     by viewModel.notificationHour.collectAsState()
     val notificationMinute   by viewModel.notificationMinute.collectAsState()
 
-    val unlockedCount       = achievements.count { it.isUnlocked }
-    val speciesCount        = collectedSpecies.size
-    val totalSpecies        = PetType.entries.size
-    val hasCompletedToday   = tasks.any { it.isCompleted }
+    val unlockedCount     = achievements.count { it.isUnlocked }
+    val speciesCount      = collectedSpecies.size
+    val totalSpecies      = PetType.entries.size
+    val hasCompletedToday = tasks.any { it.isCompleted }
 
     // ── Secret 5-tap admin access ──────────────────────────────────────────
     var tapCount      by remember { mutableIntStateOf(0) }
@@ -189,7 +190,7 @@ fun ProfileScreen(
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.profile_banner),
-                            contentDescription = "Person bonding with pet",
+                            contentDescription = null,
                             modifier = Modifier.size(110.dp),
                             contentScale = ContentScale.Fit
                         )
@@ -207,7 +208,7 @@ fun ProfileScreen(
                                 )
                                 if (showAdminHint) {
                                     Text(
-                                        "🔧 Keep tapping...",
+                                        "Keep tapping...",
                                         fontSize = 11.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -235,9 +236,9 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    StatCard(Modifier.weight(1f), "🔥", "$streak",          "Streak",   dimmed = !hasCompletedToday)
-                    StatCard(Modifier.weight(1f), "⭐", "$totalBondPoints", "Bond Pts")
-                    StatCard(Modifier.weight(1f), "🏆", "$unlockedCount",  "Awards")
+                    StatCard(Modifier.weight(1f), "$streak",         "Streak",   dimmed = !hasCompletedToday)
+                    StatCard(Modifier.weight(1f), "$totalBondPoints","Bond Pts")
+                    StatCard(Modifier.weight(1f), "$unlockedCount",  "Awards")
                 }
             }
 
@@ -257,7 +258,7 @@ fun ProfileScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("🐾 Species Collected", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("Species Collected", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Text(
                                 "$speciesCount / $totalSpecies",
                                 fontWeight = FontWeight.ExtraBold,
@@ -287,7 +288,7 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("🐾 My Pets (${pets.size})", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text("My Pets (${pets.size})", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     FilledTonalIconButton(onClick = onAddPetClick) {
                         Icon(Icons.Default.Add, contentDescription = "Add Pet")
                     }
@@ -368,7 +369,7 @@ private fun SettingsCard(
         Column(modifier = Modifier.padding(16.dp)) {
 
             Text(
-                "⚙️ Settings",
+                "Settings",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
@@ -453,11 +454,11 @@ private fun SettingsCard(
 // ─── Time formatter ────────────────────────────────────────────────────────
 
 private fun formatTime(hour: Int, minute: Int): String {
-    val amPm  = if (hour < 12) "AM" else "PM"
-    val h12   = when {
-        hour == 0  -> 12
-        hour > 12  -> hour - 12
-        else       -> hour
+    val amPm = if (hour < 12) "AM" else "PM"
+    val h12  = when {
+        hour == 0 -> 12
+        hour > 12 -> hour - 12
+        else      -> hour
     }
     return String.format(Locale.getDefault(), "%d:%02d %s", h12, minute, amPm)
 }
@@ -497,7 +498,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 }
             }
 
-            // Name + verified badge
+            // Name + verified icon
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -511,7 +512,12 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 )
                 if (pet.isVerified) {
                     Spacer(Modifier.width(4.dp))
-                    Text("✅", fontSize = 12.sp)
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Verified",
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(14.dp)
+                    )
                 }
             }
 
@@ -549,7 +555,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth().height(4.dp)
             )
 
-            // Virtue emblem + title
+            // Virtue emblem + name (no fantasy title)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -562,12 +568,12 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 )
                 Spacer(Modifier.width(5.dp))
                 Text(
-                    virtueInfo.title,
-                    fontSize  = 11.sp,
+                    pet.virtue.name,
+                    fontSize   = 11.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines  = 1,
-                    overflow  = TextOverflow.Ellipsis
+                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis
                 )
             }
         }

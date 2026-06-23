@@ -47,12 +47,17 @@ fun TasksScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("📋", fontSize = 64.sp)
-                    Spacer(Modifier.height(12.dp))
                     Text(
-                        "No tasks yet!\nAdd a pet to get started.",
-                        textAlign = TextAlign.Center,
+                        "No tasks yet",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "Add a pet to get started.",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
@@ -68,17 +73,16 @@ fun TasksScreen(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             ) {
                 pets.forEachIndexed { index, pet ->
-                    val petTasks  = tasks.filter { it.petId == pet.id }
-                    val donePet   = petTasks.count { it.isCompleted }
-                    val allDone   = petTasks.isNotEmpty() && donePet == petTasks.size
-                    val isLocked  = !pet.isVerified
+                    val petTasks = tasks.filter { it.petId == pet.id }
+                    val donePet  = petTasks.count { it.isCompleted }
+                    val allDone  = petTasks.isNotEmpty() && donePet == petTasks.size
+                    val isLocked = !pet.isVerified
 
                     Tab(
                         selected = safeTab == index,
                         onClick  = { selectedTab = index },
                         text = {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                // Show lock overlay on emoji for unverified pets
                                 Box(contentAlignment = Alignment.BottomEnd) {
                                     Text(petEmoji(pet.type.name), fontSize = 22.sp)
                                     if (isLocked) {
@@ -96,7 +100,6 @@ fun TasksScreen(
                                     fontWeight = if (safeTab == index) FontWeight.Bold else FontWeight.Normal,
                                     maxLines = 1
                                 )
-                                // Unverified shows "Locked", verified shows progress
                                 if (isLocked) {
                                     Text(
                                         "Locked",
@@ -106,7 +109,7 @@ fun TasksScreen(
                                     )
                                 } else if (petTasks.isNotEmpty()) {
                                     Text(
-                                        if (allDone) "✅ Done" else "$donePet/${petTasks.size}",
+                                        if (allDone) "Done" else "$donePet/${petTasks.size}",
                                         fontSize = 10.sp,
                                         color = if (allDone)
                                             MaterialTheme.colorScheme.primary
@@ -169,43 +172,6 @@ fun TasksScreen(
                                 textAlign = TextAlign.Center
                             )
 
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.2f)
-                            )
-
-                            Column(
-                                horizontalAlignment = Alignment.Start,
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    "Locked until verified:",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                listOf("Task completion", "Bond points", "Streaks", "Achievements").forEach { item ->
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Lock,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
-                                            modifier = Modifier.size(12.dp)
-                                        )
-                                        Text(
-                                            item,
-                                            fontSize = 13.sp,
-                                            color = MaterialTheme.colorScheme.onErrorContainer
-                                        )
-                                    }
-                                }
-                            }
-
-                            Spacer(Modifier.height(4.dp))
-
                             Button(
                                 onClick  = { onVerifyPet(selectedPet.id) },
                                 modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -238,8 +204,10 @@ fun TasksScreen(
 
             if (petTasks.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No tasks for ${selectedPet.name}",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "No tasks for ${selectedPet.name}",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 return@Column
             }
@@ -286,9 +254,8 @@ fun TasksScreen(
                 if (core.isNotEmpty()) {
                     item(key = "core_header") {
                         TaskTypeHeader(
-                            emoji = "⚡",
                             label = "Core Tasks",
-                            pts = "+10 pts",
+                            pts   = "+10 pts",
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -301,9 +268,8 @@ fun TasksScreen(
                     item(key = "opt_header") {
                         Spacer(Modifier.height(4.dp))
                         TaskTypeHeader(
-                            emoji = "💡",
                             label = "Optional Tasks",
-                            pts = "+5 pts",
+                            pts   = "+5 pts",
                             color = MaterialTheme.colorScheme.secondary
                         )
                     }
@@ -320,7 +286,6 @@ fun TasksScreen(
 
 @Composable
 private fun TaskTypeHeader(
-    emoji: String,
     label: String,
     pts: String,
     color: androidx.compose.ui.graphics.Color
@@ -329,8 +294,6 @@ private fun TaskTypeHeader(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
     ) {
-        Text(emoji, fontSize = 15.sp)
-        Spacer(Modifier.width(6.dp))
         Text(label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Spacer(Modifier.width(8.dp))
         Surface(shape = MaterialTheme.shapes.extraSmall, color = color.copy(alpha = 0.15f)) {

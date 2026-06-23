@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,11 +21,11 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
-    val collectedSpecies by viewModel.collectedSpecies.collectAsState()
+    val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
     val collectionPercentage by viewModel.collectionPercentage.collectAsState()
-    val rarityStats by viewModel.rarityCollectionStats.collectAsState()
+    val rarityStats          by viewModel.rarityCollectionStats.collectAsState()
 
-    val totalSpecies = PetType.entries.size
+    val totalSpecies   = PetType.entries.size
     val collectedCount = collectedSpecies.size
 
     var selectedRarity by remember { mutableStateOf<Rarity?>(null) }
@@ -41,7 +43,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("📖 Encyclopedia", fontWeight = FontWeight.Bold) },
+                title = { Text("Encyclopedia", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -90,22 +92,22 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    // Milestone banners
-                    val milestones = listOf(25 to "🌱 25%", 50 to "🌿 50%", 75 to "🌳 75%", 100 to "🏆 100%")
-                    val reached = milestones.filter { collectionPercentage >= it.first }
+                    // Milestone chips — text only, no emojis
+                    val milestones = listOf(25, 50, 75, 100)
+                    val reached = milestones.filter { collectionPercentage >= it }
                     if (reached.isNotEmpty()) {
                         Spacer(Modifier.height(10.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            reached.forEach { (_, label) ->
+                            reached.forEach { pct ->
                                 Surface(
                                     shape = MaterialTheme.shapes.small,
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                 ) {
                                     Text(
-                                        label,
+                                        "$pct%",
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
@@ -127,12 +129,12 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Rarity.entries.forEach { rarity ->
-                    val stat = rarityStats[rarity] ?: (0 to 0)
+                    val stat       = rarityStats[rarity] ?: (0 to 0)
                     val rarityColor = encyclopediaRarityColor(rarity)
                     Surface(
                         modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.small,
-                        color = rarityColor.copy(alpha = 0.15f)
+                        shape    = MaterialTheme.shapes.small,
+                        color    = rarityColor.copy(alpha = 0.15f)
                     ) {
                         Column(
                             modifier = Modifier.padding(6.dp),
@@ -163,7 +165,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                 rarityTabs.forEachIndexed { index, rarity ->
                     Tab(
                         selected = selectedRarity == rarity,
-                        onClick = { selectedRarity = rarity },
+                        onClick  = { selectedRarity = rarity },
                         text = {
                             Text(
                                 tabLabels[index],
@@ -225,7 +227,12 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
                     )
                 }
                 if (isCollected) {
-                    Text("✅", fontSize = 13.sp)
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Collected",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
 
@@ -251,14 +258,6 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
                     fontWeight = FontWeight.Bold,
                     color = if (isCollected) rarityColor
                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                )
-            }
-
-            if (!isCollected) {
-                Text(
-                    "🔒 Not collected",
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
             }
         }

@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,10 +57,10 @@ fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
     else         -> "🐾"
 }
 
+// StatCard — emoji param removed; value + label only
 @Composable
 fun StatCard(
     modifier: Modifier = Modifier,
-    emoji: String,
     value: String,
     label: String,
     dimmed: Boolean = false
@@ -86,7 +85,6 @@ fun StatCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(emoji, fontSize = 22.sp, color = if (dimmed) contentColor else Color.Unspecified)
             Text(value, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = contentColor)
             Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -96,21 +94,21 @@ fun StatCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
-    val pets               by viewModel.allPets.collectAsState()
-    val tasks              by viewModel.todaysTasks.collectAsState()
-    val streak             by viewModel.userStreak.collectAsState()
-    val totalBondPoints    by viewModel.totalBondPoints.collectAsState()
-    val userLevel          by viewModel.userLevel.collectAsState()
-    val collectedSpecies   by viewModel.collectedSpecies.collectAsState()
+    val pets             by viewModel.allPets.collectAsState()
+    val tasks            by viewModel.todaysTasks.collectAsState()
+    val streak           by viewModel.userStreak.collectAsState()
+    val totalBondPoints  by viewModel.totalBondPoints.collectAsState()
+    val userLevel        by viewModel.userLevel.collectAsState()
+    val collectedSpecies by viewModel.collectedSpecies.collectAsState()
 
-    val doneTasks      = tasks.count { it.isCompleted }
-    val speciesCount   = collectedSpecies.size
-    val totalSpecies   = PetType.entries.size
+    val doneTasks    = tasks.count { it.isCompleted }
+    val speciesCount = collectedSpecies.size
+    val totalSpecies = PetType.entries.size
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("PetQuest 🐾", fontWeight = FontWeight.ExtraBold) },
+                title = { Text("PetQuest", fontWeight = FontWeight.ExtraBold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -130,9 +128,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    StatCard(Modifier.weight(1f), "🔥", "$streak",          "Streak",   dimmed = doneTasks == 0)
-                    StatCard(Modifier.weight(1f), "⭐", "$totalBondPoints", "Bond Pts")
-                    StatCard(Modifier.weight(1f), "🎖️", "Lv.$userLevel",   "Level")
+                    StatCard(Modifier.weight(1f), "$streak",         "Streak",   dimmed = doneTasks == 0)
+                    StatCard(Modifier.weight(1f), "$totalBondPoints","Bond Pts")
+                    StatCard(Modifier.weight(1f), "Lv.$userLevel",   "Level")
                 }
             }
 
@@ -151,7 +149,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "🐾 Species Collection",
+                                "Species Collection",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp
                             )
@@ -230,10 +228,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 }
             } else {
                 items(pets) { pet ->
-                    val virtueInfo  = VirtueConfig[pet.virtue]
-                    val isVerified  = pet.isVerified
+                    val virtueInfo = VirtueConfig[pet.virtue]
+                    val isVerified = pet.isVerified
 
-                    // Unverified cards are greyed out and reduced in opacity
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -251,7 +248,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Pet species emoji — with lock overlay for unverified
+                            // Pet species emoji with lock overlay for unverified
                             Box(contentAlignment = Alignment.BottomEnd) {
                                 Text(petEmoji(pet.type.name), fontSize = 38.sp)
                                 if (!isVerified) {
@@ -272,7 +269,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                             Spacer(Modifier.width(12.dp))
 
-                            // Pet name + species + verification label
+                            // Pet name + species
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     pet.name,
@@ -305,51 +302,37 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                             Spacer(Modifier.width(10.dp))
 
-                            // Virtue emblem + title
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
+                            // Virtue emblem only — no title beneath
+                            Surface(
+                                modifier = Modifier.size(40.dp),
+                                shape    = MaterialTheme.shapes.small,
+                                color    = MaterialTheme.colorScheme.surfaceVariant
                             ) {
-                                Surface(
-                                    modifier = Modifier.size(40.dp),
-                                    shape    = MaterialTheme.shapes.small,
-                                    color    = MaterialTheme.colorScheme.surfaceVariant
-                                ) {
-                                    Image(
-                                        painter            = painterResource(id = virtueInfo.emblemRes),
-                                        contentDescription = "${pet.virtue.name} emblem",
-                                        modifier           = Modifier
-                                            .fillMaxSize()
-                                            .padding(4.dp),
-                                        contentScale       = ContentScale.Fit
-                                    )
-                                }
-                                Spacer(Modifier.height(3.dp))
-                                Text(
-                                    virtueInfo.title,
-                                    fontSize  = 9.sp,
-                                    color     = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines  = 1,
-                                    overflow  = TextOverflow.Ellipsis
+                                Image(
+                                    painter            = painterResource(id = virtueInfo.emblemRes),
+                                    contentDescription = "${pet.virtue.name} emblem",
+                                    modifier           = Modifier
+                                        .fillMaxSize()
+                                        .padding(4.dp),
+                                    contentScale       = ContentScale.Fit
                                 )
                             }
 
                             Spacer(Modifier.width(10.dp))
 
-                            // Bond level + verified badge (chip design) or lock icon
+                            // Bond level + verification badge
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
                                     "Lv.${pet.bondLevel}",
                                     fontWeight = FontWeight.Bold,
-                                    color      = if (isVerified)
+                                    color = if (isVerified)
                                         MaterialTheme.colorScheme.primary
                                     else
                                         MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize   = 13.sp
+                                    fontSize = 13.sp
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 if (isVerified) {
-                                    // Clean badge/chip replacing the old ✅ emoji
                                     Surface(
                                         shape = MaterialTheme.shapes.extraSmall,
                                         color = MaterialTheme.colorScheme.tertiaryContainer

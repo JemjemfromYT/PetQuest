@@ -3,6 +3,8 @@ package com.example.petquest.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -21,15 +23,12 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
     val unlockedCount = achievements.count { it.isUnlocked }
     val totalCount    = achievements.size
 
-    // Emoji map covers all V1.0, V1.1, and V1.2 achievements
     val emojiMap = mapOf(
-        // V1.0 / V1.1
         "First Pet"          to "🐾",
         "First Verification" to "📷",
         "Pet Lover"          to "❤️",
         "Bond Master"        to "👑",
         "7-Day Streak"       to "🔥",
-        // V1.2 collection achievements
         "Epic Tamer"         to "🐉",
         "Rarity Hunter"      to "🎯",
         "Species Collector"  to "🗂️",
@@ -68,7 +67,7 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "🏆 $unlockedCount / $totalCount Unlocked",
+                                "$unlockedCount / $totalCount Unlocked",
                                 fontSize = 15.sp,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold
@@ -86,17 +85,17 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                             modifier = Modifier.fillMaxWidth().height(6.dp)
                         )
 
-                        // Collection progress teaser
                         Spacer(Modifier.height(10.dp))
                         HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f))
                         Spacer(Modifier.height(10.dp))
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "🐾 Species Collected",
+                                "Species Collected",
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.Medium
@@ -128,10 +127,25 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = if (a.isUnlocked) (emojiMap[a.title] ?: "⭐") else "🔒",
-                            fontSize = 36.sp
-                        )
+                        // Achievement icon: emoji for unlocked, Lock icon for locked
+                        Box(
+                            modifier = Modifier.size(48.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (a.isUnlocked) {
+                                Text(
+                                    text = emojiMap[a.title] ?: "⭐",
+                                    fontSize = 36.sp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = "Locked",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        }
                         Spacer(Modifier.width(16.dp))
                         Column(Modifier.weight(1f)) {
                             Text(a.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -141,7 +155,6 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        if (a.isUnlocked) Text("✅", fontSize = 20.sp)
                     }
                 }
             }
