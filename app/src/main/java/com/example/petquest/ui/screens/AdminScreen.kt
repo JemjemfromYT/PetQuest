@@ -22,13 +22,10 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
     val pets   by viewModel.allPets.collectAsState()
     val streak by viewModel.userStreak.collectAsState()
 
-    // Keep streakInput in sync when streak loads from DataStore on first composition
     var streakInput by remember(streak) { mutableStateOf(streak.toString()) }
 
-    // FIX: use a counter key instead of the message string so the effect only
-    // fires once per action, even when snackMessage resets back to "".
-    var snackMessage   by remember { mutableStateOf("") }
-    var snackTrigger   by remember { mutableIntStateOf(0) }
+    var snackMessage      by remember { mutableStateOf("") }
+    var snackTrigger      by remember { mutableIntStateOf(0) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(snackTrigger) {
@@ -46,7 +43,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("🔧 Admin Mode", fontWeight = FontWeight.Bold) },
+                title = { Text("Admin Mode", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -74,7 +71,20 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("⚠️", fontSize = 24.sp)
+                        Surface(
+                            modifier = Modifier.size(36.dp),
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    "!",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text(
@@ -93,7 +103,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
             }
 
             // ── Bond Points section ────────────────────────────────────────
-            item { AdminSectionHeader("💊 Bond Points") }
+            item { AdminSectionHeader("Bond Points") }
 
             if (pets.isEmpty()) {
                 item {
@@ -113,8 +123,22 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(petEmoji(pet.type.name), fontSize = 22.sp)
-                                Spacer(Modifier.width(8.dp))
+                                // Monogram replaces petEmoji() — first 2 letters of type
+                                Surface(
+                                    modifier = Modifier.size(34.dp),
+                                    shape = MaterialTheme.shapes.small,
+                                    color = MaterialTheme.colorScheme.secondaryContainer
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text(
+                                            pet.type.name.take(2),
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.width(10.dp))
                                 Text(
                                     pet.name,
                                     fontWeight = FontWeight.Bold,
@@ -148,7 +172,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
             }
 
             // ── Tasks section ──────────────────────────────────────────────
-            item { AdminSectionHeader("📋 Tasks") }
+            item { AdminSectionHeader("Tasks") }
 
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -162,7 +186,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                             containerColor = MaterialTheme.colorScheme.secondary
                         )
                     ) {
-                        Text("✅ Complete All", fontSize = 13.sp)
+                        Text("Complete All", fontSize = 13.sp)
                     }
                     OutlinedButton(
                         onClick = {
@@ -171,13 +195,13 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                         },
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("🔄 Reset Tasks", fontSize = 13.sp)
+                        Text("Reset Tasks", fontSize = 13.sp)
                     }
                 }
             }
 
             // ── Achievements section ───────────────────────────────────────
-            item { AdminSectionHeader("🏆 Achievements") }
+            item { AdminSectionHeader("Achievements") }
 
             item {
                 Button(
@@ -190,12 +214,12 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                         containerColor = MaterialTheme.colorScheme.tertiary
                     )
                 ) {
-                    Text("🔓 Unlock All Achievements")
+                    Text("Unlock All Achievements")
                 }
             }
 
             // ── Streak section ─────────────────────────────────────────────
-            item { AdminSectionHeader("🔥 Streak") }
+            item { AdminSectionHeader("Streak") }
 
             item {
                 Row(
@@ -224,7 +248,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
             }
 
             // ── Verification section ───────────────────────────────────────
-            item { AdminSectionHeader("📷 Verification") }
+            item { AdminSectionHeader("Verification") }
 
             item {
                 Button(
@@ -234,7 +258,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("✅ Verify All Pets")
+                    Text("Verify All Pets")
                 }
             }
 
@@ -250,7 +274,7 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                 ) {
                     Icon(Icons.Default.Close, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("✕  Close Admin Mode", fontWeight = FontWeight.Bold)
+                    Text("Close Admin Mode", fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.height(24.dp))
             }
