@@ -38,7 +38,8 @@ import java.util.Locale
 fun ProfileScreen(
     viewModel: PetQuestViewModel,
     onAddPetClick: () -> Unit,
-    onAdminClick: () -> Unit
+    onAdminClick: () -> Unit,
+    onNavigateToCollection: () -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -237,7 +238,9 @@ fun ProfileScreen(
             // ── Collection progress card ───────────────────────────────────
             item {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToCollection() },
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                     )

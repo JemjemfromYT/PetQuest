@@ -181,9 +181,10 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 2 -> EncyclopediaScreen(viewModel)
                 3 -> AchievementsScreen(viewModel)
                 4 -> ProfileScreen(
-                    viewModel     = viewModel,
-                    onAddPetClick = { outerNav.navigate("add_more_pet") },
-                    onAdminClick  = { outerNav.navigate("admin") }
+                    viewModel               = viewModel,
+                    onAddPetClick           = { outerNav.navigate("add_more_pet") },
+                    onAdminClick            = { outerNav.navigate("admin") },
+                    onNavigateToCollection  = { tab = 2 }
                 )
             }
         }
