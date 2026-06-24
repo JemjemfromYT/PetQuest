@@ -337,6 +337,15 @@ class PetQuestViewModel(
         if (pets.size >= 5)                                unlock("Own 5 Pets")
         if (verifiedCount >= 3)                            unlock("Verify 3 Pets")
         if (verifiedCount >= 5)                            unlock("Verify 5 Pets")
+
+        // ── Level 10 Achievement Tier — all 5 unlock when any pet hits Level 10 ─
+        if (pets.any { it.bondLevel >= 10 }) {
+            unlock("Bond Veteran")
+            unlock("Level 10 Companion")
+            unlock("Virtue Master")
+            unlock("Dedicated Caregiver")
+            unlock("Elite Trainer")
+        }
     }
 
     // ─── Admin / Debug Functions ───────────────────────────────────────────────

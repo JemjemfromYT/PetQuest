@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun BenefitsScreen(onContinue: () -> Unit) {
     val benefits = listOf(
-        "🐶" to "Discover pets near you",
+        "🐾" to "Build daily habits with your pet",
         "📋" to "Daily tasks to deepen your bond",
         "🔥" to "Maintain streaks to earn rewards",
         "🏆" to "Unlock achievements as you grow",

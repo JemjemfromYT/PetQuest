@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import com.example.petquest.R
 import androidx.compose.foundation.layout.*
@@ -22,7 +23,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -31,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
 import com.example.petquest.data.model.PetEntity
 import com.example.petquest.data.model.PetType
 import com.example.petquest.ui.VirtueConfig
@@ -66,14 +70,12 @@ fun ProfileScreen(
     val totalSpecies      = PetType.entries.size
     val hasCompletedToday = tasks.any { it.isCompleted }
 
-    // Animated XP progress
     val xpProgress by animateFloatAsState(
         targetValue = (totalBondPoints % 100) / 100f,
         animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
         label = "xp_progress"
     )
 
-    // Animated species progress
     val speciesProgress by animateFloatAsState(
         targetValue = if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat(),
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
@@ -499,6 +501,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
         else       -> MaterialTheme.colorScheme.error
     }
     val virtueInfo = VirtueConfig[pet.virtue]
+    val hasGoldBorder = pet.bondLevel >= 20
 
     Card(
         modifier = modifier,
@@ -512,98 +515,125 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Pet species emoji as primary visual; virtue emblem as small corner badge
-            Box(contentAlignment = Alignment.TopEnd) {
-                // Large species emoji
-                Text(
-                    text = petEmoji(pet.type.name),
-                    fontSize = 52.sp
-                )
+            // ── Pet photo or emoji — with gold border at Level 20 ──────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp)
+                    .then(
+                        if (hasGoldBorder)
+                            Modifier.border(
+                                width = 2.dp,
+                                color = Color(0xFFFFD700),
+                                shape = MaterialTheme.shapes.small
+                            )
+                        else Modifier
+                    )
+                    .clip(MaterialTheme.shapes.small),
+                contentAlignment = Alignment.TopEnd
+            ) {
+                if (pet.photoUri != null) {
+                    AsyncImage(
+                        model              = pet.photoUri,
+                        contentDescription = "${pet.name} photo",
+                        modifier           = Modifier.fillMaxSize(),
+                        contentScale       = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier         = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text     = petEmoji(pet.type.name),
+                            fontSize = 48.sp
+                        )
+                    }
+                }
                 // Virtue emblem badge in top-right corner
                 Surface(
                     modifier = Modifier.size(24.dp),
-                    shape = MaterialTheme.shapes.extraSmall,
-                    color = MaterialTheme.colorScheme.secondaryContainer
+                    shape    = MaterialTheme.shapes.extraSmall,
+                    color    = MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     Image(
-                        painter = painterResource(id = virtueInfo.emblemRes),
+                        painter            = painterResource(id = virtueInfo.emblemRes),
                         contentDescription = "${pet.virtue.name} emblem",
-                        modifier = Modifier
+                        modifier           = Modifier
                             .fillMaxSize()
                             .padding(2.dp),
-                        contentScale = ContentScale.Fit
+                        contentScale       = ContentScale.Fit
                     )
                 }
             }
 
             // Name + verified icon
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     pet.name,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    fontSize   = 15.sp,
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis
                 )
                 if (pet.isVerified) {
                     Spacer(Modifier.width(4.dp))
                     Icon(
-                        imageVector = Icons.Default.CheckCircle,
+                        imageVector        = Icons.Default.CheckCircle,
                         contentDescription = "Verified",
-                        tint = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.size(14.dp)
+                        tint               = MaterialTheme.colorScheme.tertiary,
+                        modifier           = Modifier.size(14.dp)
                     )
                 }
             }
 
-            // Rarity badge
-            Surface(
-                shape = MaterialTheme.shapes.small,
-                color = rarityColor.copy(alpha = 0.15f)
+            // Species
+            Text(
+                pet.type.name.replace("_", " "),
+                fontSize = 12.sp,
+                color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+
+            // Rarity + bond level
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
             ) {
+                Surface(
+                    shape = MaterialTheme.shapes.extraSmall,
+                    color = rarityColor.copy(alpha = 0.15f)
+                ) {
+                    Text(
+                        pet.type.rarity.name,
+                        modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        fontSize   = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = rarityColor
+                    )
+                }
                 Text(
-                    pet.type.rarity.name,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                    fontSize = 10.sp,
+                    "Lv.${pet.bondLevel}",
+                    fontSize   = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = rarityColor
+                    color      = MaterialTheme.colorScheme.primary
                 )
             }
 
-            // Bond level + points
-            Surface(
-                shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Text(
-                    "Lv.${pet.bondLevel}  •  ${pet.bondPoints} pts",
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            // Animated bond progress bar
+            // Bond progress bar
             val bondProgress by animateFloatAsState(
-                targetValue = (pet.bondPoints % 100) / 100f,
-                animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
-                label = "card_bond_${pet.id}"
+                targetValue   = (pet.bondPoints % 100) / 100f,
+                animationSpec = tween(durationMillis = 600),
+                label         = "bond_${pet.id}"
             )
             LinearProgressIndicator(
                 progress = { bondProgress },
                 modifier = Modifier.fillMaxWidth().height(4.dp),
-                color = rarityColor
-            )
-
-            // Virtue name below emblem (secondary)
-            Text(
-                pet.virtue.name,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color    = rarityColor
             )
         }
     }

@@ -215,6 +215,17 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
+            Spacer(Modifier.height(6.dp))
+
+            // ── Virtue explanation ─────────────────────────────────────────────
+            Text(
+                "Your chosen traits determine your pet's Virtue, which shapes one special daily task.",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Spacer(Modifier.height(12.dp))
 
             val allTraits = Trait.entries

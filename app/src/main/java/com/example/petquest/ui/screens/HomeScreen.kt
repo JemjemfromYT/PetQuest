@@ -2,6 +2,7 @@ package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -269,6 +271,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 itemsIndexed(pets) { index, pet ->
                     val virtueInfo = VirtueConfig[pet.virtue]
                     val isVerified = pet.isVerified
+                    val hasGoldBorder = pet.bondLevel >= 20
 
                     var visible by remember { mutableStateOf(false) }
                     LaunchedEffect(pet.id) {
@@ -316,11 +319,20 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             modifier          = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // ── Photo or emoji — no lock icons as placeholders ─
+                            // ── Photo or emoji — gold border at Level 20 ───────
                             Box(contentAlignment = Alignment.BottomEnd) {
                                 Box(
                                     modifier         = Modifier
                                         .size(52.dp)
+                                        .then(
+                                            if (hasGoldBorder)
+                                                Modifier.border(
+                                                    width = 2.dp,
+                                                    color = Color(0xFFFFD700),
+                                                    shape = MaterialTheme.shapes.small
+                                                )
+                                            else Modifier
+                                        )
                                         .clip(MaterialTheme.shapes.small),
                                     contentAlignment = Alignment.Center
                                 ) {

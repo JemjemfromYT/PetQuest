@@ -77,7 +77,13 @@ class PetRepository(private val dao: PetQuestDao) {
             // ── Pet Collection ────────────────────────────────────────────────
             AchievementEntity(title = "Own 5 Pets",    description = "Own 5 or more pets at once"),
             AchievementEntity(title = "Verify 3 Pets", description = "Verify 3 or more pets"),
-            AchievementEntity(title = "Verify 5 Pets", description = "Verify 5 or more pets")
+            AchievementEntity(title = "Verify 5 Pets", description = "Verify 5 or more pets"),
+            // ── Level 10 Achievement Tier (unlocked when any pet hits Level 10) ─
+            AchievementEntity(title = "Bond Veteran",       description = "Prove your dedication by reaching Bond Level 10"),
+            AchievementEntity(title = "Level 10 Companion", description = "Your pet trusts you completely — Bond Level 10 reached"),
+            AchievementEntity(title = "Virtue Master",      description = "Embody your pet's virtue through consistent daily practice"),
+            AchievementEntity(title = "Dedicated Caregiver",description = "Show daily dedication and reach Bond Level 10"),
+            AchievementEntity(title = "Elite Trainer",      description = "Achieve elite bond status through patience and care")
         ).forEach { dao.insertAchievement(it) }
     }
 }
