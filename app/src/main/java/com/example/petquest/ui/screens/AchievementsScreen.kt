@@ -19,7 +19,10 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AchievementsScreen(viewModel: PetQuestViewModel) {
+fun AchievementsScreen(
+    viewModel: PetQuestViewModel,
+    onNavigateToTasks: () -> Unit = {}
+) {
     val achievements         by viewModel.allAchievements.collectAsState()
     val collectionPercentage by viewModel.collectionPercentage.collectAsState()
     val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
@@ -27,8 +30,8 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
     val unlockedCount = achievements.count { it.isUnlocked }
     val totalCount    = achievements.size
 
-    // Achievement identity icons — restored from original
     val emojiMap = mapOf(
+        // ── Original ──────────────────────────────────────────────────────────
         "First Pet"          to "🐾",
         "First Verification" to "📷",
         "Pet Lover"          to "❤️",
@@ -37,13 +40,32 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
         "Epic Tamer"         to "🐉",
         "Rarity Hunter"      to "🎯",
         "Species Collector"  to "🗂️",
-        "Animal Explorer"    to "🌍"
+        "Animal Explorer"    to "🌍",
+        // ── Streaks ───────────────────────────────────────────────────────────
+        "3-Day Streak"       to "🔥",
+        "30-Day Streak"      to "🔥",
+        // ── Tasks ─────────────────────────────────────────────────────────────
+        "Complete 25 Tasks"  to "✅",
+        "Complete 50 Tasks"  to "✅",
+        "Complete 100 Tasks" to "✅",
+        "Complete 250 Tasks" to "✅",
+        // ── Bond Points ───────────────────────────────────────────────────────
+        "Earn 250 Bond Points"  to "⭐",
+        "Earn 500 Bond Points"  to "⭐",
+        "Earn 1000 Bond Points" to "⭐",
+        // ── Pet Levels ────────────────────────────────────────────────────────
+        "Reach Level 10" to "👑",
+        "Reach Level 20" to "👑",
+        // ── Pet Collection ────────────────────────────────────────────────────
+        "Own 5 Pets"    to "❤️",
+        "Verify 3 Pets" to "📷",
+        "Verify 5 Pets" to "📷"
     )
 
     val overallProgress by animateFloatAsState(
-        targetValue = if (totalCount == 0) 0f else unlockedCount / totalCount.toFloat(),
+        targetValue   = if (totalCount == 0) 0f else unlockedCount / totalCount.toFloat(),
         animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
-        label = "achievements_progress"
+        label         = "achievements_progress"
     )
 
     Scaffold(
@@ -62,18 +84,18 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 EmptyStateCard(
-                    imageRes = R.drawable.empty_achievements,
-                    title = "No Achievements Yet",
+                    imageRes    = R.drawable.empty_achievements,
+                    title       = "No Achievements Yet",
                     description = "Add pets, complete tasks, and build bonds to earn achievements.",
-                    actionLabel = "Get Started",
-                    onAction = {}
+                    actionLabel = "Start Your First Task",
+                    onAction    = onNavigateToTasks
                 )
             }
             return@Scaffold
         }
 
         LazyColumn(
-            modifier = Modifier
+            modifier            = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
@@ -83,27 +105,27 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
+                    colors   = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier              = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment     = Alignment.CenterVertically
                         ) {
                             Text(
                                 "$unlockedCount / $totalCount Unlocked",
-                                fontSize = 15.sp,
-                                color = MaterialTheme.colorScheme.primary,
+                                fontSize   = 15.sp,
+                                color      = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
                                 "${if (totalCount == 0) 0 else (unlockedCount * 100) / totalCount}%",
-                                fontSize = 15.sp,
+                                fontSize   = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color      = MaterialTheme.colorScheme.primary
                             )
                         }
                         Spacer(Modifier.height(8.dp))
@@ -119,21 +141,21 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                         Spacer(Modifier.height(10.dp))
 
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier              = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment     = Alignment.CenterVertically
                         ) {
                             Text(
                                 "Species Collected",
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontSize   = 13.sp,
+                                color      = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
                                 "${collectedSpecies.size}/29  ($collectionPercentage%)",
-                                fontSize = 13.sp,
+                                fontSize   = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary
+                                color      = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -149,9 +171,9 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                 }
 
                 val cardAlpha by animateFloatAsState(
-                    targetValue = if (visible) 1f else 0f,
+                    targetValue   = if (visible) 1f else 0f,
                     animationSpec = tween(durationMillis = 250),
-                    label = "ach_alpha_$index"
+                    label         = "ach_alpha_$index"
                 )
 
                 var unlockAnimStarted by remember { mutableStateOf(false) }
@@ -163,7 +185,7 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                     }
                 }
                 val unlockScale by animateFloatAsState(
-                    targetValue = if (a.isUnlocked && unlockAnimStarted) 1f else if (a.isUnlocked) 0.85f else 1f,
+                    targetValue   = if (a.isUnlocked && unlockAnimStarted) 1f else if (a.isUnlocked) 0.85f else 1f,
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
                         stiffness    = Spring.StiffnessMedium
@@ -185,25 +207,24 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                     elevation = CardDefaults.cardElevation(if (a.isUnlocked) 4.dp else 0.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier          = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Achievement icon: species/theme emoji for unlocked, Lock for locked
                         Box(
-                            modifier = Modifier.size(48.dp),
+                            modifier         = Modifier.size(48.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             if (a.isUnlocked) {
                                 Text(
-                                    text = emojiMap[a.title] ?: "⭐",
+                                    text     = emojiMap[a.title] ?: "⭐",
                                     fontSize = 36.sp
                                 )
                             } else {
                                 Icon(
-                                    imageVector = Icons.Default.Lock,
+                                    imageVector        = Icons.Default.Lock,
                                     contentDescription = "Locked",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                    modifier = Modifier.size(32.dp)
+                                    tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                    modifier           = Modifier.size(32.dp)
                                 )
                             }
                         }
@@ -214,8 +235,8 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                             Text(
                                 a.title,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = if (a.isUnlocked)
+                                fontSize   = 15.sp,
+                                color      = if (a.isUnlocked)
                                     MaterialTheme.colorScheme.onPrimaryContainer
                                 else
                                     MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
@@ -224,7 +245,7 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                             Text(
                                 if (a.isUnlocked) a.description else "???",
                                 fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color    = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -236,10 +257,10 @@ fun AchievementsScreen(viewModel: PetQuestViewModel) {
                             ) {
                                 Text(
                                     "Done",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    fontSize = 11.sp,
+                                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    fontSize   = 11.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color      = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }

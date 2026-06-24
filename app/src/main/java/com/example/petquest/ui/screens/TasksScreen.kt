@@ -27,6 +27,7 @@ import com.example.petquest.data.model.TaskEntity
 import com.example.petquest.data.model.TaskType
 import com.example.petquest.viewmodel.PetQuestViewModel
 import kotlinx.coroutines.delay
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -247,10 +248,11 @@ fun TasksScreen(
                 )
 
                 LazyColumn(
-                    modifier        = Modifier.fillMaxSize(),
-                    contentPadding  = PaddingValues(16.dp),
+                    modifier            = Modifier.fillMaxSize(),
+                    contentPadding      = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    // ── Progress card ─────────────────────────────────────────
                     item(key = "progress") {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -285,6 +287,12 @@ fun TasksScreen(
                         }
                     }
 
+                    // ── Daily reset countdown ─────────────────────────────────
+                    item(key = "reset_timer") {
+                        TaskResetTimer()
+                    }
+
+                    // ── Core tasks ────────────────────────────────────────────
                     if (core.isNotEmpty()) {
                         item(key = "core_header") {
                             TaskTypeHeader(
@@ -298,6 +306,7 @@ fun TasksScreen(
                         }
                     }
 
+                    // ── Optional tasks ────────────────────────────────────────
                     if (optional.isNotEmpty()) {
                         item(key = "opt_header") {
                             Spacer(Modifier.height(4.dp))
@@ -325,29 +334,65 @@ fun TasksScreen(
 }
 
 // ---------------------------------------------------------------------------
+// Task Reset Timer
+// ---------------------------------------------------------------------------
+@Composable
+private fun TaskResetTimer() {
+    fun millisUntilMidnight(): Long {
+        val now      = Calendar.getInstance()
+        val midnight = (now.clone() as Calendar).apply {
+            add(Calendar.DAY_OF_YEAR, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return (midnight.timeInMillis - now.timeInMillis).coerceAtLeast(0L)
+    }
+
+    var millisLeft by remember { mutableLongStateOf(millisUntilMidnight()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000L)
+            millisLeft = millisUntilMidnight()
+        }
+    }
+
+    val hours   = (millisLeft / (1000L * 60L * 60L)).toInt()
+    val minutes = ((millisLeft / (1000L * 60L)) % 60L).toInt()
+    val label   = if (hours > 0) "Tasks reset in ${hours}h ${minutes}m" else "Tasks reset in ${minutes}m"
+
+    Text(
+        text     = label,
+        fontSize = 12.sp,
+        color    = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 2.dp)
+    )
+}
+
+// ---------------------------------------------------------------------------
 // Streak Celebration Overlay
 // ---------------------------------------------------------------------------
 @Composable
 private fun StreakCelebrationOverlay(streakCount: Int) {
-    // Phase 1: entrance (0–400ms), Phase 2: hold, Phase 3: exit (fade out)
     var phase by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(streakCount) {
         phase = 0
         delay(30)
-        phase = 1          // entrance
+        phase = 1
         delay(2000)
-        phase = 2          // exit
+        phase = 2
     }
 
-    // Scrim alpha
     val scrimAlpha by animateFloatAsState(
         targetValue   = when (phase) { 1 -> 0.72f; else -> 0f },
         animationSpec = tween(durationMillis = if (phase == 2) 500 else 300),
         label         = "scrim_alpha"
     )
-
-    // Flame scale — spring bounce entrance, shrink on exit
     val flameScale by animateFloatAsState(
         targetValue   = when (phase) { 1 -> 1f; else -> 0.5f },
         animationSpec = if (phase == 1)
@@ -356,8 +401,6 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
             tween(durationMillis = 400),
         label = "flame_scale"
     )
-
-    // Streak number: bounces in larger then settles
     val numberScale by animateFloatAsState(
         targetValue   = when (phase) { 1 -> 1f; else -> 0.3f },
         animationSpec = if (phase == 1)
@@ -366,15 +409,14 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
             tween(durationMillis = 350),
         label = "number_scale"
     )
-
-    // Text + sub-label fade
     val textAlpha by animateFloatAsState(
         targetValue   = when (phase) { 1 -> 1f; else -> 0f },
-        animationSpec = tween(durationMillis = if (phase == 1) 400 else 350, delayMillis = if (phase == 1) 200 else 0),
-        label         = "text_alpha"
+        animationSpec = tween(
+            durationMillis = if (phase == 1) 400 else 350,
+            delayMillis    = if (phase == 1) 200 else 0
+        ),
+        label = "text_alpha"
     )
-
-    // Sparkle 1 — floats up-left
     val sparkle1Offset by animateIntOffsetAsState(
         targetValue   = when (phase) { 1 -> IntOffset(-80, -90); else -> IntOffset(0, 0) },
         animationSpec = if (phase == 1)
@@ -382,7 +424,6 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
         else tween(300),
         label = "sparkle1"
     )
-    // Sparkle 2 — floats up-right
     val sparkle2Offset by animateIntOffsetAsState(
         targetValue   = when (phase) { 1 -> IntOffset(90, -70); else -> IntOffset(0, 0) },
         animationSpec = if (phase == 1)
@@ -390,7 +431,6 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
         else tween(300),
         label = "sparkle2"
     )
-    // Sparkle 3 — floats straight up
     val sparkle3Offset by animateIntOffsetAsState(
         targetValue   = when (phase) { 1 -> IntOffset(0, -130); else -> IntOffset(0, 0) },
         animationSpec = if (phase == 1)
@@ -407,7 +447,6 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
         contentAlignment = Alignment.Center
     ) {}
 
-    // Content layer (not affected by scrim alpha clipping)
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -416,7 +455,6 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            // Floating sparkles above the flame
             Box(
                 modifier = Modifier
                     .size(120.dp)
@@ -428,27 +466,19 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
                 Text("💫", fontSize = 20.sp, modifier = Modifier.offset { sparkle3Offset })
             }
 
-            // Flame + streak number stacked
             Box(contentAlignment = Alignment.Center) {
-                Text(
-                    "🔥",
-                    fontSize = 96.sp,
-                    modifier = Modifier.scale(flameScale)
-                )
+                Text("🔥", fontSize = 96.sp, modifier = Modifier.scale(flameScale))
                 Text(
                     "$streakCount",
                     fontSize   = 36.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color      = Color.White,
-                    modifier   = Modifier
-                        .scale(numberScale)
-                        .offset(y = 14.dp)
+                    modifier   = Modifier.scale(numberScale).offset(y = 14.dp)
                 )
             }
 
             Spacer(Modifier.height(12.dp))
 
-            // "Day X Streak!" label
             Text(
                 "Day $streakCount Streak!",
                 fontSize   = 28.sp,
@@ -492,10 +522,10 @@ private fun TaskTypeHeader(
         Surface(shape = MaterialTheme.shapes.extraSmall, color = color.copy(alpha = 0.15f)) {
             Text(
                 pts,
-                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
-                fontSize = 11.sp,
+                modifier   = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                fontSize   = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color = color
+                color      = color
             )
         }
     }
@@ -549,15 +579,15 @@ private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
                 enabled         = !isDone
             )
             Text(
-                text            = task.title,
-                fontWeight      = if (isDone) FontWeight.Normal else FontWeight.Medium,
-                fontSize        = 14.sp,
-                textDecoration  = if (isDone) TextDecoration.LineThrough else null,
-                color           = if (isDone)
+                text           = task.title,
+                fontWeight     = if (isDone) FontWeight.Normal else FontWeight.Medium,
+                fontSize       = 14.sp,
+                textDecoration = if (isDone) TextDecoration.LineThrough else null,
+                color          = if (isDone)
                     MaterialTheme.colorScheme.onSurfaceVariant
                 else
                     MaterialTheme.colorScheme.onSurface,
-                modifier        = Modifier.weight(1f)
+                modifier       = Modifier.weight(1f)
             )
             if (!isDone) {
                 Text(

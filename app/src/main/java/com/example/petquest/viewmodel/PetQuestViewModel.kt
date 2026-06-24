@@ -77,12 +77,13 @@ class PetQuestViewModel(
         prefsRepository.notificationMinute
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    val totalTasksCompleted: StateFlow<Int> =
+        prefsRepository.totalTasksCompleted
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     private val _levelUpEvent = MutableSharedFlow<LevelUpEvent>()
     val levelUpEvent: SharedFlow<LevelUpEvent> = _levelUpEvent.asSharedFlow()
 
-    // Holds the ID of a newly added pet that needs verification.
-    // StateFlow (not SharedFlow) so the value is never lost due to timing.
-    // Call clearPendingVerificationPetId() from the UI after navigating.
     private val _pendingVerificationPetId = MutableStateFlow<Int?>(null)
     val pendingVerificationPetId: StateFlow<Int?> = _pendingVerificationPetId.asStateFlow()
 
@@ -114,7 +115,7 @@ class PetQuestViewModel(
     // ─── Daily reset ───────────────────────────────────────────────────────────
 
     private suspend fun checkDailyReset() {
-        val today = todayString()
+        val today        = todayString()
         val lastTaskDate = prefsRepository.lastTaskDate.first()
         if (lastTaskDate != today) {
             petRepository.clearAllTasks()
@@ -131,12 +132,10 @@ class PetQuestViewModel(
             try {
                 petRepository.insertPet(pet)
                 prefsRepository.setOnboarded()
-                val pets = allPets.first { list -> list.any { it.name == pet.name && it.type == pet.type } }
+                val pets     = allPets.first { list -> list.any { it.name == pet.name && it.type == pet.type } }
                 val inserted = pets.maxByOrNull { it.id } ?: return@launch
                 generateTasksForPet(inserted)
                 checkAndUnlockAchievements()
-                // Set the pending ID last so the UI sees it only after everything is ready.
-                // StateFlow holds this value until clearPendingVerificationPetId() is called.
                 _pendingVerificationPetId.value = inserted.id
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "addPet error", e)
@@ -169,11 +168,10 @@ class PetQuestViewModel(
         viewModelScope.launch {
             try {
                 val pet = allPets.value.find { it.id == task.petId } ?: return@launch
-
-                // Verification gate: unverified pets cannot earn points, streaks, or achievements
                 if (!pet.isVerified) return@launch
 
                 petRepository.completeTask(task.id)
+                prefsRepository.incrementTasksCompleted()
 
                 val points    = if (task.type == TaskType.CORE) 10 else 5
                 val oldLevel  = pet.bondLevel
@@ -256,7 +254,7 @@ class PetQuestViewModel(
             .shuffled(rng)
             .take(2)
 
-        val speciesOptionals  = TaskPools.speciesOptionalPool(pet.type)
+        val speciesOptionals   = TaskPools.speciesOptionalPool(pet.type)
             .map { it.replace("{name}", pet.name) }
         val universalOptionals = TaskPools.UNIVERSAL_OPTIONAL
             .map { it.replace("{name}", pet.name) }
@@ -289,19 +287,47 @@ class PetQuestViewModel(
             if (a != null && !a.isUnlocked) petRepository.unlockAchievement(a.id)
         }
 
-        val distinctTypes = pets.map { it.type }.toSet()
-        val ownedRarities = distinctTypes.map { it.rarity }.toSet()
+        val distinctTypes    = pets.map { it.type }.toSet()
+        val ownedRarities    = distinctTypes.map { it.rarity }.toSet()
+        val verifiedCount    = pets.count { it.isVerified }
+        val streak           = prefsRepository.userStreak.first()
+        val totalPoints      = totalBondPoints.value
+        val totalTasks       = prefsRepository.totalTasksCompleted.first()
 
-        if (pets.isNotEmpty())                       unlock("First Pet")
-        if (pets.any { it.isVerified })              unlock("First Verification")
-        if (pets.size >= 3)                          unlock("Pet Lover")
-        if (pets.any { it.bondLevel >= 5 })          unlock("Bond Master")
-        if (prefsRepository.userStreak.first() >= 7) unlock("7-Day Streak")
+        // ── Original achievements ──────────────────────────────────────────────
+        if (pets.isNotEmpty())                              unlock("First Pet")
+        if (verifiedCount >= 1)                             unlock("First Verification")
+        if (pets.size >= 3)                                 unlock("Pet Lover")
+        if (pets.any { it.bondLevel >= 5 })                 unlock("Bond Master")
+        if (pets.any { it.type.rarity == Rarity.EPIC })     unlock("Epic Tamer")
+        if (Rarity.entries.all { it in ownedRarities })     unlock("Rarity Hunter")
+        if (distinctTypes.size >= 5)                        unlock("Species Collector")
+        if (distinctTypes.size >= 10)                       unlock("Animal Explorer")
 
-        if (pets.any { it.type.rarity == Rarity.EPIC }) unlock("Epic Tamer")
-        if (Rarity.entries.all { it in ownedRarities })  unlock("Rarity Hunter")
-        if (distinctTypes.size >= 5)                     unlock("Species Collector")
-        if (distinctTypes.size >= 10)                    unlock("Animal Explorer")
+        // ── Streaks ───────────────────────────────────────────────────────────
+        if (streak >= 3)                                    unlock("3-Day Streak")
+        if (streak >= 7)                                    unlock("7-Day Streak")
+        if (streak >= 30)                                   unlock("30-Day Streak")
+
+        // ── Tasks ─────────────────────────────────────────────────────────────
+        if (totalTasks >= 25)                               unlock("Complete 25 Tasks")
+        if (totalTasks >= 50)                               unlock("Complete 50 Tasks")
+        if (totalTasks >= 100)                              unlock("Complete 100 Tasks")
+        if (totalTasks >= 250)                              unlock("Complete 250 Tasks")
+
+        // ── Bond Points ───────────────────────────────────────────────────────
+        if (totalPoints >= 250)                             unlock("Earn 250 Bond Points")
+        if (totalPoints >= 500)                             unlock("Earn 500 Bond Points")
+        if (totalPoints >= 1000)                            unlock("Earn 1000 Bond Points")
+
+        // ── Pet Levels ────────────────────────────────────────────────────────
+        if (pets.any { it.bondLevel >= 10 })                unlock("Reach Level 10")
+        if (pets.any { it.bondLevel >= 20 })                unlock("Reach Level 20")
+
+        // ── Pet Collection ────────────────────────────────────────────────────
+        if (pets.size >= 5)                                 unlock("Own 5 Pets")
+        if (verifiedCount >= 3)                             unlock("Verify 3 Pets")
+        if (verifiedCount >= 5)                             unlock("Verify 5 Pets")
     }
 
     // ─── Admin / Debug Functions ───────────────────────────────────────────────
@@ -309,7 +335,7 @@ class PetQuestViewModel(
     fun adminAddBondPoints(petId: Int, points: Int) {
         viewModelScope.launch {
             try {
-                val pet = allPets.value.find { it.id == petId } ?: return@launch
+                val pet      = allPets.value.find { it.id == petId } ?: return@launch
                 val oldLevel  = pet.bondLevel
                 val newPoints = pet.bondPoints + points
                 val newLevel  = (newPoints / 100) + 1
@@ -330,6 +356,9 @@ class PetQuestViewModel(
                 val tasks           = todaysTasks.value
                 val incompleteTasks = tasks.filter { !it.isCompleted }
                 incompleteTasks.forEach { task -> petRepository.completeTask(task.id) }
+                if (incompleteTasks.isNotEmpty()) {
+                    prefsRepository.incrementTasksCompleted(incompleteTasks.size)
+                }
                 val pets = allPets.value
                 pets.forEach { pet ->
                     val totalPoints = incompleteTasks
