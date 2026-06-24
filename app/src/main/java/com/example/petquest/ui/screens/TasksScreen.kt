@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.example.petquest.R
 import com.example.petquest.data.model.TaskEntity
 import com.example.petquest.data.model.TaskType
+import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 import kotlinx.coroutines.delay
 import java.util.Calendar
@@ -72,7 +73,7 @@ fun TasksScreen(
             // ── Empty state: no pets ──────────────────────────────────────────
             if (pets.isEmpty()) {
                 Box(
-                    modifier = Modifier
+                    modifier         = Modifier
                         .fillMaxSize()
                         .padding(padding)
                         .padding(24.dp),
@@ -115,10 +116,10 @@ fun TasksScreen(
                                         Text(petEmoji(pet.type.name), fontSize = 24.sp)
                                         if (isLocked) {
                                             Icon(
-                                                imageVector = Icons.Default.Lock,
+                                                imageVector        = Icons.Default.Lock,
                                                 contentDescription = "Locked",
-                                                tint = MaterialTheme.colorScheme.error,
-                                                modifier = Modifier.size(10.dp)
+                                                tint               = MaterialTheme.colorScheme.error,
+                                                modifier           = Modifier.size(10.dp)
                                             )
                                         }
                                     }
@@ -151,38 +152,31 @@ fun TasksScreen(
                     }
                 }
 
-                // ── Tasks for selected pet ────────────────────────────────────
                 val selectedPet = pets.getOrNull(safeTab)
                 if (selectedPet == null) return@Column
 
                 // ── Verification gate ─────────────────────────────────────────
                 if (!selectedPet.isVerified) {
                     Box(
-                        modifier = Modifier
+                        modifier         = Modifier
                             .fillMaxSize()
                             .padding(24.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors   = CardDefaults.cardColors(
+                            modifier  = Modifier.fillMaxWidth(),
+                            colors    = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.errorContainer
                             ),
                             elevation = CardDefaults.cardElevation(4.dp)
                         ) {
                             Column(
-                                modifier = Modifier
+                                modifier            = Modifier
                                     .fillMaxWidth()
                                     .padding(28.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Image(
-                                    painter           = painterResource(id = R.drawable.ic_locked),
-                                    contentDescription = "Locked",
-                                    modifier          = Modifier.size(56.dp),
-                                    contentScale      = ContentScale.Fit
-                                )
                                 Text(
                                     "Verification Required",
                                     fontSize   = 20.sp,
@@ -217,15 +211,16 @@ fun TasksScreen(
                     return@Column
                 }
 
-                // ── Normal task list (verified pets only) ─────────────────────
+                // ── Task list (verified pets only) ────────────────────────────
                 val petTasks  = tasks.filter { it.petId == selectedPet.id }
                 val core      = petTasks.filter { it.type == TaskType.CORE }
+                val virtue    = petTasks.filter { it.type == TaskType.VIRTUE }
                 val optional  = petTasks.filter { it.type == TaskType.OPTIONAL }
                 val doneCount = petTasks.count { it.isCompleted }
 
                 if (petTasks.isEmpty()) {
                     Box(
-                        modifier = Modifier
+                        modifier         = Modifier
                             .fillMaxSize()
                             .padding(24.dp),
                         contentAlignment = Alignment.Center
@@ -247,6 +242,8 @@ fun TasksScreen(
                     label         = "task_progress"
                 )
 
+                val virtueInfo = VirtueConfig[selectedPet.virtue]
+
                 LazyColumn(
                     modifier            = Modifier.fillMaxSize(),
                     contentPadding      = PaddingValues(16.dp),
@@ -262,7 +259,7 @@ fun TasksScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier              = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment     = Alignment.CenterVertically
                                 ) {
@@ -296,13 +293,30 @@ fun TasksScreen(
                     if (core.isNotEmpty()) {
                         item(key = "core_header") {
                             TaskTypeHeader(
-                                label = "Core Tasks",
-                                pts   = "+10 pts",
-                                color = MaterialTheme.colorScheme.primary
+                                label     = "Core Tasks",
+                                pts       = "+10 pts",
+                                color     = MaterialTheme.colorScheme.primary
                             )
                         }
                         items(core, key = { "c_${it.id}" }) { task ->
                             TaskRow(task, isCore = true) { viewModel.completeTask(task) }
+                        }
+                    }
+
+                    // ── Virtue task — displayed with virtue emblem ─────────────
+                    if (virtue.isNotEmpty()) {
+                        item(key = "virtue_header") {
+                            Spacer(Modifier.height(4.dp))
+                            VirtueTaskHeader(
+                                virtueName = selectedPet.virtue.name,
+                                emblemRes  = virtueInfo.emblemRes
+                            )
+                        }
+                        items(virtue, key = { "v_${it.id}" }) { task ->
+                            VirtueTaskRow(
+                                task      = task,
+                                emblemRes = virtueInfo.emblemRes
+                            ) { viewModel.completeTask(task) }
                         }
                     }
 
@@ -326,7 +340,7 @@ fun TasksScreen(
             }
         }
 
-        // ── Streak celebration overlay — renders above everything ─────────────
+        // ── Streak celebration overlay ─────────────────────────────────────────
         if (showStreakOverlay) {
             StreakCelebrationOverlay(streakCount = overlayStreakValue)
         }
@@ -374,6 +388,232 @@ private fun TaskResetTimer() {
 }
 
 // ---------------------------------------------------------------------------
+// Section header for regular Core / Optional task groups
+// ---------------------------------------------------------------------------
+@Composable
+private fun TaskTypeHeader(
+    label: String,
+    pts: String,
+    color: androidx.compose.ui.graphics.Color
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier          = Modifier.padding(top = 4.dp, bottom = 2.dp)
+    ) {
+        Text(label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Spacer(Modifier.width(8.dp))
+        Surface(shape = MaterialTheme.shapes.extraSmall, color = color.copy(alpha = 0.15f)) {
+            Text(
+                pts,
+                modifier   = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color      = color
+            )
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Virtue task section header — shows the virtue emblem inline
+// ---------------------------------------------------------------------------
+@Composable
+private fun VirtueTaskHeader(virtueName: String, emblemRes: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier          = Modifier.padding(top = 4.dp, bottom = 2.dp)
+    ) {
+        Surface(
+            modifier = Modifier.size(24.dp),
+            shape    = MaterialTheme.shapes.extraSmall,
+            color    = MaterialTheme.colorScheme.tertiaryContainer
+        ) {
+            Image(
+                painter            = painterResource(id = emblemRes),
+                contentDescription = "$virtueName emblem",
+                modifier           = Modifier
+                    .fillMaxSize()
+                    .padding(3.dp),
+                contentScale       = ContentScale.Fit
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        Text(
+            "${virtueName.lowercase().replaceFirstChar { it.uppercase() }} Task",
+            fontWeight = FontWeight.Bold,
+            fontSize   = 14.sp,
+            color      = MaterialTheme.colorScheme.tertiary
+        )
+        Spacer(Modifier.width(8.dp))
+        Surface(
+            shape = MaterialTheme.shapes.extraSmall,
+            color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+        ) {
+            Text(
+                "+10 pts",
+                modifier   = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color      = MaterialTheme.colorScheme.tertiary
+            )
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Virtue Task Row — includes virtue emblem badge at the end
+// ---------------------------------------------------------------------------
+@Composable
+private fun VirtueTaskRow(task: TaskEntity, emblemRes: Int, onCheck: () -> Unit) {
+    val isDone = task.isCompleted
+
+    var checkAnimStarted by remember { mutableStateOf(isDone) }
+    LaunchedEffect(isDone) {
+        if (isDone) {
+            checkAnimStarted = false
+            delay(30)
+            checkAnimStarted = true
+        }
+    }
+    val checkScale by animateFloatAsState(
+        targetValue   = if (isDone && checkAnimStarted) 1f else if (isDone) 0.88f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness    = Spring.StiffnessMedium
+        ),
+        label = "virtue_scale_${task.id}"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(checkScale),
+        colors   = CardDefaults.cardColors(
+            containerColor = if (isDone)
+                MaterialTheme.colorScheme.surfaceVariant
+            else
+                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(if (isDone) 0.dp else 2.dp)
+    ) {
+        Row(
+            modifier          = Modifier
+                .fillMaxWidth()
+                .padding(start = 4.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked         = isDone,
+                onCheckedChange = { if (!isDone) onCheck() },
+                enabled         = !isDone
+            )
+            Text(
+                text           = task.title,
+                fontWeight     = if (isDone) FontWeight.Normal else FontWeight.Medium,
+                fontSize       = 14.sp,
+                textDecoration = if (isDone) TextDecoration.LineThrough else null,
+                color          = if (isDone)
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                else
+                    MaterialTheme.colorScheme.onSurface,
+                modifier       = Modifier.weight(1f)
+            )
+            if (!isDone) {
+                Spacer(Modifier.width(6.dp))
+                // Virtue emblem badge
+                Surface(
+                    modifier = Modifier.size(28.dp),
+                    shape    = MaterialTheme.shapes.extraSmall,
+                    color    = MaterialTheme.colorScheme.tertiaryContainer
+                ) {
+                    Image(
+                        painter            = painterResource(id = emblemRes),
+                        contentDescription = "Virtue task",
+                        modifier           = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp),
+                        contentScale       = ContentScale.Fit
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Standard Task Row (Core / Optional)
+// ---------------------------------------------------------------------------
+@Composable
+private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
+    val isDone = task.isCompleted
+
+    var checkAnimStarted by remember { mutableStateOf(isDone) }
+    LaunchedEffect(isDone) {
+        if (isDone) {
+            checkAnimStarted = false
+            delay(30)
+            checkAnimStarted = true
+        }
+    }
+    val checkScale by animateFloatAsState(
+        targetValue   = if (isDone && checkAnimStarted) 1f else if (isDone) 0.88f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness    = Spring.StiffnessMedium
+        ),
+        label = "check_scale_${task.id}"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(checkScale),
+        colors   = CardDefaults.cardColors(
+            containerColor = if (isDone)
+                MaterialTheme.colorScheme.surfaceVariant
+            else
+                MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(if (isDone) 0.dp else 2.dp)
+    ) {
+        Row(
+            modifier          = Modifier
+                .fillMaxWidth()
+                .padding(start = 4.dp, end = 14.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked         = isDone,
+                onCheckedChange = { if (!isDone) onCheck() },
+                enabled         = !isDone
+            )
+            Text(
+                text           = task.title,
+                fontWeight     = if (isDone) FontWeight.Normal else FontWeight.Medium,
+                fontSize       = 14.sp,
+                textDecoration = if (isDone) TextDecoration.LineThrough else null,
+                color          = if (isDone)
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                else
+                    MaterialTheme.colorScheme.onSurface,
+                modifier       = Modifier.weight(1f)
+            )
+            if (!isDone) {
+                Text(
+                    if (isCore) "+10" else "+5",
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = if (isCore)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Streak Celebration Overlay
 // ---------------------------------------------------------------------------
 @Composable
@@ -397,16 +637,14 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
         targetValue   = when (phase) { 1 -> 1f; else -> 0.5f },
         animationSpec = if (phase == 1)
             spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
-        else
-            tween(durationMillis = 400),
+        else tween(400),
         label = "flame_scale"
     )
     val numberScale by animateFloatAsState(
         targetValue   = when (phase) { 1 -> 1f; else -> 0.3f },
         animationSpec = if (phase == 1)
             spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
-        else
-            tween(durationMillis = 350),
+        else tween(350),
         label = "number_scale"
     )
     val textAlpha by animateFloatAsState(
@@ -440,7 +678,7 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
     )
 
     Box(
-        modifier = Modifier
+        modifier         = Modifier
             .fillMaxSize()
             .alpha(scrimAlpha)
             .background(Color(0xFF000000)),
@@ -448,7 +686,7 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
     ) {}
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier         = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -456,16 +694,13 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .alpha(textAlpha),
+                modifier         = Modifier.size(120.dp).alpha(textAlpha),
                 contentAlignment = Alignment.Center
             ) {
                 Text("✨", fontSize = 22.sp, modifier = Modifier.offset { sparkle1Offset })
                 Text("⭐", fontSize = 18.sp, modifier = Modifier.offset { sparkle2Offset })
                 Text("💫", fontSize = 20.sp, modifier = Modifier.offset { sparkle3Offset })
             }
-
             Box(contentAlignment = Alignment.Center) {
                 Text("🔥", fontSize = 96.sp, modifier = Modifier.scale(flameScale))
                 Text(
@@ -476,9 +711,7 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
                     modifier   = Modifier.scale(numberScale).offset(y = 14.dp)
                 )
             }
-
             Spacer(Modifier.height(12.dp))
-
             Text(
                 "Day $streakCount Streak!",
                 fontSize   = 28.sp,
@@ -487,119 +720,15 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
                 textAlign  = TextAlign.Center,
                 modifier   = Modifier.alpha(textAlpha)
             )
-
             Spacer(Modifier.height(8.dp))
-
             Text(
                 if (streakCount == 1) "You're on a roll — keep it up!"
                 else "Amazing — $streakCount days in a row!",
                 fontSize  = 15.sp,
                 color     = Color.White.copy(alpha = 0.82f),
                 textAlign = TextAlign.Center,
-                modifier  = Modifier
-                    .padding(horizontal = 40.dp)
-                    .alpha(textAlpha)
+                modifier  = Modifier.padding(horizontal = 40.dp).alpha(textAlpha)
             )
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// TaskTypeHeader
-// ---------------------------------------------------------------------------
-@Composable
-private fun TaskTypeHeader(
-    label: String,
-    pts: String,
-    color: androidx.compose.ui.graphics.Color
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier          = Modifier.padding(top = 4.dp, bottom = 2.dp)
-    ) {
-        Text(label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        Spacer(Modifier.width(8.dp))
-        Surface(shape = MaterialTheme.shapes.extraSmall, color = color.copy(alpha = 0.15f)) {
-            Text(
-                pts,
-                modifier   = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
-                fontSize   = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color      = color
-            )
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// TaskRow
-// ---------------------------------------------------------------------------
-@Composable
-private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
-    val isDone = task.isCompleted
-
-    var checkAnimStarted by remember { mutableStateOf(isDone) }
-    LaunchedEffect(isDone) {
-        if (isDone) {
-            checkAnimStarted = false
-            delay(30)
-            checkAnimStarted = true
-        }
-    }
-    val checkScale by animateFloatAsState(
-        targetValue   = if (isDone && checkAnimStarted) 1f else if (isDone) 0.88f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness    = Spring.StiffnessMedium
-        ),
-        label = "check_scale_${task.id}"
-    )
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(checkScale),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isDone)
-                MaterialTheme.colorScheme.surfaceVariant
-            else
-                MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(if (isDone) 0.dp else 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 4.dp, end = 14.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked         = isDone,
-                onCheckedChange = { if (!isDone) onCheck() },
-                enabled         = !isDone
-            )
-            Text(
-                text           = task.title,
-                fontWeight     = if (isDone) FontWeight.Normal else FontWeight.Medium,
-                fontSize       = 14.sp,
-                textDecoration = if (isDone) TextDecoration.LineThrough else null,
-                color          = if (isDone)
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                else
-                    MaterialTheme.colorScheme.onSurface,
-                modifier       = Modifier.weight(1f)
-            )
-            if (!isDone) {
-                Text(
-                    if (isCore) "+10" else "+5",
-                    fontSize   = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color      = if (isCore)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.secondary
-                )
-            }
         }
     }
 }

@@ -2,6 +2,7 @@ package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,11 +11,13 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,8 +53,6 @@ fun PetDetailScreen(
         }
     }
 
-    // ── Dialogs ───────────────────────────────────────────────────────────────
-
     if (showEditDialog && pet != null) {
         EditPetDialog(
             currentName = pet.name,
@@ -83,14 +84,10 @@ fun PetDetailScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     )
-                ) {
-                    Text("Delete", fontWeight = FontWeight.Bold)
-                }
+                ) { Text("Delete", fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
-                }
+                OutlinedButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
             }
         )
     }
@@ -98,8 +95,6 @@ fun PetDetailScreen(
     levelUpEvent?.let { event ->
         LevelUpDialog(event = event, onDismiss = { levelUpEvent = null })
     }
-
-    // ── Main scaffold ──────────────────────────────────────────────────────────
 
     Scaffold(
         topBar = {
@@ -131,10 +126,7 @@ fun PetDetailScreen(
         }
     ) { padding ->
         if (pet == null) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.fillMaxSize().padding(padding), Alignment.Center) {
                 CircularProgressIndicator()
             }
             return@Scaffold
@@ -164,7 +156,7 @@ fun PetDetailScreen(
             label         = "bond_progress"
         )
 
-        // Bond title milestone — computed once from bondLevel
+        // Bond title milestone
         val bondTitle: Pair<String, Int>? = when {
             pet.bondLevel >= 20 -> "Master Companion" to 20
             pet.bondLevel >= 15 -> "Lifelong Partner"  to 15
@@ -172,6 +164,18 @@ fun PetDetailScreen(
             pet.bondLevel >= 5  -> "Trusted Companion" to 5
             else                -> null
         }
+
+        // Next reward milestone — used for progression visibility
+        val nextReward: Pair<Int, String>? = when {
+            pet.bondLevel < 5  -> 5  to "+1 Daily Task"
+            pet.bondLevel < 10 -> 10 to "Achievement Tier Unlock"
+            pet.bondLevel < 15 -> 15 to "Special Bond Badge"
+            pet.bondLevel < 20 -> 20 to "Premium Profile Border"
+            else               -> null
+        }
+
+        // Gold border for Level 20 (Premium Profile Border reward)
+        val hasGoldBorder = pet.bondLevel >= 20
 
         Column(
             modifier = Modifier
@@ -181,26 +185,43 @@ fun PetDetailScreen(
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Photo or placeholder ───────────────────────────────────────────
-            Card(
-                modifier  = Modifier.size(200.dp),
-                elevation = CardDefaults.cardElevation(8.dp)
-            ) {
-                if (pet.photoUri != null) {
-                    AsyncImage(
-                        model              = pet.photoUri,
-                        contentDescription = "Pet photo",
-                        modifier           = Modifier.fillMaxSize(),
-                        contentScale       = ContentScale.Crop
-                    )
-                } else {
-                    Box(Modifier.fillMaxSize(), Alignment.Center) {
-                        Image(
-                            painter            = painterResource(id = R.drawable.ic_locked),
-                            contentDescription = "No photo",
-                            modifier           = Modifier.size(80.dp),
-                            contentScale       = ContentScale.Fit
+            // ── Pet photo card — gold border at Level 20 ───────────────────────
+            Box(contentAlignment = Alignment.Center) {
+                Card(
+                    modifier  = Modifier
+                        .size(200.dp)
+                        .then(
+                            if (hasGoldBorder)
+                                Modifier.border(
+                                    width = 4.dp,
+                                    color = Color(0xFFFFD700),
+                                    shape = MaterialTheme.shapes.medium
+                                )
+                            else Modifier
+                        ),
+                    elevation = CardDefaults.cardElevation(8.dp)
+                ) {
+                    if (pet.photoUri != null) {
+                        AsyncImage(
+                            model              = pet.photoUri,
+                            contentDescription = "Pet photo",
+                            modifier           = Modifier.fillMaxSize(),
+                            contentScale       = ContentScale.Crop
                         )
+                    } else {
+                        Box(Modifier.fillMaxSize(), Alignment.Center) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(petEmoji(pet.type.name), fontSize = 56.sp)
+                                Text(
+                                    "No Photo Yet",
+                                    fontSize = 12.sp,
+                                    color    = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -216,19 +237,51 @@ fun PetDetailScreen(
                 )
             }
 
+            // Level 15 Bond Badge
+            if (pet.bondLevel >= 15) {
+                Spacer(Modifier.height(6.dp))
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                ) {
+                    Row(
+                        modifier              = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Icon(
+                            imageVector        = Icons.Default.EmojiEvents,
+                            contentDescription = "Bond Badge",
+                            tint               = MaterialTheme.colorScheme.tertiary,
+                            modifier           = Modifier.size(14.dp)
+                        )
+                        Text(
+                            "Bond Badge",
+                            fontSize   = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color      = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(16.dp))
 
-            // ── Stat cards: Type | Bond Level | Bond Points ────────────────────
+            // ── Progression: Level, Bond Points, Bond Points ───────────────────
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                StatCard(Modifier.weight(1f), pet.type.name.replace("_", " "), "Type")
                 StatCard(
                     Modifier.weight(1f),
                     "Lv.${pet.bondLevel}",
                     "Bond Level",
                     iconRes = R.drawable.ic_level
+                )
+                StatCard(
+                    Modifier.weight(1f),
+                    pet.type.name.replace("_", " "),
+                    "Type"
                 )
                 StatCard(
                     Modifier.weight(1f),
@@ -240,7 +293,7 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            // ── Animated bond progress bar ─────────────────────────────────────
+            // ── Bond progress bar ──────────────────────────────────────────────
             LinearProgressIndicator(
                 progress = { bondProgress },
                 modifier = Modifier.fillMaxWidth().height(8.dp)
@@ -251,15 +304,21 @@ fun PetDetailScreen(
                 color    = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // ── Bond title milestone ───────────────────────────────────────────
+            // ── Bond Title (unlocked milestone) ────────────────────────────────
             if (bondTitle != null) {
                 Spacer(Modifier.height(10.dp))
                 BondTitleCard(title = bondTitle.first, unlockedAt = bondTitle.second)
             }
 
+            // ── Next Reward (progression motivation) ───────────────────────────
+            if (nextReward != null) {
+                Spacer(Modifier.height(10.dp))
+                NextRewardCard(level = nextReward.first, reward = nextReward.second)
+            }
+
             Spacer(Modifier.height(20.dp))
 
-            // ── Virtue Identity Card (fades in) ────────────────────────────────
+            // ── Virtue Identity Card ───────────────────────────────────────────
             Box(modifier = Modifier.alpha(virtueAlpha)) {
                 VirtueIdentityCard(virtue = pet.virtue)
             }
@@ -276,9 +335,7 @@ fun PetDetailScreen(
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
+                        modifier            = Modifier.fillMaxWidth().padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
@@ -333,18 +390,11 @@ fun PetDetailScreen(
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
+                        modifier            = Modifier.fillMaxWidth().padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Image(
-                            painter            = painterResource(id = R.drawable.ic_locked),
-                            contentDescription = "Unverified",
-                            modifier           = Modifier.size(56.dp),
-                            contentScale       = ContentScale.Fit
-                        )
+                        Text(petEmoji(pet.type.name), fontSize = 48.sp)
                         Text(
                             "Verification Required",
                             fontSize   = 20.sp,
@@ -352,7 +402,7 @@ fun PetDetailScreen(
                             color      = MaterialTheme.colorScheme.onErrorContainer
                         )
                         Text(
-                            "${pet.name} is locked until verified. Take a photo of your pet to unlock all features.",
+                            "${pet.name} is locked until verified. Take a photo to unlock all features.",
                             fontSize  = 13.sp,
                             textAlign = TextAlign.Center,
                             color     = MaterialTheme.colorScheme.onErrorContainer
@@ -364,30 +414,14 @@ fun PetDetailScreen(
                             modifier            = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            listOf(
-                                "Complete tasks",
-                                "Earn bond points",
-                                "Increase streaks",
-                                "Unlock achievements"
-                            ).forEach { feature ->
-                                Row(
-                                    verticalAlignment    = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    Image(
-                                        painter            = painterResource(id = R.drawable.ic_locked),
-                                        contentDescription = null,
-                                        modifier           = Modifier.size(14.dp),
-                                        contentScale       = ContentScale.Fit,
-                                        alpha              = 0.55f
-                                    )
+                            listOf("Complete tasks", "Earn bond points", "Increase streaks", "Unlock achievements")
+                                .forEach { feature ->
                                     Text(
-                                        feature,
+                                        "• $feature",
                                         fontSize = 13.sp,
                                         color    = MaterialTheme.colorScheme.onErrorContainer
                                     )
                                 }
-                            }
                         }
                         Spacer(Modifier.height(4.dp))
                         Button(
@@ -448,6 +482,44 @@ private fun BondTitleCard(title: String, unlockedAt: Int) {
     }
 }
 
+// ─── Next Reward Card ──────────────────────────────────────────────────────────
+
+@Composable
+private fun NextRewardCard(level: Int, reward: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape    = MaterialTheme.shapes.medium,
+        color    = MaterialTheme.colorScheme.secondaryContainer
+    ) {
+        Row(
+            modifier          = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector        = Icons.Default.EmojiEvents,
+                contentDescription = "Next reward",
+                tint               = MaterialTheme.colorScheme.primary,
+                modifier           = Modifier.size(22.dp)
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    "Next Reward",
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color      = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.65f)
+                )
+                Text(
+                    "Level $level — $reward",
+                    fontSize   = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+    }
+}
+
 // ─── Virtue Identity Card ──────────────────────────────────────────────────────
 
 @Composable
@@ -462,9 +534,7 @@ fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
-            modifier            = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+            modifier            = Modifier.fillMaxWidth().padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
@@ -503,8 +573,8 @@ private fun EditPetDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title            = { Text("Edit Pet", fontWeight = FontWeight.Bold) },
-        text             = {
+        title = { Text("Edit Pet", fontWeight = FontWeight.Bold) },
+        text  = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
                     value         = name,
@@ -521,10 +591,7 @@ private fun EditPetDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = { onConfirm(name) },
-                enabled = name.isNotBlank()
-            ) {
+            Button(onClick = { onConfirm(name) }, enabled = name.isNotBlank()) {
                 Text("Save", fontWeight = FontWeight.Bold)
             }
         },
@@ -556,7 +623,7 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
 
     LaunchedEffect(Unit) { started = true }
 
-    Dialog(onDismissRequest = { /* block accidental close */ }) {
+    Dialog(onDismissRequest = {}) {
         Card(
             shape     = MaterialTheme.shapes.extraLarge,
             colors    = CardDefaults.cardColors(
@@ -565,18 +632,14 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
             Column(
-                modifier            = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
+                modifier            = Modifier.fillMaxWidth().padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Image(
                     painter            = painterResource(id = R.drawable.ic_level),
                     contentDescription = "Level Up",
-                    modifier           = Modifier
-                        .size(88.dp)
-                        .scale(iconScale),
+                    modifier           = Modifier.size(88.dp).scale(iconScale),
                     contentScale       = ContentScale.Fit
                 )
                 Text(
@@ -614,9 +677,7 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                 Spacer(Modifier.height(4.dp))
                 Button(
                     onClick  = onDismiss,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .alpha(contentAlpha)
+                    modifier = Modifier.fillMaxWidth().alpha(contentAlpha)
                 ) {
                     Text("Keep Going!", fontWeight = FontWeight.Bold)
                 }

@@ -69,4 +69,7 @@ enum class Trait(val virtue: Virtue) {
     EMPATHETIC(Virtue.COMPASSION)
 }
 
-enum class TaskType { CORE, OPTIONAL }
+// VIRTUE must remain at the END so existing ordinal-based data stays valid.
+// Converters.kt stores TaskType by name (string), so adding VIRTUE here is
+// fully backward-compatible with existing Room rows.
+enum class TaskType { CORE, OPTIONAL, VIRTUE }

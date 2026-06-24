@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.petquest.R
 import com.example.petquest.data.model.PetType
 import com.example.petquest.ui.VirtueConfig
@@ -87,7 +89,7 @@ fun StatCard(
 
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = containerColor)
+        colors   = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Column(
             modifier = Modifier
@@ -98,10 +100,10 @@ fun StatCard(
         ) {
             if (iconRes != null) {
                 Image(
-                    painter = painterResource(id = iconRes),
+                    painter            = painterResource(id = iconRes),
                     contentDescription = label,
-                    modifier = Modifier.size(22.dp),
-                    contentScale = ContentScale.Fit
+                    modifier           = Modifier.size(22.dp),
+                    contentScale       = ContentScale.Fit
                 )
                 Spacer(Modifier.height(4.dp))
             }
@@ -129,21 +131,21 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     val totalSpecies = PetType.entries.size
 
     val collectionProgress by animateFloatAsState(
-        targetValue = if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat(),
+        targetValue   = if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat(),
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-        label = "collection_progress"
+        label         = "collection_progress"
     )
 
     val todayProgress by animateFloatAsState(
-        targetValue = if (tasks.isEmpty()) 0f else doneTasks / tasks.size.toFloat(),
+        targetValue   = if (tasks.isEmpty()) 0f else doneTasks / tasks.size.toFloat(),
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-        label = "today_progress"
+        label         = "today_progress"
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("PetQuest", fontWeight = FontWeight.ExtraBold) },
+                title  = { Text("PetQuest", fontWeight = FontWeight.ExtraBold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -151,7 +153,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier
+            modifier            = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
@@ -160,27 +162,27 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
             // ── Stat cards row ────────────────────────────────────────────────
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     StatCard(
                         modifier = Modifier.weight(1f),
-                        value = "$streak",
-                        label = "Streak",
-                        iconRes = R.drawable.ic_streak,
-                        dimmed = doneTasks == 0
+                        value    = "$streak",
+                        label    = "Streak",
+                        iconRes  = R.drawable.ic_streak,
+                        dimmed   = doneTasks == 0
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
-                        value = "$totalBondPoints",
-                        label = "Bond Pts",
-                        iconRes = R.drawable.ic_bondpoints
+                        value    = "$totalBondPoints",
+                        label    = "Bond Pts",
+                        iconRes  = R.drawable.ic_bondpoints
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
-                        value = "Lv.$userLevel",
-                        label = "Level",
-                        iconRes = R.drawable.ic_level
+                        value    = "Lv.$userLevel",
+                        label    = "Level",
+                        iconRes  = R.drawable.ic_level
                     )
                 }
             }
@@ -189,26 +191,22 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
+                    colors   = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier              = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment     = Alignment.CenterVertically
                         ) {
-                            Text(
-                                "Species Collection",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
+                            Text("Species Collection", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                             Text(
                                 "$speciesCount / $totalSpecies",
                                 fontWeight = FontWeight.ExtraBold,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.primary
+                                fontSize   = 14.sp,
+                                color      = MaterialTheme.colorScheme.primary
                             )
                         }
                         Spacer(Modifier.height(6.dp))
@@ -220,7 +218,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         Text(
                             "${if (totalSpecies == 0) 0 else (speciesCount * 100) / totalSpecies}% of all species collected",
                             fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color    = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -230,7 +228,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
+                    colors   = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
@@ -245,7 +243,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         Text(
                             "$doneTasks / ${tasks.size} tasks done",
                             fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color    = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -260,15 +258,14 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
             if (pets.isEmpty()) {
                 item {
                     EmptyStateCard(
-                        imageRes = R.drawable.empty_collection,
-                        title = "No Pets Yet",
+                        imageRes    = R.drawable.empty_collection,
+                        title       = "No Pets Yet",
                         description = "Add your first pet to start building bonds and earning rewards.",
                         actionLabel = "Add a Pet",
-                        onAction = { navController.navigate("add_more_pet") }
+                        onAction    = { navController.navigate("add_more_pet") }
                     )
                 }
             } else {
-                // ── Animated pet cards ────────────────────────────────────────
                 itemsIndexed(pets) { index, pet ->
                     val virtueInfo = VirtueConfig[pet.virtue]
                     val isVerified = pet.isVerified
@@ -279,22 +276,22 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         visible = true
                     }
                     val cardAlpha by animateFloatAsState(
-                        targetValue = if (visible) 1f else 0f,
+                        targetValue   = if (visible) 1f else 0f,
                         animationSpec = tween(durationMillis = 300),
-                        label = "pet_alpha_$index"
+                        label         = "pet_alpha_$index"
                     )
                     val offsetY by animateDpAsState(
-                        targetValue = if (visible) 0.dp else 16.dp,
+                        targetValue   = if (visible) 0.dp else 16.dp,
                         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-                        label = "pet_offset_$index"
+                        label         = "pet_offset_$index"
                     )
 
                     val interactionSource = remember { MutableInteractionSource() }
                     val isPressed by interactionSource.collectIsPressedAsState()
                     val cardScale by animateFloatAsState(
-                        targetValue = if (isPressed) 0.97f else 1f,
+                        targetValue   = if (isPressed) 0.97f else 1f,
                         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                        label = "card_scale_$index"
+                        label         = "card_scale_$index"
                     )
 
                     Card(
@@ -305,10 +302,10 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             .scale(cardScale)
                             .clickable(
                                 interactionSource = interactionSource,
-                                indication = null
+                                indication        = null
                             ) { navController.navigate("pet_detail/${pet.id}") },
                         elevation = CardDefaults.cardElevation(if (isVerified) 3.dp else 0.dp),
-                        colors = CardDefaults.cardColors(
+                        colors    = CardDefaults.cardColors(
                             containerColor = if (isVerified)
                                 MaterialTheme.colorScheme.surface
                             else
@@ -316,23 +313,39 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         )
                     ) {
                         Row(
-                            modifier = Modifier.padding(12.dp),
+                            modifier          = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // ── Pet species emoji + lock overlay for unverified ──
+                            // ── Photo or emoji — no lock icons as placeholders ─
                             Box(contentAlignment = Alignment.BottomEnd) {
-                                Text(petEmoji(pet.type.name), fontSize = 38.sp)
+                                Box(
+                                    modifier         = Modifier
+                                        .size(52.dp)
+                                        .clip(MaterialTheme.shapes.small),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (pet.photoUri != null) {
+                                        AsyncImage(
+                                            model              = pet.photoUri,
+                                            contentDescription = "${pet.name} photo",
+                                            modifier           = Modifier.fillMaxSize(),
+                                            contentScale       = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Text(petEmoji(pet.type.name), fontSize = 38.sp)
+                                    }
+                                }
                                 if (!isVerified) {
                                     Surface(
-                                        shape = MaterialTheme.shapes.extraSmall,
-                                        color = MaterialTheme.colorScheme.errorContainer,
+                                        shape    = MaterialTheme.shapes.extraSmall,
+                                        color    = MaterialTheme.colorScheme.errorContainer,
                                         modifier = Modifier.size(16.dp)
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.Lock,
+                                            imageVector        = Icons.Default.Lock,
                                             contentDescription = "Locked",
-                                            tint = MaterialTheme.colorScheme.onErrorContainer,
-                                            modifier = Modifier.padding(2.dp)
+                                            tint               = MaterialTheme.colorScheme.onErrorContainer,
+                                            modifier           = Modifier.padding(2.dp)
                                         )
                                     }
                                 }
@@ -340,19 +353,19 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                             Spacer(Modifier.width(12.dp))
 
-                            // Pet name + species
+                            // Pet name + species + verification status
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     pet.name,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    fontSize   = 16.sp,
+                                    maxLines   = 1,
+                                    overflow   = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     pet.type.name.replace("_", " "),
                                     fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color    = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 if (!isVerified) {
                                     Spacer(Modifier.height(3.dp))
@@ -362,10 +375,10 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     ) {
                                         Text(
                                             "Verification Required",
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                            fontSize = 10.sp,
+                                            modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontSize   = 10.sp,
                                             fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onErrorContainer
+                                            color      = MaterialTheme.colorScheme.onErrorContainer
                                         )
                                     }
                                 }
@@ -373,19 +386,19 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                             Spacer(Modifier.width(10.dp))
 
-                            // Virtue emblem — kept alongside pet identity
+                            // Virtue emblem badge
                             Surface(
                                 modifier = Modifier.size(40.dp),
-                                shape = MaterialTheme.shapes.small,
-                                color = MaterialTheme.colorScheme.surfaceVariant
+                                shape    = MaterialTheme.shapes.small,
+                                color    = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Image(
-                                    painter = painterResource(id = virtueInfo.emblemRes),
+                                    painter            = painterResource(id = virtueInfo.emblemRes),
                                     contentDescription = "${pet.virtue.name} emblem",
-                                    modifier = Modifier
+                                    modifier           = Modifier
                                         .fillMaxSize()
                                         .padding(4.dp),
-                                    contentScale = ContentScale.Fit
+                                    contentScale       = ContentScale.Fit
                                 )
                             }
 
@@ -396,11 +409,11 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 Text(
                                     "Lv.${pet.bondLevel}",
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isVerified)
+                                    color      = if (isVerified)
                                         MaterialTheme.colorScheme.primary
                                     else
                                         MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 13.sp
+                                    fontSize   = 13.sp
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 if (isVerified) {
@@ -409,30 +422,30 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         color = MaterialTheme.colorScheme.tertiaryContainer
                                     ) {
                                         Row(
-                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier              = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                                            verticalAlignment     = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(2.dp)
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Shield,
+                                                imageVector        = Icons.Default.Shield,
                                                 contentDescription = "Verified",
-                                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                                modifier = Modifier.size(10.dp)
+                                                tint               = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                modifier           = Modifier.size(10.dp)
                                             )
                                             Text(
                                                 "Verified",
-                                                fontSize = 9.sp,
+                                                fontSize   = 9.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                                color      = MaterialTheme.colorScheme.onTertiaryContainer
                                             )
                                         }
                                     }
                                 } else {
                                     Icon(
-                                        imageVector = Icons.Default.Lock,
+                                        imageVector        = Icons.Default.Lock,
                                         contentDescription = "Unverified",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(14.dp)
+                                        tint               = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier           = Modifier.size(14.dp)
                                     )
                                 }
                             }
@@ -456,37 +469,37 @@ fun EmptyStateCard(
     onAction: () -> Unit
 ) {
     Card(
-        modifier = Modifier
+        modifier  = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp),
-        colors = CardDefaults.cardColors(
+        colors    = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
-            modifier = Modifier
+            modifier            = Modifier
                 .fillMaxWidth()
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Image(
-                painter = painterResource(id = imageRes),
+                painter            = painterResource(id = imageRes),
                 contentDescription = title,
-                modifier = Modifier.size(96.dp),
-                contentScale = ContentScale.Fit
+                modifier           = Modifier.size(96.dp),
+                contentScale       = ContentScale.Fit
             )
             Text(
                 title,
-                fontSize = 18.sp,
+                fontSize   = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color      = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 description,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize  = 14.sp,
+                color     = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
             Spacer(Modifier.height(4.dp))
