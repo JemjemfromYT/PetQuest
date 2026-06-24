@@ -1,9 +1,12 @@
 package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
@@ -20,12 +23,32 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.petquest.R
 import com.example.petquest.viewmodel.PetQuestViewModel
+
+// ── Achievement visual rarity tier ───────────────────────────────────────────
+private enum class AchievementTier { COMMON, UNCOMMON, RARE, EPIC }
+
+@Composable
+private fun tierColor(tier: AchievementTier): Color = when (tier) {
+    AchievementTier.COMMON   -> MaterialTheme.colorScheme.tertiary
+    AchievementTier.UNCOMMON -> MaterialTheme.colorScheme.secondary
+    AchievementTier.RARE     -> MaterialTheme.colorScheme.primary
+    AchievementTier.EPIC     -> MaterialTheme.colorScheme.error
+}
+
+private fun tierLabel(tier: AchievementTier): String = when (tier) {
+    AchievementTier.COMMON   -> "Common"
+    AchievementTier.UNCOMMON -> "Uncommon"
+    AchievementTier.RARE     -> "Rare"
+    AchievementTier.EPIC     -> "Epic"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,9 +56,7 @@ fun AchievementsScreen(
     viewModel: PetQuestViewModel,
     onNavigateToTasks: () -> Unit = {}
 ) {
-    val achievements         by viewModel.allAchievements.collectAsState()
-    val collectionPercentage by viewModel.collectionPercentage.collectAsState()
-    val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
+    val achievements by viewModel.allAchievements.collectAsState()
 
     val unlockedCount = achievements.count { it.isUnlocked }
     val totalCount    = achievements.size
@@ -66,30 +87,56 @@ fun AchievementsScreen(
         "Verify 5 Pets"         to Icons.Default.CameraAlt
     )
 
+    val tierMap: Map<String, AchievementTier> = mapOf(
+        "First Pet"             to AchievementTier.COMMON,
+        "3-Day Streak"          to AchievementTier.COMMON,
+        "Complete 25 Tasks"     to AchievementTier.COMMON,
+        "First Verification"    to AchievementTier.COMMON,
+        "Earn 250 Bond Points"  to AchievementTier.COMMON,
+        "Pet Lover"             to AchievementTier.UNCOMMON,
+        "Bond Master"           to AchievementTier.UNCOMMON,
+        "7-Day Streak"          to AchievementTier.UNCOMMON,
+        "Own 5 Pets"            to AchievementTier.UNCOMMON,
+        "Verify 3 Pets"         to AchievementTier.UNCOMMON,
+        "Complete 50 Tasks"     to AchievementTier.UNCOMMON,
+        "Earn 500 Bond Points"  to AchievementTier.UNCOMMON,
+        "Rarity Hunter"         to AchievementTier.UNCOMMON,
+        "30-Day Streak"         to AchievementTier.RARE,
+        "Species Collector"     to AchievementTier.RARE,
+        "Reach Level 10"        to AchievementTier.RARE,
+        "Complete 100 Tasks"    to AchievementTier.RARE,
+        "Earn 1000 Bond Points" to AchievementTier.RARE,
+        "Verify 5 Pets"         to AchievementTier.RARE,
+        "Epic Tamer"            to AchievementTier.EPIC,
+        "Animal Explorer"       to AchievementTier.EPIC,
+        "Reach Level 20"        to AchievementTier.EPIC,
+        "Complete 250 Tasks"    to AchievementTier.EPIC
+    )
+
     val hintMap: Map<String, String> = mapOf(
         "First Pet"             to "Add your first pet",
-        "First Verification"    to "Verify any pet with a photo",
+        "First Verification"    to "Verify a pet with a photo",
         "Pet Lover"             to "Own 3 or more pets",
-        "Bond Master"           to "Reach Bond Level 5 with any pet",
-        "7-Day Streak"          to "Complete tasks 7 days in a row",
-        "3-Day Streak"          to "Complete tasks 3 days in a row",
-        "30-Day Streak"         to "Complete tasks 30 days in a row",
-        "Epic Tamer"            to "Reach Bond Level 20 with any pet",
-        "Rarity Hunter"         to "Collect a Rare or Epic species",
-        "Species Collector"     to "Collect 10 different species",
-        "Animal Explorer"       to "Collect 20 different species",
-        "Complete 25 Tasks"     to "Complete 25 tasks total",
-        "Complete 50 Tasks"     to "Complete 50 tasks total",
-        "Complete 100 Tasks"    to "Complete 100 tasks total",
-        "Complete 250 Tasks"    to "Complete 250 tasks total",
-        "Earn 250 Bond Points"  to "Earn 250 Bond Points total",
-        "Earn 500 Bond Points"  to "Earn 500 Bond Points total",
-        "Earn 1000 Bond Points" to "Earn 1000 Bond Points total",
-        "Reach Level 10"        to "Reach Bond Level 10 with any pet",
-        "Reach Level 20"        to "Reach Bond Level 20 with any pet",
-        "Own 5 Pets"            to "Add 5 pets to your family",
-        "Verify 3 Pets"         to "Verify 3 pets with photos",
-        "Verify 5 Pets"         to "Verify 5 pets with photos"
+        "Bond Master"           to "Reach Bond Level 5",
+        "7-Day Streak"          to "7 days in a row",
+        "3-Day Streak"          to "3 days in a row",
+        "30-Day Streak"         to "30 days in a row",
+        "Epic Tamer"            to "Reach Bond Level 20",
+        "Rarity Hunter"         to "Collect Rare or Epic species",
+        "Species Collector"     to "Collect 10 species",
+        "Animal Explorer"       to "Collect 20 species",
+        "Complete 25 Tasks"     to "Complete 25 tasks",
+        "Complete 50 Tasks"     to "Complete 50 tasks",
+        "Complete 100 Tasks"    to "Complete 100 tasks",
+        "Complete 250 Tasks"    to "Complete 250 tasks",
+        "Earn 250 Bond Points"  to "Earn 250 Bond Points",
+        "Earn 500 Bond Points"  to "Earn 500 Bond Points",
+        "Earn 1000 Bond Points" to "Earn 1000 Bond Points",
+        "Reach Level 10"        to "Reach Bond Level 10",
+        "Reach Level 20"        to "Reach Bond Level 20",
+        "Own 5 Pets"            to "Have 5 pets",
+        "Verify 3 Pets"         to "Verify 3 pets",
+        "Verify 5 Pets"         to "Verify 5 pets"
     )
 
     val overallProgress by animateFloatAsState(
@@ -101,7 +148,7 @@ fun AchievementsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Achievements", fontWeight = FontWeight.Bold) },
+                title = { Text("Awards", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -110,97 +157,62 @@ fun AchievementsScreen(
     ) { padding ->
         if (achievements.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier         = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
             ) {
                 EmptyStateCard(
                     imageRes    = R.drawable.empty_achievements,
-                    title       = "No Achievements Yet",
-                    description = "Add pets, complete tasks, and build bonds to earn achievements.",
-                    actionLabel = "Start Your First Task",
+                    title       = "No Awards Yet",
+                    description = "Complete tasks and build bonds to earn awards.",
+                    actionLabel = "Start a Task",
                     onAction    = onNavigateToTasks
                 )
             }
             return@Scaffold
         }
 
-        LazyColumn(
-            modifier            = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        LazyVerticalGrid(
+            columns               = GridCells.Fixed(2),
+            modifier              = Modifier.fillMaxSize().padding(padding),
+            contentPadding        = PaddingValues(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement   = Arrangement.spacedBy(10.dp)
         ) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors   = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
+            // ── Compact progress header ───────────────────────────────────────
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Row(
+                    modifier          = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment     = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "$unlockedCount / $totalCount Unlocked",
-                                fontSize   = 15.sp,
-                                color      = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                "${if (totalCount == 0) 0 else (unlockedCount * 100) / totalCount}%",
-                                fontSize   = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color      = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { overallProgress },
-                            modifier = Modifier.fillMaxWidth().height(8.dp)
-                        )
-
-                        Spacer(Modifier.height(10.dp))
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)
-                        )
-                        Spacer(Modifier.height(10.dp))
-
-                        Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment     = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Species Collected",
-                                fontSize   = 13.sp,
-                                color      = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Text(
-                                "${collectedSpecies.size}/29  ($collectionPercentage%)",
-                                fontSize   = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color      = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
+                    LinearProgressIndicator(
+                        progress = { overallProgress },
+                        modifier = Modifier.weight(1f).height(6.dp)
+                    )
+                    Text(
+                        "$unlockedCount / $totalCount",
+                        fontSize   = 13.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color      = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 
+            // ── Achievement badge tiles ───────────────────────────────────────
             itemsIndexed(achievements) { index, a ->
+                val tier  = tierMap[a.title] ?: AchievementTier.COMMON
+                val icon  = iconMap[a.title] ?: Icons.Default.Star
+                val hint  = hintMap[a.title] ?: "Keep playing"
+                val tColor = tierColor(tier)
+
                 var visible by remember { mutableStateOf(false) }
                 LaunchedEffect(a.title) {
-                    kotlinx.coroutines.delay(index * 50L)
+                    kotlinx.coroutines.delay(index * 35L)
                     visible = true
                 }
-
                 val cardAlpha by animateFloatAsState(
                     targetValue   = if (visible) 1f else 0f,
-                    animationSpec = tween(durationMillis = 250),
+                    animationSpec = tween(durationMillis = 220),
                     label         = "ach_alpha_$index"
                 )
 
@@ -208,12 +220,12 @@ fun AchievementsScreen(
                 LaunchedEffect(a.isUnlocked) {
                     if (a.isUnlocked) {
                         unlockAnimStarted = false
-                        kotlinx.coroutines.delay(50)
+                        kotlinx.coroutines.delay(40)
                         unlockAnimStarted = true
                     }
                 }
                 val unlockScale by animateFloatAsState(
-                    targetValue   = if (a.isUnlocked && unlockAnimStarted) 1f else if (a.isUnlocked) 0.85f else 1f,
+                    targetValue   = if (a.isUnlocked && unlockAnimStarted) 1f else if (a.isUnlocked) 0.82f else 1f,
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioMediumBouncy,
                         stiffness    = Spring.StiffnessMedium
@@ -222,85 +234,100 @@ fun AchievementsScreen(
                 )
 
                 Card(
-                    modifier = Modifier
+                    modifier  = Modifier
                         .fillMaxWidth()
-                        .alpha(cardAlpha)
+                        .alpha(if (a.isUnlocked) cardAlpha else cardAlpha * 0.55f)
                         .scale(if (a.isUnlocked) unlockScale else 1f),
-                    colors = CardDefaults.cardColors(
+                    shape     = MaterialTheme.shapes.medium,
+                    elevation = CardDefaults.cardElevation(if (a.isUnlocked) 5.dp else 0.dp),
+                    colors    = CardDefaults.cardColors(
                         containerColor = if (a.isUnlocked)
-                            MaterialTheme.colorScheme.primaryContainer
+                            MaterialTheme.colorScheme.surface
                         else
                             MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    elevation = CardDefaults.cardElevation(if (a.isUnlocked) 4.dp else 0.dp)
+                    )
                 ) {
-                    Row(
-                        modifier          = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier            = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        // ── Tier accent strip ─────────────────────────────────
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .background(
+                                    if (a.isUnlocked) tColor else tColor.copy(alpha = 0.2f)
+                                )
+                        )
+
+                        Spacer(Modifier.height(14.dp))
+
+                        // ── Icon badge ────────────────────────────────────────
                         Surface(
-                            modifier = Modifier.size(48.dp),
-                            shape    = MaterialTheme.shapes.medium,
+                            modifier = Modifier.size(56.dp),
+                            shape    = MaterialTheme.shapes.large,
                             color    = if (a.isUnlocked)
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                tColor.copy(alpha = 0.15f)
                             else
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 if (a.isUnlocked) {
                                     Icon(
-                                        imageVector        = iconMap[a.title] ?: Icons.Default.Star,
+                                        imageVector        = icon,
                                         contentDescription = a.title,
-                                        tint               = MaterialTheme.colorScheme.primary,
-                                        modifier           = Modifier.size(26.dp)
+                                        tint               = tColor,
+                                        modifier           = Modifier.size(32.dp)
                                     )
                                 } else {
                                     Icon(
                                         imageVector        = Icons.Default.Lock,
                                         contentDescription = "Locked",
-                                        tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
-                                        modifier           = Modifier.size(22.dp)
+                                        tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                                        modifier           = Modifier.size(24.dp)
                                     )
                                 }
                             }
                         }
 
-                        Spacer(Modifier.width(16.dp))
+                        Spacer(Modifier.height(8.dp))
 
-                        Column(Modifier.weight(1f)) {
+                        // ── Title ─────────────────────────────────────────────
+                        Text(
+                            text       = if (a.isUnlocked) a.title else hint,
+                            fontWeight = FontWeight.Bold,
+                            fontSize   = 12.sp,
+                            textAlign  = TextAlign.Center,
+                            maxLines   = 2,
+                            color      = if (a.isUnlocked)
+                                MaterialTheme.colorScheme.onSurface
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier   = Modifier.padding(horizontal = 8.dp)
+                        )
+
+                        Spacer(Modifier.height(6.dp))
+
+                        // ── Tier label badge ──────────────────────────────────
+                        Surface(
+                            shape = MaterialTheme.shapes.extraSmall,
+                            color = if (a.isUnlocked)
+                                tColor.copy(alpha = 0.15f)
+                            else
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                        ) {
                             Text(
-                                a.title,
-                                fontWeight = FontWeight.Bold,
-                                fontSize   = 15.sp,
-                                color      = if (a.isUnlocked)
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                if (a.isUnlocked) a.description
-                                else hintMap[a.title] ?: "Keep playing to unlock",
-                                fontSize = 13.sp,
-                                color    = MaterialTheme.colorScheme.onSurfaceVariant
+                                text       = tierLabel(tier),
+                                modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                fontSize   = 9.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color      = if (a.isUnlocked) tColor
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                             )
                         }
 
-                        if (a.isUnlocked) {
-                            Spacer(Modifier.width(8.dp))
-                            Surface(
-                                shape = MaterialTheme.shapes.small,
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                            ) {
-                                Text(
-                                    "Done",
-                                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    fontSize   = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color      = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
+                        Spacer(Modifier.height(12.dp))
                     }
                 }
             }

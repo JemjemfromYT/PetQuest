@@ -23,9 +23,7 @@ import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -58,7 +56,6 @@ fun ProfileScreen(
     val userLevel            by viewModel.userLevel.collectAsState()
     val totalBondPoints      by viewModel.totalBondPoints.collectAsState()
     val streak               by viewModel.userStreak.collectAsState()
-    val personalBestStreak   by viewModel.personalBestStreak.collectAsState()
     val tasks                by viewModel.todaysTasks.collectAsState()
     val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
     val collectionPercentage by viewModel.collectionPercentage.collectAsState()
@@ -148,7 +145,7 @@ fun ProfileScreen(
 
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title            = { Text("Set Reminder Time") },
+            title            = { Text("Reminder Time") },
             text             = {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     TimePicker(state = timePickerState)
@@ -159,9 +156,7 @@ fun ProfileScreen(
                     val h = timePickerState.hour
                     val m = timePickerState.minute
                     viewModel.setReminderTime(h, m)
-                    if (notificationsEnabled) {
-                        ReminderWorker.schedule(context, h, m)
-                    }
+                    if (notificationsEnabled) ReminderWorker.schedule(context, h, m)
                     showTimePicker = false
                 }) { Text("Set") }
             },
@@ -192,9 +187,11 @@ fun ProfileScreen(
     ) { padding ->
         LazyColumn(
             modifier            = Modifier.fillMaxSize().padding(padding),
-            contentPadding      = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding      = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
+            // ── Compact level card — horizontal layout ────────────────────────
             item {
                 Card(
                     modifier  = Modifier.fillMaxWidth(),
@@ -203,73 +200,83 @@ fun ProfileScreen(
                     ),
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    Column(
-                        modifier            = Modifier.padding(20.dp).fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Row(
+                        modifier          = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Profile illustration
                         Image(
                             painter            = painterResource(id = R.drawable.profile_banner),
                             contentDescription = null,
-                            modifier           = Modifier.size(110.dp),
+                            modifier           = Modifier.size(72.dp),
                             contentScale       = ContentScale.Fit
                         )
-                        Spacer(Modifier.height(8.dp))
-                        Box(
-                            modifier         = Modifier.clickable { onLevelTap() },
-                            contentAlignment = Alignment.Center
+
+                        Spacer(Modifier.width(14.dp))
+
+                        // Level info column
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onLevelTap() }
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
                                 Text(
                                     "Level $userLevel",
-                                    fontSize   = 28.sp,
+                                    fontSize   = 24.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color      = MaterialTheme.colorScheme.primary
                                 )
                                 val title = trainerTitle(userLevel)
                                 if (title.isNotEmpty()) {
-                                    Text(
-                                        title,
-                                        fontSize   = 14.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color      = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
-                                    )
-                                }
-                                if (showAdminHint) {
-                                    Text(
-                                        "Keep tapping...",
-                                        fontSize = 11.sp,
-                                        color    = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    Surface(
+                                        shape = MaterialTheme.shapes.extraSmall,
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    ) {
+                                        Text(
+                                            title,
+                                            modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontSize   = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color      = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                             }
+                            if (showAdminHint) {
+                                Text(
+                                    "Keep tapping...",
+                                    fontSize = 10.sp,
+                                    color    = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(Modifier.height(6.dp))
+                            LinearProgressIndicator(
+                                progress = { xpProgress },
+                                modifier = Modifier.fillMaxWidth().height(6.dp)
+                            )
                         }
-                        Spacer(Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { xpProgress },
-                            modifier = Modifier.fillMaxWidth().height(10.dp)
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "${totalBondPoints % 100} / 100 XP to Level ${userLevel + 1}",
-                            fontSize = 12.sp,
-                            color    = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
                 }
             }
 
+            // ── Stat chips row ────────────────────────────────────────────────
             item {
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     StatCard(
-                        modifier   = Modifier.weight(1f),
-                        value      = "$streak",
-                        label      = "Streak",
-                        iconRes    = R.drawable.ic_streak,
-                        dimmed     = !hasCompletedToday,
-                        subValue   = "Best: $personalBestStreak"
+                        modifier = Modifier.weight(1f),
+                        value    = "$streak",
+                        label    = "Streak",
+                        iconRes  = R.drawable.ic_streak,
+                        dimmed   = !hasCompletedToday
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
@@ -285,6 +292,7 @@ fun ProfileScreen(
                 }
             }
 
+            // ── Species collection card ───────────────────────────────────────
             item {
                 Card(
                     modifier = Modifier
@@ -297,7 +305,7 @@ fun ProfileScreen(
                     Row(
                         modifier          = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -307,27 +315,21 @@ fun ProfileScreen(
                                 verticalAlignment     = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "Species Collected",
+                                    "Species",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize   = 14.sp
+                                    fontSize   = 13.sp
                                 )
                                 Text(
                                     "$speciesCount / $totalSpecies",
                                     fontWeight = FontWeight.ExtraBold,
-                                    fontSize   = 14.sp,
+                                    fontSize   = 13.sp,
                                     color      = MaterialTheme.colorScheme.primary
                                 )
                             }
-                            Spacer(Modifier.height(6.dp))
+                            Spacer(Modifier.height(5.dp))
                             LinearProgressIndicator(
                                 progress = { speciesProgress },
-                                modifier = Modifier.fillMaxWidth().height(6.dp)
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                "$collectionPercentage% complete",
-                                fontSize = 11.sp,
-                                color    = MaterialTheme.colorScheme.onSurfaceVariant
+                                modifier = Modifier.fillMaxWidth().height(5.dp)
                             )
                         }
                         Spacer(Modifier.width(8.dp))
@@ -340,15 +342,16 @@ fun ProfileScreen(
                 }
             }
 
+            // ── My Pets heading + add button ──────────────────────────────────
             item {
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Text("My Pets (${pets.size})", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    FilledTonalIconButton(onClick = onAddPetClick) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Pet")
+                    Text("My Pets (${pets.size})", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    FilledTonalIconButton(onClick = onAddPetClick, modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Pet", modifier = Modifier.size(18.dp))
                     }
                 }
             }
@@ -358,7 +361,7 @@ fun ProfileScreen(
                     EmptyStateCard(
                         imageRes    = R.drawable.empty_collection,
                         title       = "No Pets Yet",
-                        description = "Tap the + button to add your first pet.",
+                        description = "Tap + to add your first pet.",
                         actionLabel = "Add a Pet",
                         onAction    = onAddPetClick
                     )
@@ -366,11 +369,11 @@ fun ProfileScreen(
             } else {
                 item {
                     val rows = pets.chunked(2)
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         rows.forEach { rowPets ->
                             Row(
                                 modifier              = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 rowPets.forEach { pet ->
                                     PetCollectionCard(pet = pet, modifier = Modifier.weight(1f))
@@ -382,6 +385,7 @@ fun ProfileScreen(
                 }
             }
 
+            // ── Settings ──────────────────────────────────────────────────────
             item {
                 SettingsCard(
                     notificationsEnabled = notificationsEnabled,
@@ -407,21 +411,14 @@ private fun SettingsCard(
 ) {
     Card(
         modifier  = Modifier.fillMaxWidth(),
-        colors    = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-
-            Text(
-                "Settings",
-                fontSize   = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier   = Modifier.padding(bottom = 12.dp)
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(bottom = 12.dp))
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text("Settings", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(10.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(10.dp))
 
             Row(
                 modifier              = Modifier.fillMaxWidth(),
@@ -430,7 +427,7 @@ private fun SettingsCard(
             ) {
                 Row(
                     verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
                         imageVector        = if (notificationsEnabled)
@@ -442,32 +439,21 @@ private fun SettingsCard(
                             MaterialTheme.colorScheme.primary
                         else
                             MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier           = Modifier.size(22.dp)
+                        modifier           = Modifier.size(20.dp)
                     )
-                    Column {
-                        Text(
-                            "Daily Reminders",
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize   = 14.sp
-                        )
-                        Text(
-                            if (notificationsEnabled) "Enabled" else "Disabled",
-                            fontSize = 11.sp,
-                            color    = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        "Daily Reminders",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize   = 13.sp
+                    )
                 }
-
-                Switch(
-                    checked         = notificationsEnabled,
-                    onCheckedChange = onToggle
-                )
+                Switch(checked = notificationsEnabled, onCheckedChange = onToggle)
             }
 
             if (notificationsEnabled) {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
                 HorizontalDivider()
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
 
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
@@ -475,22 +461,15 @@ private fun SettingsCard(
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text(
-                            "Reminder Time",
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize   = 14.sp
-                        )
+                        Text("Reminder Time", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                         Text(
                             formatTime(notificationHour, notificationMinute),
                             fontSize   = 13.sp,
-                            color      = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color      = MaterialTheme.colorScheme.primary
                         )
                     }
-
-                    OutlinedButton(onClick = onChangeTime) {
-                        Text("Change")
-                    }
+                    OutlinedButton(onClick = onChangeTime) { Text("Change") }
                 }
             }
         }
@@ -499,11 +478,7 @@ private fun SettingsCard(
 
 private fun formatTime(hour: Int, minute: Int): String {
     val amPm = if (hour < 12) "AM" else "PM"
-    val h12  = when {
-        hour == 0 -> 12
-        hour > 12 -> hour - 12
-        else      -> hour
-    }
+    val h12  = when { hour == 0 -> 12; hour > 12 -> hour - 12; else -> hour }
     return String.format(Locale.getDefault(), "%d:%02d %s", h12, minute, amPm)
 }
 
@@ -515,133 +490,123 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
         "RARE"     -> MaterialTheme.colorScheme.primary
         else       -> MaterialTheme.colorScheme.error
     }
-    val virtueInfo    = VirtueConfig[pet.virtue]
     val hasGoldBorder = pet.bondLevel >= 20
 
     Card(
         modifier  = modifier,
-        elevation = CardDefaults.cardElevation(4.dp),
-        colors    = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        elevation = CardDefaults.cardElevation(3.dp),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
-            modifier            = Modifier.fillMaxWidth().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier            = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Rarity accent strip
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp)
-                    .then(
-                        if (hasGoldBorder)
-                            Modifier.border(
-                                width = 3.dp,
-                                color = Color(0xFFFFD700),
-                                shape = MaterialTheme.shapes.small
-                            )
-                        else Modifier
-                    )
-                    .clip(MaterialTheme.shapes.small),
-                contentAlignment = Alignment.TopEnd
-            ) {
-                if (pet.photoUri != null) {
-                    AsyncImage(
-                        model              = pet.photoUri,
-                        contentDescription = "${pet.name} photo",
-                        modifier           = Modifier.fillMaxSize(),
-                        contentScale       = ContentScale.Crop
-                    )
-                } else {
-                    Box(
-                        modifier         = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(petEmoji(pet.type.name), fontSize = 48.sp)
-                    }
-                }
+                    .height(3.dp)
+                    .background(rarityColor)
+            )
 
-                if (!pet.isVerified) {
-                    Surface(
-                        modifier = Modifier.padding(4.dp),
-                        shape    = MaterialTheme.shapes.extraSmall,
-                        color    = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f)
-                    ) {
+            Column(
+                modifier            = Modifier.fillMaxWidth().padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Pet photo
+                Box(
+                    modifier         = Modifier
+                        .fillMaxWidth()
+                        .height(72.dp)
+                        .then(
+                            if (hasGoldBorder)
+                                Modifier.border(
+                                    width = 2.dp,
+                                    color = Color(0xFFFFD700),
+                                    shape = MaterialTheme.shapes.small
+                                )
+                            else Modifier
+                        )
+                        .clip(MaterialTheme.shapes.small),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    if (pet.photoUri != null) {
+                        AsyncImage(
+                            model              = pet.photoUri,
+                            contentDescription = "${pet.name} photo",
+                            modifier           = Modifier.fillMaxSize(),
+                            contentScale       = ContentScale.Crop
+                        )
+                    } else {
+                        Box(
+                            modifier         = Modifier
+                                .fillMaxSize()
+                                .background(rarityColor.copy(alpha = 0.07f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(petEmoji(pet.type.name), fontSize = 40.sp)
+                        }
+                    }
+
+                    if (pet.isVerified) {
                         Icon(
                             imageVector        = Icons.Default.CheckCircle,
-                            contentDescription = "Unverified",
-                            tint               = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier           = Modifier.size(16.dp).padding(2.dp)
+                            contentDescription = "Verified",
+                            tint               = MaterialTheme.colorScheme.primary,
+                            modifier           = Modifier.padding(3.dp).size(14.dp)
                         )
                     }
                 }
-            }
 
-            Row(
-                modifier          = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    pet.name,
-                    fontSize   = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines   = 1,
-                    overflow   = TextOverflow.Ellipsis
-                )
-                if (pet.isVerified) {
-                    Spacer(Modifier.width(4.dp))
-                    Icon(
-                        imageVector        = Icons.Default.CheckCircle,
-                        contentDescription = "Verified",
-                        tint               = MaterialTheme.colorScheme.tertiary,
-                        modifier           = Modifier.size(14.dp)
+                // Name + level row
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Text(
+                        pet.name,
+                        fontSize   = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis,
+                        modifier   = Modifier.weight(1f, fill = false)
+                    )
+                    Text(
+                        "Lv.${pet.bondLevel}",
+                        fontSize   = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = MaterialTheme.colorScheme.primary
                     )
                 }
-            }
 
-            Text(
-                pet.type.name.replace("_", " "),
-                fontSize = 12.sp,
-                color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
-            )
-
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment     = Alignment.CenterVertically
-            ) {
+                // Rarity badge + bond bar
                 Surface(
                     shape = MaterialTheme.shapes.extraSmall,
-                    color = rarityColor.copy(alpha = 0.15f)
+                    color = rarityColor.copy(alpha = 0.13f)
                 ) {
                     Text(
                         pet.type.rarity.name,
-                        modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        fontSize   = 10.sp,
-                        fontWeight = FontWeight.Bold,
+                        modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                        fontSize   = 9.sp,
+                        fontWeight = FontWeight.ExtraBold,
                         color      = rarityColor
                     )
                 }
-                Text(
-                    "Lv.${pet.bondLevel}",
-                    fontSize   = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.primary
+
+                val bondProgress by animateFloatAsState(
+                    targetValue   = (pet.bondPoints % 100) / 100f,
+                    animationSpec = tween(durationMillis = 600),
+                    label         = "bond_${pet.id}"
+                )
+                LinearProgressIndicator(
+                    progress   = { bondProgress },
+                    modifier   = Modifier.fillMaxWidth().height(3.dp),
+                    color      = rarityColor,
+                    trackColor = rarityColor.copy(alpha = 0.12f)
                 )
             }
-
-            val bondProgress by animateFloatAsState(
-                targetValue   = (pet.bondPoints % 100) / 100f,
-                animationSpec = tween(durationMillis = 600),
-                label         = "bond_${pet.id}"
-            )
-            LinearProgressIndicator(
-                progress = { bondProgress },
-                modifier = Modifier.fillMaxWidth().height(4.dp),
-                color    = rarityColor
-            )
         }
     }
 }
