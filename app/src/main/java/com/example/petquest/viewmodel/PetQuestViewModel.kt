@@ -372,7 +372,7 @@ class PetQuestViewModel(
                 pets.forEach { pet ->
                     val totalPoints = incompleteTasks
                         .filter { it.petId == pet.id }
-                        .sumOf {
+                        .sumOf<Int> {
                             if (it.type == TaskType.CORE || it.type == TaskType.VIRTUE) 10 else 5
                         }
                     if (totalPoints > 0) {
