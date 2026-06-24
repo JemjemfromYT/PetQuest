@@ -70,6 +70,18 @@ fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
 }
 
 // ---------------------------------------------------------------------------
+// trainerTitle — user level title displayed on HomeScreen and ProfileScreen
+// ---------------------------------------------------------------------------
+fun trainerTitle(level: Int): String = when {
+    level >= 50 -> "Legendary Keeper"
+    level >= 40 -> "Grand Master"
+    level >= 30 -> "Master Trainer"
+    level >= 20 -> "Devoted Trainer"
+    level >= 10 -> "Caretaker"
+    else        -> ""
+}
+
+// ---------------------------------------------------------------------------
 // StatCard — supports an optional PNG icon via painterResource
 // ---------------------------------------------------------------------------
 @Composable
@@ -78,7 +90,8 @@ fun StatCard(
     value: String,
     label: String,
     iconRes: Int? = null,
-    dimmed: Boolean = false
+    dimmed: Boolean = false,
+    subValue: String? = null
 ) {
     val containerColor = if (dimmed)
         MaterialTheme.colorScheme.surfaceVariant
@@ -111,6 +124,13 @@ fun StatCard(
             }
             Text(value, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = contentColor)
             Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (subValue != null) {
+                Text(
+                    subValue,
+                    fontSize = 10.sp,
+                    color    = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                )
+            }
         }
     }
 }
@@ -121,12 +141,13 @@ fun StatCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
-    val pets             by viewModel.allPets.collectAsState()
-    val tasks            by viewModel.todaysTasks.collectAsState()
-    val streak           by viewModel.userStreak.collectAsState()
-    val totalBondPoints  by viewModel.totalBondPoints.collectAsState()
-    val userLevel        by viewModel.userLevel.collectAsState()
-    val collectedSpecies by viewModel.collectedSpecies.collectAsState()
+    val pets               by viewModel.allPets.collectAsState()
+    val tasks              by viewModel.todaysTasks.collectAsState()
+    val streak             by viewModel.userStreak.collectAsState()
+    val personalBestStreak by viewModel.personalBestStreak.collectAsState()
+    val totalBondPoints    by viewModel.totalBondPoints.collectAsState()
+    val userLevel          by viewModel.userLevel.collectAsState()
+    val collectedSpecies   by viewModel.collectedSpecies.collectAsState()
 
     val doneTasks    = tasks.count { it.isCompleted }
     val speciesCount = collectedSpecies.size
@@ -143,6 +164,8 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
         label         = "today_progress"
     )
+
+    val title = trainerTitle(userLevel)
 
     Scaffold(
         topBar = {
@@ -168,11 +191,12 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     StatCard(
-                        modifier = Modifier.weight(1f),
-                        value    = "$streak",
-                        label    = "Streak",
-                        iconRes  = R.drawable.ic_streak,
-                        dimmed   = doneTasks == 0
+                        modifier   = Modifier.weight(1f),
+                        value      = "$streak",
+                        label      = "Streak",
+                        iconRes    = R.drawable.ic_streak,
+                        dimmed     = doneTasks == 0,
+                        subValue   = "Best: $personalBestStreak"
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
@@ -185,6 +209,18 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         value    = "Lv.$userLevel",
                         label    = "Level",
                         iconRes  = R.drawable.ic_level
+                    )
+                }
+            }
+
+            // ── Trainer title ─────────────────────────────────────────────────
+            if (title.isNotEmpty()) {
+                item {
+                    Text(
+                        title,
+                        fontSize   = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color      = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -327,7 +363,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         .then(
                                             if (hasGoldBorder)
                                                 Modifier.border(
-                                                    width = 2.dp,
+                                                    width = 3.dp,
                                                     color = Color(0xFFFFD700),
                                                     shape = MaterialTheme.shapes.small
                                                 )

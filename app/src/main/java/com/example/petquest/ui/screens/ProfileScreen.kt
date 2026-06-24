@@ -57,6 +57,7 @@ fun ProfileScreen(
     val userLevel            by viewModel.userLevel.collectAsState()
     val totalBondPoints      by viewModel.totalBondPoints.collectAsState()
     val streak               by viewModel.userStreak.collectAsState()
+    val personalBestStreak   by viewModel.personalBestStreak.collectAsState()
     val tasks                by viewModel.todaysTasks.collectAsState()
     val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
     val collectionPercentage by viewModel.collectionPercentage.collectAsState()
@@ -225,6 +226,15 @@ fun ProfileScreen(
                                     fontWeight = FontWeight.ExtraBold,
                                     color = MaterialTheme.colorScheme.primary
                                 )
+                                val title = trainerTitle(userLevel)
+                                if (title.isNotEmpty()) {
+                                    Text(
+                                        title,
+                                        fontSize   = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color      = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                    )
+                                }
                                 if (showAdminHint) {
                                     Text(
                                         "Keep tapping...",
@@ -256,11 +266,12 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     StatCard(
-                        modifier = Modifier.weight(1f),
-                        value = "$streak",
-                        label = "Streak",
-                        iconRes = R.drawable.ic_streak,
-                        dimmed = !hasCompletedToday
+                        modifier   = Modifier.weight(1f),
+                        value      = "$streak",
+                        label      = "Streak",
+                        iconRes    = R.drawable.ic_streak,
+                        dimmed     = !hasCompletedToday,
+                        subValue   = "Best: $personalBestStreak"
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
@@ -523,7 +534,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                     .then(
                         if (hasGoldBorder)
                             Modifier.border(
-                                width = 2.dp,
+                                width = 3.dp,
                                 color = Color(0xFFFFD700),
                                 shape = MaterialTheme.shapes.small
                             )

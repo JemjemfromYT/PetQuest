@@ -36,6 +36,9 @@ class PetQuestViewModel(
     val userStreak: StateFlow<Int> =
         prefsRepository.userStreak.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    val personalBestStreak: StateFlow<Int> =
+        prefsRepository.personalBestStreak.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     val hasOnboarded: StateFlow<Boolean?> =
         prefsRepository.hasOnboarded.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -225,6 +228,10 @@ class PetQuestViewModel(
             val newStreak = if (last == yesterday) current + 1 else 1
             prefsRepository.updateStreak(newStreak)
             prefsRepository.updateLastStreakDate(today)
+            val best = prefsRepository.personalBestStreak.first()
+            if (newStreak > best) {
+                prefsRepository.updatePersonalBestStreak(newStreak)
+            }
         }
     }
 
@@ -434,6 +441,10 @@ class PetQuestViewModel(
             try {
                 prefsRepository.updateStreak(streak)
                 prefsRepository.updateLastStreakDate(todayString())
+                val best = prefsRepository.personalBestStreak.first()
+                if (streak > best) {
+                    prefsRepository.updatePersonalBestStreak(streak)
+                }
                 checkAndUnlockAchievements()
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "adminSetStreak error", e)

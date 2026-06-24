@@ -22,6 +22,7 @@ class UserPreferencesRepository(context: Context) {
         val NOTIFICATION_MINUTE_KEY      = intPreferencesKey("notification_minute")
         val TOTAL_TASKS_COMPLETED_KEY    = intPreferencesKey("total_tasks_completed")
         val HAS_SEEN_ONBOARDING_KEY      = booleanPreferencesKey("has_seen_post_verify_onboarding")
+        val PERSONAL_BEST_STREAK_KEY     = intPreferencesKey("personal_best_streak")
     }
 
     val userStreak: Flow<Int>            = dataStore.data.map { it[STREAK_KEY] ?: 0 }
@@ -35,6 +36,7 @@ class UserPreferencesRepository(context: Context) {
     val totalTasksCompleted: Flow<Int>   = dataStore.data.map { it[TOTAL_TASKS_COMPLETED_KEY] ?: 0 }
     val hasSeenOnboarding: Flow<Boolean> =
         dataStore.data.map { it[HAS_SEEN_ONBOARDING_KEY] ?: false }
+    val personalBestStreak: Flow<Int>    = dataStore.data.map { it[PERSONAL_BEST_STREAK_KEY] ?: 0 }
 
     suspend fun updateStreak(streak: Int) {
         dataStore.edit { it[STREAK_KEY] = streak }
@@ -72,5 +74,9 @@ class UserPreferencesRepository(context: Context) {
 
     suspend fun markOnboardingSeen() {
         dataStore.edit { it[HAS_SEEN_ONBOARDING_KEY] = true }
+    }
+
+    suspend fun updatePersonalBestStreak(streak: Int) {
+        dataStore.edit { it[PERSONAL_BEST_STREAK_KEY] = streak }
     }
 }

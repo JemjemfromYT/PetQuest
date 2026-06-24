@@ -166,10 +166,14 @@ fun PetDetailScreen(
         )
 
         val bondTitle: Pair<String, Int>? = when {
-            pet.bondLevel >= 20 -> "Master Companion" to 20
-            pet.bondLevel >= 15 -> "Lifelong Partner"  to 15
-            pet.bondLevel >= 10 -> "Loyal Friend"      to 10
-            pet.bondLevel >= 5  -> "Trusted Companion" to 5
+            pet.bondLevel >= 50 -> "Eternal Companion"  to 50
+            pet.bondLevel >= 40 -> "Soul Bonded"         to 40
+            pet.bondLevel >= 30 -> "Elite Protector"     to 30
+            pet.bondLevel >= 25 -> "Bonded Guardian"     to 25
+            pet.bondLevel >= 20 -> "Master Companion"    to 20
+            pet.bondLevel >= 15 -> "Lifelong Partner"    to 15
+            pet.bondLevel >= 10 -> "Loyal Friend"        to 10
+            pet.bondLevel >= 5  -> "Trusted Companion"   to 5
             else                -> null
         }
 
@@ -178,6 +182,10 @@ fun PetDetailScreen(
             pet.bondLevel < 10 -> 10 to "Achievement Tier Unlock"
             pet.bondLevel < 15 -> 15 to "Special Bond Badge"
             pet.bondLevel < 20 -> 20 to "Premium Profile Border"
+            pet.bondLevel < 25 -> 25 to "Bonded Guardian Title"
+            pet.bondLevel < 30 -> 30 to "Elite Protector Title"
+            pet.bondLevel < 40 -> 40 to "Soul Bond Crest"
+            pet.bondLevel < 50 -> 50 to "Legendary Bond Status"
             else               -> null
         }
 
@@ -197,6 +205,14 @@ fun PetDetailScreen(
                     add(PetMemory("🎖️", "Level 15 Reached", "Bond Badge earned"))
                 if (pet.bondLevel >= 20)
                     add(PetMemory("✨", "Level 20 Reached", "Gold border unlocked"))
+                if (pet.bondLevel >= 25)
+                    add(PetMemory("🛡️", "Level 25 Reached", "Bonded Guardian title earned"))
+                if (pet.bondLevel >= 30)
+                    add(PetMemory("⚔️", "Level 30 Reached", "Elite Protector title earned"))
+                if (pet.bondLevel >= 40)
+                    add(PetMemory("🔮", "Level 40 Reached", "Soul Bond Crest unlocked"))
+                if (pet.bondLevel >= 50)
+                    add(PetMemory("💫", "Level 50 Reached", "Legendary Bond Status achieved"))
                 if (streak >= 7)
                     add(PetMemory("🔥", "7-Day Streak", "7 days of dedication"))
                 if (streak >= 30)
@@ -220,7 +236,7 @@ fun PetDetailScreen(
                         .then(
                             if (hasGoldBorder)
                                 Modifier.border(
-                                    width = 4.dp,
+                                    width = 5.dp,
                                     color = Color(0xFFFFD700),
                                     shape = MaterialTheme.shapes.medium
                                 )
@@ -345,7 +361,7 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ── Virtue Identity Card ───────────────────────────────────────────
+            // ── Virtue identity card ───────────────────────────────────────────
             Box(modifier = Modifier.alpha(virtueAlpha)) {
                 VirtueIdentityCard(virtue = pet.virtue)
             }
@@ -727,6 +743,10 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
         10 -> "Achievement Tier unlocked — 5 new achievements"
         15 -> "Bond Badge earned on ${event.petName}'s profile"
         20 -> "Gold Border unlocked — ${event.petName} shines"
+        25 -> "Bonded Guardian title earned"
+        30 -> "Elite Protector title earned"
+        40 -> "Soul Bond Crest unlocked"
+        50 -> "Legendary Bond Status achieved"
         else -> null
     }
     val isMilestone = milestoneReward != null
@@ -821,56 +841,53 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                     }
                 }
 
-                // Milestone reward explanation — the part that was missing
-                if (isMilestone && milestoneReward != null) {
+                // Milestone reward banner
+                if (milestoneReward != null) {
                     Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .alpha(contentAlpha),
-                        shape = MaterialTheme.shapes.medium,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
+                        modifier = Modifier.fillMaxWidth().alpha(contentAlpha),
+                        shape    = MaterialTheme.shapes.medium,
+                        color    = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
                     ) {
-                        Row(
-                            modifier              = Modifier.padding(12.dp),
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        Column(
+                            modifier            = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(
-                                imageVector        = Icons.Default.EmojiEvents,
-                                contentDescription = "Reward",
-                                tint               = MaterialTheme.colorScheme.tertiary,
-                                modifier           = Modifier.size(20.dp)
+                            Text(
+                                "🎁 Milestone Reward",
+                                fontSize   = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color      = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
                             )
-                            Column {
-                                Text(
-                                    "Reward Unlocked",
-                                    fontSize   = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color      = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
-                                )
-                                Text(
-                                    milestoneReward,
-                                    fontSize   = 13.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color      = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            }
+                            Text(
+                                milestoneReward,
+                                fontSize   = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign  = TextAlign.Center,
+                                color      = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
                         }
                     }
                 }
 
                 Spacer(Modifier.height(4.dp))
+
                 Button(
                     onClick  = onDismiss,
-                    modifier = Modifier.fillMaxWidth().alpha(contentAlpha),
-                    colors   = if (isMilestone)
-                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
-                    else
-                        ButtonDefaults.buttonColors()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .alpha(contentAlpha),
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor = if (isMilestone)
+                            MaterialTheme.colorScheme.tertiary
+                        else
+                            MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     Text(
-                        if (isMilestone) "Amazing!" else "Keep Going!",
-                        fontWeight = FontWeight.Bold
+                        if (isMilestone) "Claim Reward" else "Awesome!",
+                        fontWeight = FontWeight.Bold,
+                        fontSize   = 16.sp
                     )
                 }
             }

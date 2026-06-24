@@ -243,7 +243,7 @@ fun AchievementsScreen(
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                if (a.isUnlocked) a.description else "???",
+                                if (a.isUnlocked) a.description else "Keep playing to unlock",
                                 fontSize = 13.sp,
                                 color    = MaterialTheme.colorScheme.onSurfaceVariant
                             )
