@@ -39,6 +39,9 @@ class PetQuestViewModel(
     val hasOnboarded: StateFlow<Boolean?> =
         prefsRepository.hasOnboarded.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val hasSeenOnboarding: StateFlow<Boolean> =
+        prefsRepository.hasSeenOnboarding.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val totalBondPoints: StateFlow<Int> = allPets.map { pets ->
         pets.sumOf { it.bondPoints }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
@@ -173,7 +176,6 @@ class PetQuestViewModel(
                 petRepository.completeTask(task.id)
                 prefsRepository.incrementTasksCompleted()
 
-                // Virtue tasks earn the same as Core tasks (10 pts)
                 val points   = if (task.type == TaskType.CORE || task.type == TaskType.VIRTUE) 10 else 5
                 val oldLevel  = pet.bondLevel
                 val newPoints = pet.bondPoints + points
@@ -200,6 +202,16 @@ class PetQuestViewModel(
                 checkAndUnlockAchievements()
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "verifyPet error", e)
+            }
+        }
+    }
+
+    fun markOnboardingSeen() {
+        viewModelScope.launch {
+            try {
+                prefsRepository.markOnboardingSeen()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "markOnboardingSeen error", e)
             }
         }
     }
@@ -236,7 +248,7 @@ class PetQuestViewModel(
         }
     }
 
-    // ─── Task generation — 3 Core + 1 Virtue + 3 Optional (Level 5: +1 Optional) ─
+    // ─── Task generation ───────────────────────────────────────────────────────
 
     private suspend fun generateTasksForPet(pet: PetEntity) {
         if (petRepository.hasTasksForPet(pet.id)) return
@@ -245,20 +257,17 @@ class PetQuestViewModel(
         val seed  = (today.hashCode().toLong() * 31L) + pet.id.toLong()
         val rng   = Random(seed)
 
-        // 3 universal core tasks
         val coreTasks = TaskPools.UNIVERSAL_CORE
             .map { it.replace("{name}", pet.name) }
             .shuffled(rng)
             .take(3)
 
-        // 1 virtue-specific task (drawn from virtue pool, displayed with emblem)
         val virtueTask = TaskPools.virtueCorePool(pet.virtue)
             .map { it.replace("{name}", pet.name) }
             .shuffled(rng)
             .take(1)
 
-        // Optional tasks — Level 5+ bond reward: +1 daily task
-        val optionalCount  = if (pet.bondLevel >= 5) 4 else 3
+        val optionalCount      = if (pet.bondLevel >= 5) 4 else 3
         val speciesOptionals   = TaskPools.speciesOptionalPool(pet.type)
             .map { it.replace("{name}", pet.name) }
         val universalOptionals = TaskPools.UNIVERSAL_OPTIONAL
@@ -303,7 +312,6 @@ class PetQuestViewModel(
         val totalPoints   = totalBondPoints.value
         val totalTasks    = prefsRepository.totalTasksCompleted.first()
 
-        // ── Original achievements ──────────────────────────────────────────────
         if (pets.isNotEmpty())                             unlock("First Pet")
         if (verifiedCount >= 1)                            unlock("First Verification")
         if (pets.size >= 3)                                unlock("Pet Lover")
@@ -313,32 +321,27 @@ class PetQuestViewModel(
         if (distinctTypes.size >= 5)                       unlock("Species Collector")
         if (distinctTypes.size >= 10)                      unlock("Animal Explorer")
 
-        // ── Streaks ───────────────────────────────────────────────────────────
         if (streak >= 3)                                   unlock("3-Day Streak")
         if (streak >= 7)                                   unlock("7-Day Streak")
         if (streak >= 30)                                  unlock("30-Day Streak")
 
-        // ── Tasks ─────────────────────────────────────────────────────────────
         if (totalTasks >= 25)                              unlock("Complete 25 Tasks")
         if (totalTasks >= 50)                              unlock("Complete 50 Tasks")
         if (totalTasks >= 100)                             unlock("Complete 100 Tasks")
         if (totalTasks >= 250)                             unlock("Complete 250 Tasks")
 
-        // ── Bond Points ───────────────────────────────────────────────────────
         if (totalPoints >= 250)                            unlock("Earn 250 Bond Points")
         if (totalPoints >= 500)                            unlock("Earn 500 Bond Points")
         if (totalPoints >= 1000)                           unlock("Earn 1000 Bond Points")
 
-        // ── Pet Levels ────────────────────────────────────────────────────────
         if (pets.any { it.bondLevel >= 10 })               unlock("Reach Level 10")
         if (pets.any { it.bondLevel >= 20 })               unlock("Reach Level 20")
 
-        // ── Pet Collection ────────────────────────────────────────────────────
         if (pets.size >= 5)                                unlock("Own 5 Pets")
         if (verifiedCount >= 3)                            unlock("Verify 3 Pets")
         if (verifiedCount >= 5)                            unlock("Verify 5 Pets")
 
-        // ── Level 10 Achievement Tier — all 5 unlock when any pet hits Level 10 ─
+        // ── Level 10 Achievement Tier ─────────────────────────────────────────
         if (pets.any { it.bondLevel >= 10 }) {
             unlock("Bond Veteran")
             unlock("Level 10 Companion")
@@ -348,7 +351,7 @@ class PetQuestViewModel(
         }
     }
 
-    // ─── Admin / Debug Functions ───────────────────────────────────────────────
+    // ─── Admin / Debug ─────────────────────────────────────────────────────────
 
     fun adminAddBondPoints(petId: Int, points: Int) {
         viewModelScope.launch {

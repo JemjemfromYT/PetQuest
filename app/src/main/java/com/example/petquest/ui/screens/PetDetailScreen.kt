@@ -32,6 +32,14 @@ import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.LevelUpEvent
 import com.example.petquest.viewmodel.PetQuestViewModel
 
+// ─── Pet Memory model ──────────────────────────────────────────────────────────
+
+private data class PetMemory(
+    val emoji: String,
+    val title: String,
+    val subtitle: String
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetDetailScreen(
@@ -40,8 +48,9 @@ fun PetDetailScreen(
     onBackClick: () -> Unit,
     onVerifyClick: () -> Unit
 ) {
-    val pets by viewModel.allPets.collectAsState()
-    val pet  = pets.find { it.id == petId }
+    val pets   by viewModel.allPets.collectAsState()
+    val streak by viewModel.userStreak.collectAsState()
+    val pet    = pets.find { it.id == petId }
 
     var showEditDialog   by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -156,7 +165,6 @@ fun PetDetailScreen(
             label         = "bond_progress"
         )
 
-        // Bond title milestone
         val bondTitle: Pair<String, Int>? = when {
             pet.bondLevel >= 20 -> "Master Companion" to 20
             pet.bondLevel >= 15 -> "Lifelong Partner"  to 15
@@ -165,7 +173,6 @@ fun PetDetailScreen(
             else                -> null
         }
 
-        // Next reward milestone — used for progression visibility
         val nextReward: Pair<Int, String>? = when {
             pet.bondLevel < 5  -> 5  to "+1 Daily Task"
             pet.bondLevel < 10 -> 10 to "Achievement Tier Unlock"
@@ -174,8 +181,28 @@ fun PetDetailScreen(
             else               -> null
         }
 
-        // Gold border for Level 20 (Premium Profile Border reward)
         val hasGoldBorder = pet.bondLevel >= 20
+
+        // ── Compute memories from existing pet state — no DB needed ────────────
+        val memories = remember(pet, streak) {
+            buildList {
+                add(PetMemory("🐾", "First Steps", "${pet.name} joined your family"))
+                if (pet.isVerified)
+                    add(PetMemory("📷", "Verified", "${pet.name} is fully active"))
+                if (pet.bondLevel >= 5)
+                    add(PetMemory("⭐", "Level 5 Reached", "+1 daily task unlocked"))
+                if (pet.bondLevel >= 10)
+                    add(PetMemory("🏆", "Level 10 Reached", "Achievement tier unlocked"))
+                if (pet.bondLevel >= 15)
+                    add(PetMemory("🎖️", "Level 15 Reached", "Bond Badge earned"))
+                if (pet.bondLevel >= 20)
+                    add(PetMemory("✨", "Level 20 Reached", "Gold border unlocked"))
+                if (streak >= 7)
+                    add(PetMemory("🔥", "7-Day Streak", "7 days of dedication"))
+                if (streak >= 30)
+                    add(PetMemory("💎", "30-Day Streak", "30 days of unwavering care"))
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -267,7 +294,7 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // ── Progression: Level, Bond Points, Bond Points ───────────────────
+            // ── Stat row: Level, Type, Bond Points ────────────────────────────
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -304,13 +331,13 @@ fun PetDetailScreen(
                 color    = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // ── Bond Title (unlocked milestone) ────────────────────────────────
+            // ── Bond Title ────────────────────────────────────────────────────
             if (bondTitle != null) {
                 Spacer(Modifier.height(10.dp))
                 BondTitleCard(title = bondTitle.first, unlockedAt = bondTitle.second)
             }
 
-            // ── Next Reward (progression motivation) ───────────────────────────
+            // ── Next Reward ───────────────────────────────────────────────────
             if (nextReward != null) {
                 Spacer(Modifier.height(10.dp))
                 NextRewardCard(level = nextReward.first, reward = nextReward.second)
@@ -325,7 +352,13 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ── Verification Status Section ────────────────────────────────────
+            // ── Pet Memories Timeline ──────────────────────────────────────────
+            if (memories.isNotEmpty()) {
+                PetMemoryTimeline(petName = pet.name, memories = memories)
+                Spacer(Modifier.height(20.dp))
+            }
+
+            // ── Verification Status ────────────────────────────────────────────
             if (pet.isVerified) {
                 Card(
                     modifier  = Modifier.fillMaxWidth(),
@@ -448,6 +481,89 @@ fun PetDetailScreen(
     }
 }
 
+// ─── Pet Memory Timeline ───────────────────────────────────────────────────────
+
+@Composable
+private fun PetMemoryTimeline(petName: String, memories: List<PetMemory>) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        colors    = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                "$petName's Memories",
+                fontSize   = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color      = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(12.dp))
+
+            memories.forEachIndexed { index, memory ->
+                Row(
+                    modifier          = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    // Timeline spine
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.width(32.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier.size(28.dp),
+                            shape    = MaterialTheme.shapes.extraSmall,
+                            color    = MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(memory.emoji, fontSize = 14.sp)
+                            }
+                        }
+                        if (index < memories.lastIndex) {
+                            Box(
+                                modifier = Modifier
+                                    .width(2.dp)
+                                    .height(20.dp)
+                                    .padding(vertical = 2.dp)
+                            ) {
+                                HorizontalDivider(
+                                    modifier  = Modifier
+                                        .fillMaxWidth()
+                                        .align(Alignment.TopCenter),
+                                    color     = MaterialTheme.colorScheme.outlineVariant,
+                                    thickness = 2.dp
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.width(12.dp))
+
+                    // Memory text
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(bottom = if (index < memories.lastIndex) 16.dp else 0.dp)
+                    ) {
+                        Text(
+                            memory.title,
+                            fontSize   = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color      = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            memory.subtitle,
+                            fontSize = 11.sp,
+                            color    = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 // ─── Bond Title Milestone Card ─────────────────────────────────────────────────
 
 @Composable
@@ -492,8 +608,8 @@ private fun NextRewardCard(level: Int, reward: String) {
         color    = MaterialTheme.colorScheme.secondaryContainer
     ) {
         Row(
-            modifier          = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier              = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Icon(
@@ -601,10 +717,20 @@ private fun EditPetDialog(
     )
 }
 
-// ─── Level-Up Celebration Dialog ──────────────────────────────────────────────
+// ─── Level-Up / Milestone Celebration Dialog ───────────────────────────────────
 
 @Composable
 fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
+    // Determine if this is a major milestone with a specific reward
+    val milestoneReward: String? = when (event.newLevel) {
+        5  -> "+1 Daily Task added to your routine"
+        10 -> "Achievement Tier unlocked — 5 new achievements"
+        15 -> "Bond Badge earned on ${event.petName}'s profile"
+        20 -> "Gold Border unlocked — ${event.petName} shines"
+        else -> null
+    }
+    val isMilestone = milestoneReward != null
+
     var started by remember { mutableStateOf(false) }
 
     val iconScale by animateFloatAsState(
@@ -627,7 +753,10 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
         Card(
             shape     = MaterialTheme.shapes.extraLarge,
             colors    = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+                containerColor = if (isMilestone)
+                    MaterialTheme.colorScheme.tertiaryContainer
+                else
+                    MaterialTheme.colorScheme.primaryContainer
             ),
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
@@ -639,47 +768,110 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                 Image(
                     painter            = painterResource(id = R.drawable.ic_level),
                     contentDescription = "Level Up",
-                    modifier           = Modifier.size(88.dp).scale(iconScale),
+                    modifier           = Modifier.size(if (isMilestone) 100.dp else 88.dp).scale(iconScale),
                     contentScale       = ContentScale.Fit
                 )
+
                 Text(
-                    "Level Up!",
-                    fontSize   = 28.sp,
+                    if (isMilestone) "Milestone Reached!" else "Level Up!",
+                    fontSize   = if (isMilestone) 26.sp else 28.sp,
                     fontWeight = FontWeight.ExtraBold,
                     textAlign  = TextAlign.Center,
-                    color      = MaterialTheme.colorScheme.primary,
+                    color      = if (isMilestone)
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    else
+                        MaterialTheme.colorScheme.primary,
                     modifier   = Modifier.alpha(contentAlpha)
                 )
+
                 Text(
                     "${event.petName} reached Bond Level ${event.newLevel}!",
                     fontSize   = 15.sp,
                     textAlign  = TextAlign.Center,
                     fontWeight = FontWeight.SemiBold,
+                    color      = if (isMilestone)
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    else
+                        MaterialTheme.colorScheme.onSurface,
                     modifier   = Modifier.alpha(contentAlpha)
                 )
+
+                // Show level arrow
                 Row(
                     modifier              = Modifier.alpha(contentAlpha),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Surface(
                         shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        color = (if (isMilestone)
+                            MaterialTheme.colorScheme.onTertiaryContainer
+                        else
+                            MaterialTheme.colorScheme.primary).copy(alpha = 0.15f)
                     ) {
                         Text(
                             "Lv.${event.oldLevel}  →  Lv.${event.newLevel}",
                             modifier   = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                             fontSize   = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.primary
+                            color      = if (isMilestone)
+                                MaterialTheme.colorScheme.onTertiaryContainer
+                            else
+                                MaterialTheme.colorScheme.primary
                         )
                     }
                 }
+
+                // Milestone reward explanation — the part that was missing
+                if (isMilestone && milestoneReward != null) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(contentAlpha),
+                        shape = MaterialTheme.shapes.medium,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
+                    ) {
+                        Row(
+                            modifier              = Modifier.padding(12.dp),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector        = Icons.Default.EmojiEvents,
+                                contentDescription = "Reward",
+                                tint               = MaterialTheme.colorScheme.tertiary,
+                                modifier           = Modifier.size(20.dp)
+                            )
+                            Column {
+                                Text(
+                                    "Reward Unlocked",
+                                    fontSize   = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color      = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                                )
+                                Text(
+                                    milestoneReward,
+                                    fontSize   = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color      = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(Modifier.height(4.dp))
                 Button(
                     onClick  = onDismiss,
-                    modifier = Modifier.fillMaxWidth().alpha(contentAlpha)
+                    modifier = Modifier.fillMaxWidth().alpha(contentAlpha),
+                    colors   = if (isMilestone)
+                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                    else
+                        ButtonDefaults.buttonColors()
                 ) {
-                    Text("Keep Going!", fontWeight = FontWeight.Bold)
+                    Text(
+                        if (isMilestone) "Amazing!" else "Keep Going!",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

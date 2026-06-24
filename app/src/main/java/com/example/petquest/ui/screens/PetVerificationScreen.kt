@@ -9,6 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
@@ -24,12 +25,41 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.example.petquest.R
 import com.example.petquest.viewmodel.PetQuestViewModel
 import java.io.File
+
+// ─── Onboarding card data ──────────────────────────────────────────────────────
+
+private data class OnboardingCard(
+    val emoji: String,
+    val title: String,
+    val body: String
+)
+
+private val ONBOARDING_CARDS = listOf(
+    OnboardingCard(
+        emoji = "📋",
+        title = "Complete Daily Tasks",
+        body  = "Each day you'll get a fresh set of tasks for your pet — Core tasks, Optional tasks, and a special Virtue task unique to their personality."
+    ),
+    OnboardingCard(
+        emoji = "⭐",
+        title = "Earn Bond Points & Level Up",
+        body  = "Completing tasks earns Bond Points. Every 100 points raises your Bond Level. Higher levels unlock rewards — extra tasks, badges, and a gold border."
+    ),
+    OnboardingCard(
+        emoji = "🔮",
+        title = "Your Pet's Virtue",
+        body  = "The traits you chose when creating your pet formed their Virtue. Each day your pet's Virtue shapes one special task — a reflection of who they are."
+    )
+)
+
+// ─── PetVerificationScreen ────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,8 +72,11 @@ fun PetVerificationScreen(
     val pets    by viewModel.allPets.collectAsState()
     val pet     = pets.find { it.id == petId }
 
+    val hasSeenOnboarding by viewModel.hasSeenOnboarding.collectAsState()
+
     var photoUri          by remember { mutableStateOf<Uri?>(null) }
     var showSuccessDialog by remember { mutableStateOf(false) }
+    var showOnboarding    by remember { mutableStateOf(false) }
 
     val photoFile = remember {
         val dir = File(context.filesDir, "pet_photos").also { it.mkdirs() }
@@ -82,12 +115,27 @@ fun PetVerificationScreen(
         else permissionLauncher.launch(android.Manifest.permission.CAMERA)
     }
 
+    // After verification success dialog, route to onboarding (first time only)
+    // or directly to onDone.
     if (showSuccessDialog && pet != null) {
         VerificationSuccessDialog(
             petName     = pet.name,
             petTypeName = pet.type.name,
-            onDismiss   = onDone
+            onDismiss   = {
+                showSuccessDialog = false
+                if (!hasSeenOnboarding) {
+                    viewModel.markOnboardingSeen()
+                    showOnboarding = true
+                } else {
+                    onDone()
+                }
+            }
         )
+    }
+
+    // First-time onboarding overlay — 3 swipeable cards
+    if (showOnboarding) {
+        OnboardingOverlay(onFinish = onDone)
     }
 
     Scaffold(
@@ -115,15 +163,15 @@ fun PetVerificationScreen(
         ) {
             Text(
                 "Take or choose a photo of your pet to verify them and unlock all features.",
-                fontSize = 15.sp,
+                fontSize  = 15.sp,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color     = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             // What unlocks on verification
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
+                colors   = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 )
             ) {
@@ -139,16 +187,16 @@ fun PetVerificationScreen(
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.ic_verified),
+                                painter            = painterResource(id = R.drawable.ic_verified),
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                contentScale = ContentScale.Fit
+                                modifier           = Modifier.size(20.dp),
+                                contentScale       = ContentScale.Fit
                             )
                             Text(
                                 label,
-                                fontSize = 11.sp,
+                                fontSize   = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                color      = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                     }
@@ -157,34 +205,33 @@ fun PetVerificationScreen(
 
             // Photo preview card
             Card(
-                modifier = Modifier
+                modifier  = Modifier
                     .fillMaxWidth()
                     .height(240.dp),
                 elevation = CardDefaults.cardElevation(4.dp)
             ) {
                 if (photoUri != null) {
                     AsyncImage(
-                        model = photoUri,
+                        model              = photoUri,
                         contentDescription = "Pet photo",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        modifier           = Modifier.fillMaxSize(),
+                        contentScale       = ContentScale.Crop
                     )
                 } else {
-                    // PNG placeholder — replaces 📷 emoji
                     Box(Modifier.fillMaxSize(), Alignment.Center) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.ic_locked),
+                                painter            = painterResource(id = R.drawable.ic_locked),
                                 contentDescription = "No photo",
-                                modifier = Modifier.size(64.dp),
-                                contentScale = ContentScale.Fit
+                                modifier           = Modifier.size(64.dp),
+                                contentScale       = ContentScale.Fit
                             )
                             Text(
                                 "No photo yet",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color    = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 14.sp
                             )
                         }
@@ -193,7 +240,7 @@ fun PetVerificationScreen(
             }
 
             Button(
-                onClick = { launchCamera() },
+                onClick  = { launchCamera() },
                 modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
                 Icon(Icons.Default.CameraAlt, contentDescription = null)
@@ -202,7 +249,7 @@ fun PetVerificationScreen(
             }
 
             OutlinedButton(
-                onClick = { galleryLauncher.launch("image/*") },
+                onClick  = { galleryLauncher.launch("image/*") },
                 modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
                 Icon(Icons.Default.Image, contentDescription = null)
@@ -219,15 +266,15 @@ fun PetVerificationScreen(
                         showSuccessDialog = true
                     }
                 },
-                enabled = photoUri != null,
+                enabled  = photoUri != null,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(
+                colors   = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.tertiary
                 )
             ) {
                 Text(
                     if (photoUri != null) "Confirm Verification" else "Take a photo first",
-                    fontSize = 16.sp,
+                    fontSize   = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -235,7 +282,134 @@ fun PetVerificationScreen(
     }
 }
 
-// ─── Verification Success Dialog — replaces emoji decorations with PNG ─────────
+// ─── First-time Onboarding Overlay ────────────────────────────────────────────
+
+@Composable
+private fun OnboardingOverlay(onFinish: () -> Unit) {
+    var page by remember { mutableIntStateOf(0) }
+    val isLast = page == ONBOARDING_CARDS.lastIndex
+    val card   = ONBOARDING_CARDS[page]
+
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(page) {
+        visible = false
+        kotlinx.coroutines.delay(80)
+        visible = true
+    }
+    val alpha by animateFloatAsState(
+        targetValue   = if (visible) 1f else 0f,
+        animationSpec = tween(durationMillis = 300),
+        label         = "onboard_alpha"
+    )
+    val scale by animateFloatAsState(
+        targetValue   = if (visible) 1f else 0.92f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label         = "onboard_scale"
+    )
+
+    Dialog(
+        onDismissRequest = {},
+        properties       = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier         = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier  = Modifier
+                    .fillMaxWidth(0.9f)
+                    .alpha(alpha)
+                    .scale(scale),
+                shape     = MaterialTheme.shapes.extraLarge,
+                colors    = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                elevation = CardDefaults.cardElevation(12.dp)
+            ) {
+                Column(
+                    modifier            = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Step indicator dots
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ONBOARDING_CARDS.indices.forEach { i ->
+                            Surface(
+                                modifier = Modifier.size(
+                                    width  = if (i == page) 20.dp else 8.dp,
+                                    height = 8.dp
+                                ),
+                                shape = MaterialTheme.shapes.extraSmall,
+                                color = if (i == page)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                            ) {}
+                        }
+                    }
+
+                    // Emoji icon
+                    Text(card.emoji, fontSize = 64.sp)
+
+                    // Title
+                    Text(
+                        card.title,
+                        fontSize   = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        textAlign  = TextAlign.Center,
+                        color      = MaterialTheme.colorScheme.primary
+                    )
+
+                    // Body
+                    Text(
+                        card.body,
+                        fontSize  = 14.sp,
+                        textAlign = TextAlign.Center,
+                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 20.sp
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    // Navigation button
+                    Button(
+                        onClick  = { if (isLast) onFinish() else page++ },
+                        modifier = Modifier.fillMaxWidth().height(52.dp)
+                    ) {
+                        Text(
+                            if (isLast) "Let's Start!" else "Next",
+                            fontSize   = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (!isLast) {
+                            Spacer(Modifier.width(6.dp))
+                            Icon(
+                                imageVector        = Icons.Default.ArrowForward,
+                                contentDescription = null,
+                                modifier           = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    // Skip link (not on last card)
+                    if (!isLast) {
+                        TextButton(onClick = onFinish) {
+                            Text(
+                                "Skip",
+                                fontSize = 13.sp,
+                                color    = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─── Verification Success Dialog ───────────────────────────────────────────────
 
 @Composable
 private fun VerificationSuccessDialog(
@@ -261,7 +435,7 @@ private fun VerificationSuccessDialog(
 
     LaunchedEffect(Unit) { started = true }
 
-    Dialog(onDismissRequest = { /* prevent accidental dismiss */ }) {
+    Dialog(onDismissRequest = {}) {
         Card(
             shape     = MaterialTheme.shapes.extraLarge,
             colors    = CardDefaults.cardColors(
@@ -276,15 +450,13 @@ private fun VerificationSuccessDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // PNG artwork replaces emoji row and icon — painterResource allows
-                // easy swap when verification_success.png is provided
                 Image(
-                    painter = painterResource(id = R.drawable.verification_success),
+                    painter            = painterResource(id = R.drawable.verification_success),
                     contentDescription = "Verified",
-                    modifier = Modifier
+                    modifier           = Modifier
                         .size(100.dp)
                         .scale(iconScale),
-                    contentScale = ContentScale.Fit
+                    contentScale       = ContentScale.Fit
                 )
 
                 Text(
@@ -313,14 +485,14 @@ private fun VerificationSuccessDialog(
                     color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
                 ) {
                     Column(
-                        modifier = Modifier.padding(14.dp),
+                        modifier            = Modifier.padding(14.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
                             "Now unlocked:",
-                            fontSize = 12.sp,
+                            fontSize   = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                            color      = MaterialTheme.colorScheme.onTertiaryContainer
                         )
                         listOf(
                             "Task completion",
@@ -329,19 +501,19 @@ private fun VerificationSuccessDialog(
                             "Achievement progress"
                         ).forEach { feature ->
                             Row(
-                                verticalAlignment = Alignment.CenterVertically,
+                                verticalAlignment     = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.ic_verified),
+                                    painter            = painterResource(id = R.drawable.ic_verified),
                                     contentDescription = null,
-                                    modifier = Modifier.size(14.dp),
-                                    contentScale = ContentScale.Fit
+                                    modifier           = Modifier.size(14.dp),
+                                    contentScale       = ContentScale.Fit
                                 )
                                 Text(
                                     feature,
                                     fontSize = 13.sp,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    color    = MaterialTheme.colorScheme.onTertiaryContainer
                                 )
                             }
                         }
