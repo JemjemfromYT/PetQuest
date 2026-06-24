@@ -264,7 +264,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         title = "No Pets Yet",
                         description = "Add your first pet to start building bonds and earning rewards.",
                         actionLabel = "Add a Pet",
-                        onAction = { navController.navigate("profile") }
+                        onAction = { navController.navigate("add_more_pet") }
                     )
                 }
             } else {

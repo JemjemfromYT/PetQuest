@@ -173,13 +173,11 @@ fun ProfileScreen(
             TopAppBar(
                 title = { Text("Profile", fontWeight = FontWeight.Bold) },
                 actions = {
-                    // Admin button intentionally hidden from main UI (opacity 0)
-                    // Use secret 5-tap on Level card instead
                     IconButton(onClick = onAdminClick) {
                         Icon(
                             Icons.Default.Build,
                             contentDescription = "Admin",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0f)
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 },

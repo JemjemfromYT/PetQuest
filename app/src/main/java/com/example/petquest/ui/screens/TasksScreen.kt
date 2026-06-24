@@ -32,7 +32,8 @@ import kotlinx.coroutines.delay
 @Composable
 fun TasksScreen(
     viewModel: PetQuestViewModel,
-    onVerifyPet: (Int) -> Unit
+    onVerifyPet: (Int) -> Unit,
+    onNavigateToProfile: () -> Unit = {}
 ) {
     val tasks  by viewModel.todaysTasks.collectAsState()
     val pets   by viewModel.allPets.collectAsState()
@@ -81,7 +82,7 @@ fun TasksScreen(
                         title       = "No Tasks Yet",
                         description = "Add a pet and verify them to start receiving daily tasks.",
                         actionLabel = "Go to Profile",
-                        onAction    = {}
+                        onAction    = onNavigateToProfile
                     )
                 }
                 return@Scaffold

@@ -187,8 +187,9 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
             when (tab) {
                 0 -> HomeScreen(viewModel, outerNav)
                 1 -> TasksScreen(
-                    viewModel   = viewModel,
-                    onVerifyPet = { petId -> outerNav.navigate("pet_verify/$petId") }
+                    viewModel           = viewModel,
+                    onVerifyPet         = { petId -> outerNav.navigate("pet_verify/$petId") },
+                    onNavigateToProfile = { tab = 4 }
                 )
                 2 -> EncyclopediaScreen(viewModel)
                 3 -> AchievementsScreen(viewModel)
