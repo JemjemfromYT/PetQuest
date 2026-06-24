@@ -21,7 +21,6 @@ import com.example.petquest.R
 fun WelcomeScreen(onGetStarted: () -> Unit) {
     var started by remember { mutableStateOf(false) }
 
-    // Logo scale-in with spring
     val logoScale by animateFloatAsState(
         targetValue   = if (started) 1f else 0.6f,
         animationSpec = spring(
@@ -31,14 +30,12 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
         label = "logo_scale"
     )
 
-    // Content fade-in
     val contentAlpha by animateFloatAsState(
         targetValue   = if (started) 1f else 0f,
         animationSpec = tween(durationMillis = 600, delayMillis = 350),
         label         = "content_alpha"
     )
 
-    // Button fade-in delayed further
     val buttonAlpha by animateFloatAsState(
         targetValue   = if (started) 1f else 0f,
         animationSpec = tween(durationMillis = 500, delayMillis = 700),
@@ -54,16 +51,13 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App logo — PNG replaces 🐾 emoji
-        // Replace R.drawable.ic_launcher_foreground with a dedicated logo PNG
-        // when available. painterResource() makes it a 1-line swap.
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            painter            = painterResource(id = R.drawable.ic_launcher_foreground),
             contentDescription = "PetQuest",
-            modifier = Modifier
+            modifier           = Modifier
                 .size(120.dp)
                 .scale(logoScale),
-            contentScale = ContentScale.Fit
+            contentScale       = ContentScale.Fit
         )
 
         Spacer(Modifier.height(24.dp))
@@ -79,11 +73,11 @@ fun WelcomeScreen(onGetStarted: () -> Unit) {
         Spacer(Modifier.height(12.dp))
 
         Text(
-            "Build real bonds with real pets through daily quests and adventures.",
-            fontSize   = 16.sp,
-            textAlign  = TextAlign.Center,
-            color      = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier   = Modifier.alpha(contentAlpha)
+            "Show up for your pet every day — even small things matter.",
+            fontSize  = 16.sp,
+            textAlign = TextAlign.Center,
+            color     = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier  = Modifier.alpha(contentAlpha)
         )
 
         Spacer(Modifier.height(48.dp))

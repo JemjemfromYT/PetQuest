@@ -5,12 +5,22 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,36 +40,56 @@ fun AchievementsScreen(
     val unlockedCount = achievements.count { it.isUnlocked }
     val totalCount    = achievements.size
 
-    val emojiMap = mapOf(
-        // ── Original ──────────────────────────────────────────────────────────
-        "First Pet"          to "🐾",
-        "First Verification" to "📷",
-        "Pet Lover"          to "❤️",
-        "Bond Master"        to "👑",
-        "7-Day Streak"       to "🔥",
-        "Epic Tamer"         to "🐉",
-        "Rarity Hunter"      to "🎯",
-        "Species Collector"  to "🗂️",
-        "Animal Explorer"    to "🌍",
-        // ── Streaks ───────────────────────────────────────────────────────────
-        "3-Day Streak"       to "🔥",
-        "30-Day Streak"      to "🔥",
-        // ── Tasks ─────────────────────────────────────────────────────────────
-        "Complete 25 Tasks"  to "✅",
-        "Complete 50 Tasks"  to "✅",
-        "Complete 100 Tasks" to "✅",
-        "Complete 250 Tasks" to "✅",
-        // ── Bond Points ───────────────────────────────────────────────────────
-        "Earn 250 Bond Points"  to "⭐",
-        "Earn 500 Bond Points"  to "⭐",
-        "Earn 1000 Bond Points" to "⭐",
-        // ── Pet Levels ────────────────────────────────────────────────────────
-        "Reach Level 10" to "👑",
-        "Reach Level 20" to "👑",
-        // ── Pet Collection ────────────────────────────────────────────────────
-        "Own 5 Pets"    to "❤️",
-        "Verify 3 Pets" to "📷",
-        "Verify 5 Pets" to "📷"
+    val iconMap: Map<String, ImageVector> = mapOf(
+        "First Pet"             to Icons.Default.Pets,
+        "First Verification"    to Icons.Default.CameraAlt,
+        "Pet Lover"             to Icons.Default.Favorite,
+        "Bond Master"           to Icons.Default.EmojiEvents,
+        "7-Day Streak"          to Icons.Default.Whatshot,
+        "3-Day Streak"          to Icons.Default.Whatshot,
+        "30-Day Streak"         to Icons.Default.Whatshot,
+        "Epic Tamer"            to Icons.Default.Stars,
+        "Rarity Hunter"         to Icons.Default.Explore,
+        "Species Collector"     to Icons.Default.Explore,
+        "Animal Explorer"       to Icons.Default.Explore,
+        "Complete 25 Tasks"     to Icons.Default.CheckCircle,
+        "Complete 50 Tasks"     to Icons.Default.CheckCircle,
+        "Complete 100 Tasks"    to Icons.Default.CheckCircle,
+        "Complete 250 Tasks"    to Icons.Default.CheckCircle,
+        "Earn 250 Bond Points"  to Icons.Default.Star,
+        "Earn 500 Bond Points"  to Icons.Default.Star,
+        "Earn 1000 Bond Points" to Icons.Default.Star,
+        "Reach Level 10"        to Icons.Default.EmojiEvents,
+        "Reach Level 20"        to Icons.Default.EmojiEvents,
+        "Own 5 Pets"            to Icons.Default.Favorite,
+        "Verify 3 Pets"         to Icons.Default.CameraAlt,
+        "Verify 5 Pets"         to Icons.Default.CameraAlt
+    )
+
+    val hintMap: Map<String, String> = mapOf(
+        "First Pet"             to "Add your first pet",
+        "First Verification"    to "Verify any pet with a photo",
+        "Pet Lover"             to "Own 3 or more pets",
+        "Bond Master"           to "Reach Bond Level 5 with any pet",
+        "7-Day Streak"          to "Complete tasks 7 days in a row",
+        "3-Day Streak"          to "Complete tasks 3 days in a row",
+        "30-Day Streak"         to "Complete tasks 30 days in a row",
+        "Epic Tamer"            to "Reach Bond Level 20 with any pet",
+        "Rarity Hunter"         to "Collect a Rare or Epic species",
+        "Species Collector"     to "Collect 10 different species",
+        "Animal Explorer"       to "Collect 20 different species",
+        "Complete 25 Tasks"     to "Complete 25 tasks total",
+        "Complete 50 Tasks"     to "Complete 50 tasks total",
+        "Complete 100 Tasks"    to "Complete 100 tasks total",
+        "Complete 250 Tasks"    to "Complete 250 tasks total",
+        "Earn 250 Bond Points"  to "Earn 250 Bond Points total",
+        "Earn 500 Bond Points"  to "Earn 500 Bond Points total",
+        "Earn 1000 Bond Points" to "Earn 1000 Bond Points total",
+        "Reach Level 10"        to "Reach Bond Level 10 with any pet",
+        "Reach Level 20"        to "Reach Bond Level 20 with any pet",
+        "Own 5 Pets"            to "Add 5 pets to your family",
+        "Verify 3 Pets"         to "Verify 3 pets with photos",
+        "Verify 5 Pets"         to "Verify 5 pets with photos"
     )
 
     val overallProgress by animateFloatAsState(
@@ -101,7 +131,6 @@ fun AchievementsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ── Summary header ────────────────────────────────────────────────
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -131,7 +160,7 @@ fun AchievementsScreen(
                         Spacer(Modifier.height(8.dp))
                         LinearProgressIndicator(
                             progress = { overallProgress },
-                            modifier = Modifier.fillMaxWidth().height(6.dp)
+                            modifier = Modifier.fillMaxWidth().height(8.dp)
                         )
 
                         Spacer(Modifier.height(10.dp))
@@ -162,7 +191,6 @@ fun AchievementsScreen(
                 }
             }
 
-            // ── Achievement cards with staggered unlock animation ─────────────
             itemsIndexed(achievements) { index, a ->
                 var visible by remember { mutableStateOf(false) }
                 LaunchedEffect(a.title) {
@@ -210,22 +238,30 @@ fun AchievementsScreen(
                         modifier          = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier         = Modifier.size(48.dp),
-                            contentAlignment = Alignment.Center
+                        Surface(
+                            modifier = Modifier.size(48.dp),
+                            shape    = MaterialTheme.shapes.medium,
+                            color    = if (a.isUnlocked)
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.08f)
                         ) {
-                            if (a.isUnlocked) {
-                                Text(
-                                    text     = emojiMap[a.title] ?: "⭐",
-                                    fontSize = 36.sp
-                                )
-                            } else {
-                                Icon(
-                                    imageVector        = Icons.Default.Lock,
-                                    contentDescription = "Locked",
-                                    tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                    modifier           = Modifier.size(32.dp)
-                                )
+                            Box(contentAlignment = Alignment.Center) {
+                                if (a.isUnlocked) {
+                                    Icon(
+                                        imageVector        = iconMap[a.title] ?: Icons.Default.Star,
+                                        contentDescription = a.title,
+                                        tint               = MaterialTheme.colorScheme.primary,
+                                        modifier           = Modifier.size(26.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector        = Icons.Default.Lock,
+                                        contentDescription = "Locked",
+                                        tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                                        modifier           = Modifier.size(22.dp)
+                                    )
+                                }
                             }
                         }
 
@@ -243,7 +279,8 @@ fun AchievementsScreen(
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
-                                if (a.isUnlocked) a.description else "Keep playing to unlock",
+                                if (a.isUnlocked) a.description
+                                else hintMap[a.title] ?: "Keep playing to unlock",
                                 fontSize = 13.sp,
                                 color    = MaterialTheme.colorScheme.onSurfaceVariant
                             )

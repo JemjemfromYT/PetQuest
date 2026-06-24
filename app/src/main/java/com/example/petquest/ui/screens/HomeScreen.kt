@@ -34,7 +34,7 @@ import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 
 // ---------------------------------------------------------------------------
-// petEmoji — species identity visual used across all screens
+// petEmoji — species identity visual used as placeholder when no photo exists
 // ---------------------------------------------------------------------------
 fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
     "DOG"        -> "🐶"
@@ -250,7 +250,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         Spacer(Modifier.height(6.dp))
                         LinearProgressIndicator(
                             progress = { collectionProgress },
-                            modifier = Modifier.fillMaxWidth().height(6.dp)
+                            modifier = Modifier.fillMaxWidth().height(8.dp)
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
@@ -271,17 +271,23 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Today's Progress", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Row(
+                            modifier              = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment     = Alignment.CenterVertically
+                        ) {
+                            Text("Today's Progress", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text(
+                                "$doneTasks / ${tasks.size} done",
+                                fontSize   = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color      = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         Spacer(Modifier.height(8.dp))
                         LinearProgressIndicator(
                             progress = { todayProgress },
                             modifier = Modifier.fillMaxWidth().height(8.dp)
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "$doneTasks / ${tasks.size} tasks done",
-                            fontSize = 13.sp,
-                            color    = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -289,7 +295,12 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
             // ── Your Pets heading ─────────────────────────────────────────────
             item {
-                Text("Your Pets", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "Your Pets",
+                    fontSize   = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier   = Modifier.padding(top = 4.dp)
+                )
             }
 
             // ── Empty state ───────────────────────────────────────────────────
@@ -391,7 +402,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     ) {
                                         Icon(
                                             imageVector        = Icons.Default.Lock,
-                                            contentDescription = "Locked",
+                                            contentDescription = "Unverified",
                                             tint               = MaterialTheme.colorScheme.onErrorContainer,
                                             modifier           = Modifier.padding(2.dp)
                                         )
@@ -422,7 +433,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         color = MaterialTheme.colorScheme.errorContainer
                                     ) {
                                         Text(
-                                            "Verification Required",
+                                            "Needs a photo",
                                             modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                             fontSize   = 10.sp,
                                             fontWeight = FontWeight.SemiBold,

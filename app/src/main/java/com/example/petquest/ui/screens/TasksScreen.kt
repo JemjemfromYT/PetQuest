@@ -6,12 +6,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -22,6 +24,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.petquest.R
 import com.example.petquest.data.model.TaskEntity
 import com.example.petquest.data.model.TaskType
@@ -44,7 +47,6 @@ fun TasksScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val safeTab = if (pets.isEmpty()) 0 else selectedTab.coerceIn(0, pets.lastIndex)
 
-    // ── Streak change detection ───────────────────────────────────────────────
     var showStreakOverlay  by remember { mutableStateOf(false) }
     var overlayStreakValue by remember { mutableIntStateOf(streak) }
     var prevStreak        by remember { mutableIntStateOf(streak) }
@@ -70,7 +72,6 @@ fun TasksScreen(
                 )
             }
         ) { padding ->
-            // ── Empty state: no pets ──────────────────────────────────────────
             if (pets.isEmpty()) {
                 Box(
                     modifier         = Modifier
@@ -112,20 +113,43 @@ fun TasksScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
+                                    // ── Pet avatar: photo if available, else letter circle ──
                                     Box(contentAlignment = Alignment.BottomEnd) {
-                                        Text(petEmoji(pet.type.name), fontSize = 24.sp)
+                                        Box(
+                                            modifier         = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.secondaryContainer),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (pet.photoUri != null) {
+                                                AsyncImage(
+                                                    model              = pet.photoUri,
+                                                    contentDescription = pet.name,
+                                                    modifier           = Modifier.fillMaxSize(),
+                                                    contentScale       = ContentScale.Crop
+                                                )
+                                            } else {
+                                                Text(
+                                                    pet.name.take(1).uppercase(),
+                                                    fontSize   = 16.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color      = MaterialTheme.colorScheme.onSecondaryContainer
+                                                )
+                                            }
+                                        }
                                         if (isLocked) {
                                             Icon(
                                                 imageVector        = Icons.Default.Lock,
                                                 contentDescription = "Locked",
                                                 tint               = MaterialTheme.colorScheme.error,
-                                                modifier           = Modifier.size(10.dp)
+                                                modifier           = Modifier.size(12.dp)
                                             )
                                         }
                                     }
                                     Text(
                                         pet.name,
-                                        fontSize   = 12.sp,
+                                        fontSize   = 11.sp,
                                         fontWeight = if (safeTab == index) FontWeight.Bold else FontWeight.Normal,
                                         maxLines   = 1
                                     )
@@ -178,14 +202,14 @@ fun TasksScreen(
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 Text(
-                                    "Verification Required",
+                                    "${selectedPet.name} needs a photo",
                                     fontSize   = 20.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color      = MaterialTheme.colorScheme.onErrorContainer,
                                     textAlign  = TextAlign.Center
                                 )
                                 Text(
-                                    "${selectedPet.name} must be verified before they can complete tasks and earn bond points.",
+                                    "Snap a quick photo of ${selectedPet.name} to unlock tasks and bond points.",
                                     fontSize  = 14.sp,
                                     color     = MaterialTheme.colorScheme.onErrorContainer,
                                     textAlign = TextAlign.Center
@@ -249,7 +273,6 @@ fun TasksScreen(
                     contentPadding      = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // ── Progress card ─────────────────────────────────────────
                     item(key = "progress") {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -284,18 +307,16 @@ fun TasksScreen(
                         }
                     }
 
-                    // ── Daily reset countdown ─────────────────────────────────
                     item(key = "reset_timer") {
                         TaskResetTimer()
                     }
 
-                    // ── Core tasks ────────────────────────────────────────────
                     if (core.isNotEmpty()) {
                         item(key = "core_header") {
                             TaskTypeHeader(
-                                label     = "Core Tasks",
-                                pts       = "+10 pts",
-                                color     = MaterialTheme.colorScheme.primary
+                                label = "Core Tasks",
+                                pts   = "+10 pts",
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
                         items(core, key = { "c_${it.id}" }) { task ->
@@ -303,7 +324,6 @@ fun TasksScreen(
                         }
                     }
 
-                    // ── Virtue task — displayed with virtue emblem ─────────────
                     if (virtue.isNotEmpty()) {
                         item(key = "virtue_header") {
                             Spacer(Modifier.height(4.dp))
@@ -320,7 +340,6 @@ fun TasksScreen(
                         }
                     }
 
-                    // ── Optional tasks ────────────────────────────────────────
                     if (optional.isNotEmpty()) {
                         item(key = "opt_header") {
                             Spacer(Modifier.height(4.dp))
@@ -340,7 +359,6 @@ fun TasksScreen(
             }
         }
 
-        // ── Streak celebration overlay ─────────────────────────────────────────
         if (showStreakOverlay) {
             StreakCelebrationOverlay(streakCount = overlayStreakValue)
         }
@@ -375,7 +393,7 @@ private fun TaskResetTimer() {
 
     val hours   = (millisLeft / (1000L * 60L * 60L)).toInt()
     val minutes = ((millisLeft / (1000L * 60L)) % 60L).toInt()
-    val label   = if (hours > 0) "Tasks reset in ${hours}h ${minutes}m" else "Tasks reset in ${minutes}m"
+    val label   = if (hours > 0) "New tasks in ${hours}h ${minutes}m" else "New tasks in ${minutes}m"
 
     Text(
         text     = label,
@@ -519,22 +537,20 @@ private fun VirtueTaskRow(task: TaskEntity, emblemRes: Int, onCheck: () -> Unit)
                 modifier       = Modifier.weight(1f)
             )
             if (!isDone) {
-                Spacer(Modifier.width(6.dp))
-                // Virtue emblem badge
-                Surface(
-                    modifier = Modifier.size(28.dp),
-                    shape    = MaterialTheme.shapes.extraSmall,
-                    color    = MaterialTheme.colorScheme.tertiaryContainer
-                ) {
-                    Image(
-                        painter            = painterResource(id = emblemRes),
-                        contentDescription = "Virtue task",
-                        modifier           = Modifier
-                            .fillMaxSize()
-                            .padding(4.dp),
-                        contentScale       = ContentScale.Fit
-                    )
-                }
+                Spacer(Modifier.width(8.dp))
+                Image(
+                    painter            = painterResource(id = emblemRes),
+                    contentDescription = null,
+                    modifier           = Modifier.size(20.dp),
+                    contentScale       = ContentScale.Fit
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    "+10",
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = MaterialTheme.colorScheme.tertiary
+                )
             }
         }
     }

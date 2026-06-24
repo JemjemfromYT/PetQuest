@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.*
@@ -72,18 +73,17 @@ fun ProfileScreen(
     val hasCompletedToday = tasks.any { it.isCompleted }
 
     val xpProgress by animateFloatAsState(
-        targetValue = (totalBondPoints % 100) / 100f,
+        targetValue   = (totalBondPoints % 100) / 100f,
         animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
-        label = "xp_progress"
+        label         = "xp_progress"
     )
 
     val speciesProgress by animateFloatAsState(
-        targetValue = if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat(),
+        targetValue   = if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat(),
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-        label = "species_progress"
+        label         = "species_progress"
     )
 
-    // ── Secret 5-tap admin access ──────────────────────────────────────────
     var tapCount      by remember { mutableIntStateOf(0) }
     var lastTapMs     by remember { mutableLongStateOf(0L) }
     var showAdminHint by remember { mutableStateOf(false) }
@@ -148,8 +148,8 @@ fun ProfileScreen(
 
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title   = { Text("Set Reminder Time") },
-            text    = {
+            title            = { Text("Set Reminder Time") },
+            text             = {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     TimePicker(state = timePickerState)
                 }
@@ -174,7 +174,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profile", fontWeight = FontWeight.Bold) },
+                title   = { Text("Profile", fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = onAdminClick) {
                         Icon(
@@ -191,40 +191,39 @@ fun ProfileScreen(
         }
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
+            modifier            = Modifier.fillMaxSize().padding(padding),
+            contentPadding      = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // ── Level card ──────────────────────────────────────────────────
             item {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
+                    modifier  = Modifier.fillMaxWidth(),
+                    colors    = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     ),
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                        modifier            = Modifier.padding(20.dp).fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.profile_banner),
+                            painter            = painterResource(id = R.drawable.profile_banner),
                             contentDescription = null,
-                            modifier = Modifier.size(110.dp),
-                            contentScale = ContentScale.Fit
+                            modifier           = Modifier.size(110.dp),
+                            contentScale       = ContentScale.Fit
                         )
                         Spacer(Modifier.height(8.dp))
                         Box(
-                            modifier = Modifier.clickable { onLevelTap() },
+                            modifier         = Modifier.clickable { onLevelTap() },
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     "Level $userLevel",
-                                    fontSize = 28.sp,
+                                    fontSize   = 28.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color      = MaterialTheme.colorScheme.primary
                                 )
                                 val title = trainerTitle(userLevel)
                                 if (title.isNotEmpty()) {
@@ -239,7 +238,7 @@ fun ProfileScreen(
                                     Text(
                                         "Keep tapping...",
                                         fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color    = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -253,16 +252,15 @@ fun ProfileScreen(
                         Text(
                             "${totalBondPoints % 100} / 100 XP to Level ${userLevel + 1}",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color    = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
 
-            // ── Stats row ───────────────────────────────────────────────────
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     StatCard(
@@ -275,19 +273,18 @@ fun ProfileScreen(
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
-                        value = "$totalBondPoints",
-                        label = "Bond Pts",
-                        iconRes = R.drawable.ic_bondpoints
+                        value    = "$totalBondPoints",
+                        label    = "Bond Pts",
+                        iconRes  = R.drawable.ic_bondpoints
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
-                        value = "$unlockedCount",
-                        label = "Awards"
+                        value    = "$unlockedCount",
+                        label    = "Awards"
                     )
                 }
             }
 
-            // ── Collection progress card ─────────────────────────────────────
             item {
                 Card(
                     modifier = Modifier
@@ -297,45 +294,57 @@ fun ProfileScreen(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                     )
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Species Collected",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
+                    Row(
+                        modifier          = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(
+                                modifier              = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment     = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Species Collected",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize   = 14.sp
+                                )
+                                Text(
+                                    "$speciesCount / $totalSpecies",
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize   = 14.sp,
+                                    color      = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(Modifier.height(6.dp))
+                            LinearProgressIndicator(
+                                progress = { speciesProgress },
+                                modifier = Modifier.fillMaxWidth().height(6.dp)
                             )
+                            Spacer(Modifier.height(4.dp))
                             Text(
-                                "$speciesCount / $totalSpecies",
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.primary
+                                "$collectionPercentage% complete",
+                                fontSize = 11.sp,
+                                color    = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Spacer(Modifier.height(6.dp))
-                        LinearProgressIndicator(
-                            progress = { speciesProgress },
-                            modifier = Modifier.fillMaxWidth().height(6.dp)
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "$collectionPercentage% complete  •  Tap Collection to explore",
-                            fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            imageVector        = Icons.Default.ChevronRight,
+                            contentDescription = "View collection",
+                            tint               = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
 
-            // ── Pet collection header ────────────────────────────────────────
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Text("My Pets (${pets.size})", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     FilledTonalIconButton(onClick = onAddPetClick) {
@@ -347,11 +356,11 @@ fun ProfileScreen(
             if (pets.isEmpty()) {
                 item {
                     EmptyStateCard(
-                        imageRes = R.drawable.empty_collection,
-                        title = "No Pets Yet",
+                        imageRes    = R.drawable.empty_collection,
+                        title       = "No Pets Yet",
                         description = "Tap the + button to add your first pet.",
                         actionLabel = "Add a Pet",
-                        onAction = onAddPetClick
+                        onAction    = onAddPetClick
                     )
                 }
             } else {
@@ -360,7 +369,7 @@ fun ProfileScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         rows.forEach { rowPets ->
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier              = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 rowPets.forEach { pet ->
@@ -373,7 +382,6 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Settings card ────────────────────────────────────────────────
             item {
                 SettingsCard(
                     notificationsEnabled = notificationsEnabled,
@@ -389,8 +397,6 @@ fun ProfileScreen(
     }
 }
 
-// ─── Settings Card ──────────────────────────────────────────────────────────
-
 @Composable
 private fun SettingsCard(
     notificationsEnabled: Boolean,
@@ -400,8 +406,8 @@ private fun SettingsCard(
     onChangeTime: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
+        modifier  = Modifier.fillMaxWidth(),
+        colors    = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(2.dp)
@@ -410,50 +416,50 @@ private fun SettingsCard(
 
             Text(
                 "Settings",
-                fontSize = 16.sp,
+                fontSize   = 16.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 12.dp)
+                modifier   = Modifier.padding(bottom = 12.dp)
             )
 
             HorizontalDivider(modifier = Modifier.padding(bottom = 12.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment     = Alignment.CenterVertically
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Icon(
-                        imageVector = if (notificationsEnabled)
+                        imageVector        = if (notificationsEnabled)
                             Icons.Default.Notifications
                         else
                             Icons.Default.NotificationsOff,
                         contentDescription = null,
-                        tint = if (notificationsEnabled)
+                        tint               = if (notificationsEnabled)
                             MaterialTheme.colorScheme.primary
                         else
                             MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(22.dp)
+                        modifier           = Modifier.size(22.dp)
                     )
                     Column {
                         Text(
                             "Daily Reminders",
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp
+                            fontSize   = 14.sp
                         )
                         Text(
                             if (notificationsEnabled) "Enabled" else "Disabled",
                             fontSize = 11.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color    = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
 
                 Switch(
-                    checked  = notificationsEnabled,
+                    checked         = notificationsEnabled,
                     onCheckedChange = onToggle
                 )
             }
@@ -464,20 +470,20 @@ private fun SettingsCard(
                 Spacer(Modifier.height(12.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Column {
                         Text(
                             "Reminder Time",
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp
+                            fontSize   = 14.sp
                         )
                         Text(
                             formatTime(notificationHour, notificationMinute),
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.primary,
+                            fontSize   = 13.sp,
+                            color      = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -501,8 +507,6 @@ private fun formatTime(hour: Int, minute: Int): String {
     return String.format(Locale.getDefault(), "%d:%02d %s", h12, minute, amPm)
 }
 
-// ─── Pet Collection Card ─────────────────────────────────────────────────────
-
 @Composable
 private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
     val rarityColor = when (pet.type.rarity.name) {
@@ -511,22 +515,21 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
         "RARE"     -> MaterialTheme.colorScheme.primary
         else       -> MaterialTheme.colorScheme.error
     }
-    val virtueInfo = VirtueConfig[pet.virtue]
+    val virtueInfo    = VirtueConfig[pet.virtue]
     val hasGoldBorder = pet.bondLevel >= 20
 
     Card(
-        modifier = modifier,
+        modifier  = modifier,
         elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(
+        colors    = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier            = Modifier.fillMaxWidth().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // ── Pet photo or emoji — with gold border at Level 20 ──────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -555,38 +558,34 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                         modifier         = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text     = petEmoji(pet.type.name),
-                            fontSize = 48.sp
+                        Text(petEmoji(pet.type.name), fontSize = 48.sp)
+                    }
+                }
+
+                if (!pet.isVerified) {
+                    Surface(
+                        modifier = Modifier.padding(4.dp),
+                        shape    = MaterialTheme.shapes.extraSmall,
+                        color    = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.9f)
+                    ) {
+                        Icon(
+                            imageVector        = Icons.Default.CheckCircle,
+                            contentDescription = "Unverified",
+                            tint               = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier           = Modifier.size(16.dp).padding(2.dp)
                         )
                     }
                 }
-                // Virtue emblem badge in top-right corner
-                Surface(
-                    modifier = Modifier.size(24.dp),
-                    shape    = MaterialTheme.shapes.extraSmall,
-                    color    = MaterialTheme.colorScheme.secondaryContainer
-                ) {
-                    Image(
-                        painter            = painterResource(id = virtueInfo.emblemRes),
-                        contentDescription = "${pet.virtue.name} emblem",
-                        modifier           = Modifier
-                            .fillMaxSize()
-                            .padding(2.dp),
-                        contentScale       = ContentScale.Fit
-                    )
-                }
             }
 
-            // Name + verified icon
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                modifier          = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     pet.name,
+                    fontSize   = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    fontSize   = 15.sp,
                     maxLines   = 1,
                     overflow   = TextOverflow.Ellipsis
                 )
@@ -601,7 +600,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 }
             }
 
-            // Species
             Text(
                 pet.type.name.replace("_", " "),
                 fontSize = 12.sp,
@@ -609,7 +607,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 maxLines = 1
             )
 
-            // Rarity + bond level
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -635,7 +632,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 )
             }
 
-            // Bond progress bar
             val bondProgress by animateFloatAsState(
                 targetValue   = (pet.bondPoints % 100) / 100f,
                 animationSpec = tween(durationMillis = 600),

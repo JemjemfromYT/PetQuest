@@ -160,8 +160,8 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 NavigationBarItem(
                     selected = tab == 3,
                     onClick  = { tab = 3 },
-                    icon     = { Icon(Icons.Default.EmojiEvents, "Achievements") },
-                    label    = { Text("Achievements") }
+                    icon     = { Icon(Icons.Default.EmojiEvents, "Awards") },
+                    label    = { Text("Awards") }
                 )
                 NavigationBarItem(
                     selected = tab == 4,

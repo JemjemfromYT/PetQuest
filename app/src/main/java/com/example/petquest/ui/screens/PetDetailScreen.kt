@@ -9,15 +9,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,7 +42,7 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 // ─── Pet Memory model ──────────────────────────────────────────────────────────
 
 private data class PetMemory(
-    val emoji: String,
+    val icon: ImageVector,
     val title: String,
     val subtitle: String
 )
@@ -178,45 +185,45 @@ fun PetDetailScreen(
         }
 
         val nextReward: Pair<Int, String>? = when {
-            pet.bondLevel < 5  -> 5  to "+1 Daily Task"
-            pet.bondLevel < 10 -> 10 to "Achievement Tier Unlock"
-            pet.bondLevel < 15 -> 15 to "Special Bond Badge"
-            pet.bondLevel < 20 -> 20 to "Premium Profile Border"
-            pet.bondLevel < 25 -> 25 to "Bonded Guardian Title"
-            pet.bondLevel < 30 -> 30 to "Elite Protector Title"
-            pet.bondLevel < 40 -> 40 to "Soul Bond Crest"
+            pet.bondLevel < 5  -> 5  to "an extra daily task"
+            pet.bondLevel < 10 -> 10 to "a new achievement tier opens up"
+            pet.bondLevel < 15 -> 15 to "a special Bond Badge"
+            pet.bondLevel < 20 -> 20 to "a gold profile border"
+            pet.bondLevel < 25 -> 25 to "the Bonded Guardian title"
+            pet.bondLevel < 30 -> 30 to "the Elite Protector title"
+            pet.bondLevel < 40 -> 40 to "the Soul Bond Crest"
             pet.bondLevel < 50 -> 50 to "Legendary Bond Status"
             else               -> null
         }
 
         val hasGoldBorder = pet.bondLevel >= 20
 
-        // ── Compute memories from existing pet state — no DB needed ────────────
+        // ── Compute memories from existing pet state ────────────────────────────
         val memories = remember(pet, streak) {
             buildList {
-                add(PetMemory("🐾", "First Steps", "${pet.name} joined your family"))
+                add(PetMemory(Icons.Default.Pets,        "First Steps",    "${pet.name} joined your family"))
                 if (pet.isVerified)
-                    add(PetMemory("📷", "Verified", "${pet.name} is fully active"))
+                    add(PetMemory(Icons.Default.CameraAlt,   "Verified",       "${pet.name} is fully active"))
                 if (pet.bondLevel >= 5)
-                    add(PetMemory("⭐", "Level 5 Reached", "+1 daily task unlocked"))
+                    add(PetMemory(Icons.Default.Star,        "Level 5 Reached",  "+1 daily task unlocked"))
                 if (pet.bondLevel >= 10)
-                    add(PetMemory("🏆", "Level 10 Reached", "Achievement tier unlocked"))
+                    add(PetMemory(Icons.Default.EmojiEvents, "Level 10 Reached", "Achievement tier unlocked"))
                 if (pet.bondLevel >= 15)
-                    add(PetMemory("🎖️", "Level 15 Reached", "Bond Badge earned"))
+                    add(PetMemory(Icons.Default.Favorite,    "Level 15 Reached", "Bond Badge earned"))
                 if (pet.bondLevel >= 20)
-                    add(PetMemory("✨", "Level 20 Reached", "Gold border unlocked"))
+                    add(PetMemory(Icons.Default.Stars,       "Level 20 Reached", "Gold border unlocked"))
                 if (pet.bondLevel >= 25)
-                    add(PetMemory("🛡️", "Level 25 Reached", "Bonded Guardian title earned"))
+                    add(PetMemory(Icons.Default.EmojiEvents, "Level 25 Reached", "Bonded Guardian title earned"))
                 if (pet.bondLevel >= 30)
-                    add(PetMemory("⚔️", "Level 30 Reached", "Elite Protector title earned"))
+                    add(PetMemory(Icons.Default.EmojiEvents, "Level 30 Reached", "Elite Protector title earned"))
                 if (pet.bondLevel >= 40)
-                    add(PetMemory("🔮", "Level 40 Reached", "Soul Bond Crest unlocked"))
+                    add(PetMemory(Icons.Default.Stars,       "Level 40 Reached", "Soul Bond Crest unlocked"))
                 if (pet.bondLevel >= 50)
-                    add(PetMemory("💫", "Level 50 Reached", "Legendary Bond Status achieved"))
+                    add(PetMemory(Icons.Default.Stars,       "Level 50 Reached", "Legendary Bond Status achieved"))
                 if (streak >= 7)
-                    add(PetMemory("🔥", "7-Day Streak", "7 days of dedication"))
+                    add(PetMemory(Icons.Default.Whatshot,    "7-Day Streak",     "7 days of dedication"))
                 if (streak >= 30)
-                    add(PetMemory("💎", "30-Day Streak", "30 days of unwavering care"))
+                    add(PetMemory(Icons.Default.Whatshot,    "30-Day Streak",    "30 days of unwavering care"))
             }
         }
 
@@ -431,6 +438,7 @@ fun PetDetailScreen(
                     }
                 }
             } else {
+                // ── Unverified state — camera icon instead of emoji ────────────
                 Card(
                     modifier  = Modifier.fillMaxWidth(),
                     colors    = CardDefaults.cardColors(
@@ -443,15 +451,20 @@ fun PetDetailScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(petEmoji(pet.type.name), fontSize = 48.sp)
+                        Icon(
+                            imageVector        = Icons.Default.CameraAlt,
+                            contentDescription = "Add a photo",
+                            tint               = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier           = Modifier.size(48.dp)
+                        )
                         Text(
-                            "Verification Required",
+                            "Photo Required",
                             fontSize   = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color      = MaterialTheme.colorScheme.onErrorContainer
                         )
                         Text(
-                            "${pet.name} is locked until verified. Take a photo to unlock all features.",
+                            "Take a photo of ${pet.name} to unlock tasks, bond points, and streaks.",
                             fontSize  = 13.sp,
                             textAlign = TextAlign.Center,
                             color     = MaterialTheme.colorScheme.onErrorContainer
@@ -463,14 +476,18 @@ fun PetDetailScreen(
                             modifier            = Modifier.fillMaxWidth(),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            listOf("Complete tasks", "Earn bond points", "Increase streaks", "Unlock achievements")
-                                .forEach { feature ->
-                                    Text(
-                                        "• $feature",
-                                        fontSize = 13.sp,
-                                        color    = MaterialTheme.colorScheme.onErrorContainer
-                                    )
-                                }
+                            listOf(
+                                "Complete tasks",
+                                "Earn bond points",
+                                "Increase streaks",
+                                "Unlock achievements"
+                            ).forEach { feature ->
+                                Text(
+                                    "• $feature",
+                                    fontSize = 13.sp,
+                                    color    = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            }
                         }
                         Spacer(Modifier.height(4.dp))
                         Button(
@@ -510,7 +527,7 @@ private fun PetMemoryTimeline(petName: String, memories: List<PetMemory>) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "$petName's Memories",
+                "$petName's Journey",
                 fontSize   = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color      = MaterialTheme.colorScheme.onSurface
@@ -533,7 +550,12 @@ private fun PetMemoryTimeline(petName: String, memories: List<PetMemory>) {
                             color    = MaterialTheme.colorScheme.primaryContainer
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Text(memory.emoji, fontSize = 14.sp)
+                                Icon(
+                                    imageVector        = memory.icon,
+                                    contentDescription = memory.title,
+                                    tint               = MaterialTheme.colorScheme.primary,
+                                    modifier           = Modifier.size(16.dp)
+                                )
                             }
                         }
                         if (index < memories.lastIndex) {
@@ -636,13 +658,13 @@ private fun NextRewardCard(level: Int, reward: String) {
             )
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    "Next Reward",
+                    "Next Reward — Level $level",
                     fontSize   = 11.sp,
                     fontWeight = FontWeight.SemiBold,
                     color      = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.65f)
                 )
                 Text(
-                    "Level $level — $reward",
+                    "Reach Level $level and $reward",
                     fontSize   = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color      = MaterialTheme.colorScheme.onSecondaryContainer
@@ -737,16 +759,15 @@ private fun EditPetDialog(
 
 @Composable
 fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
-    // Determine if this is a major milestone with a specific reward
     val milestoneReward: String? = when (event.newLevel) {
-        5  -> "+1 Daily Task added to your routine"
-        10 -> "Achievement Tier unlocked — 5 new achievements"
-        15 -> "Bond Badge earned on ${event.petName}'s profile"
-        20 -> "Gold Border unlocked — ${event.petName} shines"
-        25 -> "Bonded Guardian title earned"
-        30 -> "Elite Protector title earned"
-        40 -> "Soul Bond Crest unlocked"
-        50 -> "Legendary Bond Status achieved"
+        5  -> "an extra daily task is added to your routine"
+        10 -> "a new achievement tier opens up — 5 new challenges"
+        15 -> "a Bond Badge appears on ${event.petName}'s profile"
+        20 -> "a gold border unlocks — ${event.petName} shines"
+        25 -> "the Bonded Guardian title is earned"
+        30 -> "the Elite Protector title is earned"
+        40 -> "the Soul Bond Crest is unlocked"
+        50 -> "Legendary Bond Status is achieved"
         else -> null
     }
     val isMilestone = milestoneReward != null
@@ -816,7 +837,7 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                     modifier   = Modifier.alpha(contentAlpha)
                 )
 
-                // Show level arrow
+                // Level arrow
                 Row(
                     modifier              = Modifier.alpha(contentAlpha),
                     horizontalArrangement = Arrangement.Center
@@ -851,14 +872,25 @@ fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                         Column(
                             modifier            = Modifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text(
-                                "🎁 Milestone Reward",
-                                fontSize   = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color      = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
-                            )
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector        = Icons.Default.EmojiEvents,
+                                    contentDescription = null,
+                                    tint               = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                                    modifier           = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    "Milestone Reward",
+                                    fontSize   = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color      = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                                )
+                            }
                             Text(
                                 milestoneReward,
                                 fontSize   = 14.sp,
