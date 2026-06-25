@@ -319,43 +319,62 @@ class PetQuestViewModel(
         val totalPoints   = totalBondPoints.value
         val totalTasks    = prefsRepository.totalTasksCompleted.first()
 
+        val trainerLevel = userLevel.value
+
+        // ── First steps ───────────────────────────────────────────────────────
         if (pets.isNotEmpty())                             unlock("First Pet")
         if (verifiedCount >= 1)                            unlock("First Verification")
         if (pets.size >= 3)                                unlock("Pet Lover")
-        if (pets.any { it.bondLevel >= 5 })                unlock("Bond Master")
-        if (pets.any { it.type.rarity == Rarity.EPIC })    unlock("Epic Tamer")
-        if (Rarity.entries.all { it in ownedRarities })    unlock("Rarity Hunter")
-        if (distinctTypes.size >= 5)                       unlock("Species Collector")
-        if (distinctTypes.size >= 10)                      unlock("Animal Explorer")
+        if (pets.size >= 5)                                unlock("Own 5 Pets")
+        if (pets.size >= 10)                               unlock("Own 10 Pets")
+        if (verifiedCount >= 3)                            unlock("Verify 3 Pets")
+        if (verifiedCount >= 5)                            unlock("Verify 5 Pets")
+        if (verifiedCount >= 10)                           unlock("Verify 10 Pets")
 
+        // ── Streak milestones ─────────────────────────────────────────────────
         if (streak >= 3)                                   unlock("3-Day Streak")
         if (streak >= 7)                                   unlock("7-Day Streak")
+        if (streak >= 14)                                  unlock("14-Day Streak")
         if (streak >= 30)                                  unlock("30-Day Streak")
+        if (streak >= 60)                                  unlock("60-Day Streak")
+        if (streak >= 100)                                 unlock("100-Day Streak")
 
+        // ── Task milestones ───────────────────────────────────────────────────
+        if (totalTasks >= 10)                              unlock("Complete 10 Tasks")
         if (totalTasks >= 25)                              unlock("Complete 25 Tasks")
         if (totalTasks >= 50)                              unlock("Complete 50 Tasks")
         if (totalTasks >= 100)                             unlock("Complete 100 Tasks")
         if (totalTasks >= 250)                             unlock("Complete 250 Tasks")
+        if (totalTasks >= 500)                             unlock("Complete 500 Tasks")
 
+        // ── Bond point milestones ─────────────────────────────────────────────
+        if (totalPoints >= 100)                            unlock("Earn 100 Bond Points")
         if (totalPoints >= 250)                            unlock("Earn 250 Bond Points")
         if (totalPoints >= 500)                            unlock("Earn 500 Bond Points")
         if (totalPoints >= 1000)                           unlock("Earn 1000 Bond Points")
+        if (totalPoints >= 2500)                           unlock("Earn 2500 Bond Points")
+        if (totalPoints >= 5000)                           unlock("Earn 5000 Bond Points")
 
-        if (pets.any { it.bondLevel >= 10 })               unlock("Reach Level 10")
-        if (pets.any { it.bondLevel >= 20 })               unlock("Reach Level 20")
+        // ── Pet bond level milestones (per-pet) ───────────────────────────────
+        if (pets.any { it.bondLevel >= 5 })                unlock("Bond Master")
+        if (pets.any { it.bondLevel >= 10 })               unlock("Bond Veteran")
+        if (pets.any { it.bondLevel >= 15 })               unlock("Level 10 Companion")
+        if (pets.any { it.bondLevel >= 20 })               unlock("Virtue Master")
+        if (pets.any { it.bondLevel >= 30 })               unlock("Dedicated Caregiver")
+        if (pets.any { it.bondLevel >= 50 })               unlock("Elite Trainer")
 
-        if (pets.size >= 5)                                unlock("Own 5 Pets")
-        if (verifiedCount >= 3)                            unlock("Verify 3 Pets")
-        if (verifiedCount >= 5)                            unlock("Verify 5 Pets")
+        // ── Trainer level milestones (player-wide) ────────────────────────────
+        if (trainerLevel >= 10)                            unlock("Reach Level 10")
+        if (trainerLevel >= 20)                            unlock("Reach Level 20")
+        if (trainerLevel >= 30)                            unlock("Reach Level 30")
+        if (trainerLevel >= 50)                            unlock("Reach Level 50")
 
-        // ── Level 10 Achievement Tier ─────────────────────────────────────────
-        if (pets.any { it.bondLevel >= 10 }) {
-            unlock("Bond Veteran")
-            unlock("Level 10 Companion")
-            unlock("Virtue Master")
-            unlock("Dedicated Caregiver")
-            unlock("Elite Trainer")
-        }
+        // ── Species & rarity milestones ───────────────────────────────────────
+        if (distinctTypes.size >= 5)                       unlock("Species Collector")
+        if (distinctTypes.size >= 10)                      unlock("Animal Explorer")
+        if (distinctTypes.size >= 15)                      unlock("Master Explorer")
+        if (pets.any { it.type.rarity == Rarity.EPIC })    unlock("Epic Tamer")
+        if (Rarity.entries.all { it in ownedRarities })    unlock("Rarity Hunter")
     }
 
     // ─── Admin / Debug ─────────────────────────────────────────────────────────

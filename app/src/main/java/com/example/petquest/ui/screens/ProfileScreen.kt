@@ -53,22 +53,16 @@ fun ProfileScreen(
     val context = LocalContext.current
 
     val pets                 by viewModel.allPets.collectAsState()
-    val achievements         by viewModel.allAchievements.collectAsState()
     val userLevel            by viewModel.userLevel.collectAsState()
     val totalBondPoints      by viewModel.totalBondPoints.collectAsState()
-    val streak               by viewModel.userStreak.collectAsState()
-    val tasks                by viewModel.todaysTasks.collectAsState()
     val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
-    val collectionPercentage by viewModel.collectionPercentage.collectAsState()
 
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val notificationHour     by viewModel.notificationHour.collectAsState()
     val notificationMinute   by viewModel.notificationMinute.collectAsState()
 
-    val unlockedCount     = achievements.count { it.isUnlocked }
-    val speciesCount      = collectedSpecies.size
-    val totalSpecies      = PetType.entries.size
-    val hasCompletedToday = tasks.any { it.isCompleted }
+    val speciesCount = collectedSpecies.size
+    val totalSpecies = PetType.entries.size
 
     val xpProgress by animateFloatAsState(
         targetValue   = (totalBondPoints % 100) / 100f,
@@ -263,33 +257,6 @@ fun ProfileScreen(
                             )
                         }
                     }
-                }
-            }
-
-            // ── Stat chips row ────────────────────────────────────────────────
-            item {
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    StatCard(
-                        modifier = Modifier.weight(1f),
-                        value    = "$streak",
-                        label    = "Streak",
-                        iconRes  = R.drawable.ic_streak,
-                        dimmed   = !hasCompletedToday
-                    )
-                    StatCard(
-                        modifier = Modifier.weight(1f),
-                        value    = "$totalBondPoints",
-                        label    = "Bond Pts",
-                        iconRes  = R.drawable.ic_bondpoints
-                    )
-                    StatCard(
-                        modifier = Modifier.weight(1f),
-                        value    = "$unlockedCount",
-                        label    = "Awards"
-                    )
                 }
             }
 

@@ -78,12 +78,30 @@ class PetRepository(private val dao: PetQuestDao) {
             AchievementEntity(title = "Own 5 Pets",    description = "Own 5 or more pets at once"),
             AchievementEntity(title = "Verify 3 Pets", description = "Verify 3 or more pets"),
             AchievementEntity(title = "Verify 5 Pets", description = "Verify 5 or more pets"),
-            // ── Level 10 Achievement Tier (unlocked when any pet hits Level 10) ─
-            AchievementEntity(title = "Bond Veteran",       description = "Prove your dedication by reaching Bond Level 10"),
-            AchievementEntity(title = "Level 10 Companion", description = "Your pet trusts you completely — Bond Level 10 reached"),
-            AchievementEntity(title = "Virtue Master",      description = "Embody your pet's virtue through consistent daily practice"),
-            AchievementEntity(title = "Dedicated Caregiver",description = "Show daily dedication and reach Bond Level 10"),
-            AchievementEntity(title = "Elite Trainer",      description = "Achieve elite bond status through patience and care")
+            // ── Pet Bond Level milestones ─────────────────────────────────────
+            AchievementEntity(title = "Bond Veteran",        description = "Reach Bond Level 10 with any pet"),
+            AchievementEntity(title = "Level 10 Companion",  description = "Reach Bond Level 15 with any pet"),
+            AchievementEntity(title = "Virtue Master",       description = "Reach Bond Level 20 with any pet"),
+            AchievementEntity(title = "Dedicated Caregiver", description = "Reach Bond Level 30 with any pet"),
+            AchievementEntity(title = "Elite Trainer",       description = "Reach Bond Level 50 with any pet"),
+            // ── New streaks ───────────────────────────────────────────────────
+            AchievementEntity(title = "14-Day Streak",  description = "Maintain a 14-day streak"),
+            AchievementEntity(title = "60-Day Streak",  description = "Maintain a 60-day streak"),
+            AchievementEntity(title = "100-Day Streak", description = "Maintain a 100-day streak"),
+            // ── New tasks ─────────────────────────────────────────────────────
+            AchievementEntity(title = "Complete 10 Tasks",  description = "Complete 10 tasks in total"),
+            AchievementEntity(title = "Complete 500 Tasks", description = "Complete 500 tasks in total"),
+            // ── New bond points ───────────────────────────────────────────────
+            AchievementEntity(title = "Earn 100 Bond Points",  description = "Accumulate 100 total bond points"),
+            AchievementEntity(title = "Earn 2500 Bond Points", description = "Accumulate 2500 total bond points"),
+            AchievementEntity(title = "Earn 5000 Bond Points", description = "Accumulate 5000 total bond points"),
+            // ── New trainer levels ────────────────────────────────────────────
+            AchievementEntity(title = "Reach Level 30", description = "Reach Trainer Level 30"),
+            AchievementEntity(title = "Reach Level 50", description = "Reach Trainer Level 50"),
+            // ── New collection ────────────────────────────────────────────────
+            AchievementEntity(title = "Own 10 Pets",    description = "Own 10 or more pets at once"),
+            AchievementEntity(title = "Verify 10 Pets", description = "Verify 10 or more pets"),
+            AchievementEntity(title = "Master Explorer", description = "Collect 15 different species")
         ).forEach { dao.insertAchievement(it) }
     }
 }
