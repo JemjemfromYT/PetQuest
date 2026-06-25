@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
@@ -113,7 +114,6 @@ fun TasksScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
-                                    // ── Pet avatar: photo if available, else letter circle ──
                                     Box(contentAlignment = Alignment.BottomEnd) {
                                         Box(
                                             modifier         = Modifier
@@ -153,22 +153,11 @@ fun TasksScreen(
                                         fontWeight = if (safeTab == index) FontWeight.Bold else FontWeight.Normal,
                                         maxLines   = 1
                                     )
-                                    if (isLocked) {
-                                        Text(
-                                            "Locked",
-                                            fontSize   = 10.sp,
-                                            color      = MaterialTheme.colorScheme.error,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                    } else if (petTasks.isNotEmpty()) {
-                                        Text(
-                                            if (allDone) "Done" else "$donePet/${petTasks.size}",
-                                            fontSize = 10.sp,
-                                            color    = if (allDone)
-                                                MaterialTheme.colorScheme.primary
-                                            else
-                                                MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                                    when {
+                                        isLocked              -> Text("Locked",  fontSize = 10.sp, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
+                                        petTasks.isEmpty()    -> {}
+                                        allDone               -> Text("✓ Done",  fontSize = 10.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                        else                  -> Text("$donePet/${petTasks.size}", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 }
                             }
@@ -270,87 +259,78 @@ fun TasksScreen(
 
                 LazyColumn(
                     modifier            = Modifier.fillMaxSize(),
-                    contentPadding      = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    // ── Slim progress bar ─────────────────────────────────────
                     item(key = "progress") {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors   = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
-                            )
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Row(
-                                    modifier              = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment     = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        "${selectedPet.name}'s Progress",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize   = 14.sp
-                                    )
-                                    Text(
-                                        "$doneCount / ${petTasks.size} done",
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize   = 13.sp,
-                                        color      = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                                Spacer(Modifier.height(8.dp))
-                                LinearProgressIndicator(
-                                    progress = { taskProgress },
-                                    modifier = Modifier.fillMaxWidth().height(8.dp)
-                                )
-                            }
-                        }
+                        ProgressBar(
+                            progress  = taskProgress,
+                            done      = doneCount,
+                            total     = petTasks.size,
+                            petName   = selectedPet.name
+                        )
                     }
 
                     item(key = "reset_timer") {
                         TaskResetTimer()
                     }
 
+                    // ── Core tasks ────────────────────────────────────────────
                     if (core.isNotEmpty()) {
                         item(key = "core_header") {
-                            TaskTypeHeader(
+                            Spacer(Modifier.height(6.dp))
+                            SectionHeader(
                                 label = "Core Tasks",
-                                pts   = "+10 pts",
+                                pts   = "+10 pts each",
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
                         items(core, key = { "c_${it.id}" }) { task ->
-                            TaskRow(task, isCore = true) { viewModel.completeTask(task) }
-                        }
-                    }
-
-                    if (virtue.isNotEmpty()) {
-                        item(key = "virtue_header") {
-                            Spacer(Modifier.height(4.dp))
-                            VirtueTaskHeader(
-                                virtueName = selectedPet.virtue.name,
-                                emblemRes  = virtueInfo.emblemRes
-                            )
-                        }
-                        items(virtue, key = { "v_${it.id}" }) { task ->
-                            VirtueTaskRow(
-                                task      = task,
-                                emblemRes = virtueInfo.emblemRes
+                            TaskRow(
+                                task        = task,
+                                accentColor = MaterialTheme.colorScheme.primary,
+                                pts         = "+10"
                             ) { viewModel.completeTask(task) }
                         }
                     }
 
+                    // ── Virtue task ───────────────────────────────────────────
+                    if (virtue.isNotEmpty()) {
+                        item(key = "virtue_header") {
+                            Spacer(Modifier.height(6.dp))
+                            VirtueSectionHeader(
+                                virtueName = selectedPet.virtue.name,
+                                emblemRes  = virtueInfo.emblemRes,
+                                color      = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                        items(virtue, key = { "v_${it.id}" }) { task ->
+                            TaskRow(
+                                task        = task,
+                                accentColor = MaterialTheme.colorScheme.tertiary,
+                                pts         = "+10",
+                                emblemRes   = virtueInfo.emblemRes
+                            ) { viewModel.completeTask(task) }
+                        }
+                    }
+
+                    // ── Optional tasks ────────────────────────────────────────
                     if (optional.isNotEmpty()) {
                         item(key = "opt_header") {
-                            Spacer(Modifier.height(4.dp))
-                            TaskTypeHeader(
+                            Spacer(Modifier.height(6.dp))
+                            SectionHeader(
                                 label = "Optional Tasks",
-                                pts   = "+5 pts",
+                                pts   = "+5 pts each",
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
                         items(optional, key = { "o_${it.id}" }) { task ->
-                            TaskRow(task, isCore = false) { viewModel.completeTask(task) }
+                            TaskRow(
+                                task        = task,
+                                accentColor = MaterialTheme.colorScheme.secondary,
+                                pts         = "+5"
+                            ) { viewModel.completeTask(task) }
                         }
                     }
 
@@ -362,6 +342,44 @@ fun TasksScreen(
         if (showStreakOverlay) {
             StreakCelebrationOverlay(streakCount = overlayStreakValue)
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Slim progress bar row (replaces the bulky Card)
+// ---------------------------------------------------------------------------
+@Composable
+private fun ProgressBar(progress: Float, done: Int, total: Int, petName: String) {
+    Column(
+        modifier          = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Row(
+            modifier              = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment     = Alignment.CenterVertically
+        ) {
+            Text(
+                "$petName's Progress",
+                fontSize   = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                "$done / $total done",
+                fontSize   = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color      = if (done == total) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        LinearProgressIndicator(
+            progress             = { progress },
+            modifier             = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+            trackColor           = MaterialTheme.colorScheme.surfaceVariant,
+            color                = if (done == total) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+        )
     }
 }
 
@@ -393,37 +411,49 @@ private fun TaskResetTimer() {
 
     val hours   = (millisLeft / (1000L * 60L * 60L)).toInt()
     val minutes = ((millisLeft / (1000L * 60L)) % 60L).toInt()
-    val label   = if (hours > 0) "New tasks in ${hours}h ${minutes}m" else "New tasks in ${minutes}m"
+    val label   = if (hours > 0) "Resets in ${hours}h ${minutes}m" else "Resets in ${minutes}m"
 
     Text(
         text     = label,
         fontSize = 12.sp,
         color    = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 2.dp)
+        modifier = Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 2.dp)
     )
 }
 
 // ---------------------------------------------------------------------------
-// Section header for regular Core / Optional task groups
+// Section header — bold label with left accent bar + pts badge
 // ---------------------------------------------------------------------------
 @Composable
-private fun TaskTypeHeader(
-    label: String,
-    pts: String,
-    color: androidx.compose.ui.graphics.Color
-) {
+private fun SectionHeader(label: String, pts: String, color: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier          = Modifier.padding(top = 4.dp, bottom = 2.dp)
+        modifier          = Modifier.fillMaxWidth()
     ) {
-        Text(label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-        Spacer(Modifier.width(8.dp))
-        Surface(shape = MaterialTheme.shapes.extraSmall, color = color.copy(alpha = 0.15f)) {
+        // Left accent bar
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(20.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(color)
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(
+            label,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize   = 15.sp,
+            color      = MaterialTheme.colorScheme.onSurface,
+            modifier   = Modifier.weight(1f)
+        )
+        // Points badge — right-aligned, subtle
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = color.copy(alpha = 0.12f)
+        ) {
             Text(
                 pts,
-                modifier   = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                 fontSize   = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color      = color
@@ -433,134 +463,62 @@ private fun TaskTypeHeader(
 }
 
 // ---------------------------------------------------------------------------
-// Virtue task section header — shows the virtue emblem inline
+// Virtue section header — same layout as SectionHeader + emblem icon
 // ---------------------------------------------------------------------------
 @Composable
-private fun VirtueTaskHeader(virtueName: String, emblemRes: Int) {
+private fun VirtueSectionHeader(virtueName: String, emblemRes: Int, color: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier          = Modifier.padding(top = 4.dp, bottom = 2.dp)
+        modifier          = Modifier.fillMaxWidth()
     ) {
-        Surface(
-            modifier = Modifier.size(24.dp),
-            shape    = MaterialTheme.shapes.extraSmall,
-            color    = MaterialTheme.colorScheme.tertiaryContainer
-        ) {
-            Image(
-                painter            = painterResource(id = emblemRes),
-                contentDescription = "$virtueName emblem",
-                modifier           = Modifier
-                    .fillMaxSize()
-                    .padding(3.dp),
-                contentScale       = ContentScale.Fit
-            )
-        }
-        Spacer(Modifier.width(8.dp))
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(20.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(color)
+        )
+        Spacer(Modifier.width(10.dp))
+        Image(
+            painter            = painterResource(id = emblemRes),
+            contentDescription = "$virtueName emblem",
+            modifier           = Modifier.size(18.dp),
+            contentScale       = ContentScale.Fit
+        )
+        Spacer(Modifier.width(6.dp))
         Text(
             "${virtueName.lowercase().replaceFirstChar { it.uppercase() }} Task",
-            fontWeight = FontWeight.Bold,
-            fontSize   = 14.sp,
-            color      = MaterialTheme.colorScheme.tertiary
+            fontWeight = FontWeight.ExtraBold,
+            fontSize   = 15.sp,
+            color      = MaterialTheme.colorScheme.onSurface,
+            modifier   = Modifier.weight(1f)
         )
-        Spacer(Modifier.width(8.dp))
         Surface(
-            shape = MaterialTheme.shapes.extraSmall,
-            color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+            shape = RoundedCornerShape(20.dp),
+            color = color.copy(alpha = 0.12f)
         ) {
             Text(
-                "+10 pts",
-                modifier   = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                "+10 pts each",
+                modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                 fontSize   = 11.sp,
                 fontWeight = FontWeight.Bold,
-                color      = MaterialTheme.colorScheme.tertiary
+                color      = color
             )
         }
     }
 }
 
 // ---------------------------------------------------------------------------
-// Virtue Task Row — includes virtue emblem badge at the end
+// Unified Task Row — left accent strip instead of full background color
 // ---------------------------------------------------------------------------
 @Composable
-private fun VirtueTaskRow(task: TaskEntity, emblemRes: Int, onCheck: () -> Unit) {
-    val isDone = task.isCompleted
-
-    var checkAnimStarted by remember { mutableStateOf(isDone) }
-    LaunchedEffect(isDone) {
-        if (isDone) {
-            checkAnimStarted = false
-            delay(30)
-            checkAnimStarted = true
-        }
-    }
-    val checkScale by animateFloatAsState(
-        targetValue   = if (isDone && checkAnimStarted) 1f else if (isDone) 0.88f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness    = Spring.StiffnessMedium
-        ),
-        label = "virtue_scale_${task.id}"
-    )
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(checkScale),
-        colors   = CardDefaults.cardColors(
-            containerColor = if (isDone)
-                MaterialTheme.colorScheme.surfaceVariant
-            else
-                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
-        ),
-        elevation = CardDefaults.cardElevation(if (isDone) 0.dp else 2.dp)
-    ) {
-        Row(
-            modifier          = Modifier
-                .fillMaxWidth()
-                .padding(start = 4.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked         = isDone,
-                onCheckedChange = { if (!isDone) onCheck() },
-                enabled         = !isDone
-            )
-            Text(
-                text           = task.title,
-                fontWeight     = if (isDone) FontWeight.Normal else FontWeight.Medium,
-                fontSize       = 14.sp,
-                textDecoration = if (isDone) TextDecoration.LineThrough else null,
-                color          = if (isDone)
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                else
-                    MaterialTheme.colorScheme.onSurface,
-                modifier       = Modifier.weight(1f)
-            )
-            if (!isDone) {
-                Spacer(Modifier.width(8.dp))
-                Image(
-                    painter            = painterResource(id = emblemRes),
-                    contentDescription = null,
-                    modifier           = Modifier.size(20.dp),
-                    contentScale       = ContentScale.Fit
-                )
-                Spacer(Modifier.width(4.dp))
-                Text(
-                    "+10",
-                    fontSize   = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.tertiary
-                )
-            }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Standard Task Row (Core / Optional)
-// ---------------------------------------------------------------------------
-@Composable
-private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
+private fun TaskRow(
+    task        : TaskEntity,
+    accentColor : Color,
+    pts         : String,
+    emblemRes   : Int? = null,
+    onCheck     : () -> Unit
+) {
     val isDone = task.isCompleted
 
     var checkAnimStarted by remember { mutableStateOf(isDone) }
@@ -581,10 +539,11 @@ private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
     )
 
     Card(
-        modifier = Modifier
+        modifier  = Modifier
             .fillMaxWidth()
             .scale(checkScale),
-        colors   = CardDefaults.cardColors(
+        shape     = MaterialTheme.shapes.medium,
+        colors    = CardDefaults.cardColors(
             containerColor = if (isDone)
                 MaterialTheme.colorScheme.surfaceVariant
             else
@@ -593,16 +552,23 @@ private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
         elevation = CardDefaults.cardElevation(if (isDone) 0.dp else 2.dp)
     ) {
         Row(
-            modifier          = Modifier
-                .fillMaxWidth()
-                .padding(start = 4.dp, end = 14.dp, top = 4.dp, bottom = 4.dp),
+            modifier          = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Left accent strip
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .background(if (isDone) accentColor.copy(alpha = 0.25f) else accentColor)
+            )
+
             Checkbox(
                 checked         = isDone,
                 onCheckedChange = { if (!isDone) onCheck() },
                 enabled         = !isDone
             )
+
             Text(
                 text           = task.title,
                 fontWeight     = if (isDone) FontWeight.Normal else FontWeight.Medium,
@@ -612,18 +578,34 @@ private fun TaskRow(task: TaskEntity, isCore: Boolean, onCheck: () -> Unit) {
                     MaterialTheme.colorScheme.onSurfaceVariant
                 else
                     MaterialTheme.colorScheme.onSurface,
-                modifier       = Modifier.weight(1f)
+                modifier       = Modifier.weight(1f).padding(end = 4.dp)
             )
+
             if (!isDone) {
-                Text(
-                    if (isCore) "+10" else "+5",
-                    fontSize   = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color      = if (isCore)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.secondary
-                )
+                // Optional emblem icon for virtue tasks
+                if (emblemRes != null) {
+                    Image(
+                        painter            = painterResource(id = emblemRes),
+                        contentDescription = null,
+                        modifier           = Modifier.size(18.dp),
+                        contentScale       = ContentScale.Fit
+                    )
+                    Spacer(Modifier.width(4.dp))
+                }
+                // Points badge
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = accentColor.copy(alpha = 0.12f),
+                ) {
+                    Text(
+                        pts,
+                        modifier   = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                        fontSize   = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = accentColor
+                    )
+                }
+                Spacer(Modifier.width(10.dp))
             }
         }
     }
@@ -713,37 +695,48 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
                 modifier         = Modifier.size(120.dp).alpha(textAlpha),
                 contentAlignment = Alignment.Center
             ) {
-                Text("✨", fontSize = 22.sp, modifier = Modifier.offset { sparkle1Offset })
-                Text("⭐", fontSize = 18.sp, modifier = Modifier.offset { sparkle2Offset })
-                Text("💫", fontSize = 20.sp, modifier = Modifier.offset { sparkle3Offset })
-            }
-            Box(contentAlignment = Alignment.Center) {
-                Text("🔥", fontSize = 96.sp, modifier = Modifier.scale(flameScale))
                 Text(
-                    "$streakCount",
-                    fontSize   = 36.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color      = Color.White,
-                    modifier   = Modifier.scale(numberScale).offset(y = 14.dp)
+                    "🔥",
+                    fontSize = 80.sp,
+                    modifier = Modifier.scale(flameScale)
                 )
             }
-            Spacer(Modifier.height(12.dp))
+
             Text(
-                "Day $streakCount Streak!",
-                fontSize   = 28.sp,
+                "$streakCount",
+                fontSize   = 72.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color      = Color.White,
-                textAlign  = TextAlign.Center,
+                modifier   = Modifier.scale(numberScale).alpha(textAlpha)
+            )
+            Text(
+                "Day Streak!",
+                fontSize   = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color      = Color.White,
                 modifier   = Modifier.alpha(textAlpha)
             )
-            Spacer(Modifier.height(8.dp))
+        }
+
+        // Sparkles
+        Box(
+            modifier         = Modifier.fillMaxSize().alpha(textAlpha),
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                if (streakCount == 1) "You're on a roll — keep it up!"
-                else "Amazing — $streakCount days in a row!",
-                fontSize  = 15.sp,
-                color     = Color.White.copy(alpha = 0.82f),
-                textAlign = TextAlign.Center,
-                modifier  = Modifier.padding(horizontal = 40.dp).alpha(textAlpha)
+                "✨",
+                fontSize = 28.sp,
+                modifier = Modifier.offset { sparkle1Offset }
+            )
+            Text(
+                "⭐",
+                fontSize = 22.sp,
+                modifier = Modifier.offset { sparkle2Offset }
+            )
+            Text(
+                "✨",
+                fontSize = 20.sp,
+                modifier = Modifier.offset { sparkle3Offset }
             )
         }
     }
