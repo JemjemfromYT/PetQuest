@@ -18,7 +18,6 @@ import androidx.compose.foundation.clickable
 import com.example.petquest.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -46,7 +45,6 @@ import coil.compose.AsyncImage
 import com.example.petquest.data.model.AchievementEntity
 import com.example.petquest.data.model.PetEntity
 import com.example.petquest.data.model.PetType
-import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 import com.example.petquest.worker.ReminderWorker
 import java.util.Locale

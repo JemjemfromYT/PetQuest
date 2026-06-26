@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -217,9 +216,6 @@ fun EventsScreen(viewModel: PetQuestViewModel) {
     val allAchievements    by viewModel.allAchievements.collectAsState()
 
     val allTasksDone = todaysTasks.isNotEmpty() && todaysTasks.all { it.isCompleted }
-    val hasVerifiedPets by remember {
-        derivedStateOf { viewModel.allPets.value.any { it.isVerified } }
-    }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope             = rememberCoroutineScope()
@@ -259,18 +255,17 @@ fun EventsScreen(viewModel: PetQuestViewModel) {
             if (activeEvent != null) {
                 item {
                     ActiveEventBanner(
-                        event           = activeEvent,
-                        today           = today,
-                        allTasksDone    = allTasksDone,
-                        bonusClaimed    = bonusClaimed,
-                        hasVerifiedPets = hasVerifiedPets,
-                        onClaimBonus    = {
+                        event          = activeEvent,
+                        today          = today,
+                        allTasksDone   = allTasksDone,
+                        bonusClaimed   = bonusClaimed,
+                        onClaimBonus   = {
                             viewModel.claimEventBonus(
                                 badgeTitle       = activeEvent.badgeTitle,
                                 badgeDescription = "Badge earned during ${activeEvent.name}"
                             )
                             scope.launch {
-                                snackbarHost.showSnackbar(
+                                snackbarHostState.showSnackbar(
                                     message  = "${activeEvent.emoji} Bonus claimed! +20 bond pts per pet. Badge unlocked!",
                                     duration = SnackbarDuration.Long
                                 )
@@ -278,13 +273,12 @@ fun EventsScreen(viewModel: PetQuestViewModel) {
                         },
                         onTasksNotDone = {
                             scope.launch {
-                                snackbarHost.showSnackbar(
+                                snackbarHostState.showSnackbar(
                                     message  = "Finish all today's tasks first to claim the bonus!",
                                     duration = SnackbarDuration.Short
                                 )
                             }
-                        },
-                        snackbarHost   = snackbarHostState
+                        }
                     )
                 }
 
@@ -326,14 +320,12 @@ fun EventsScreen(viewModel: PetQuestViewModel) {
 
 @Composable
 fun ActiveEventBanner(
-    event          : SeasonalEvent,
-    today          : SimpleDate,
-    allTasksDone   : Boolean,
-    bonusClaimed   : Boolean,
-    hasVerifiedPets: Boolean,
-    onClaimBonus   : () -> Unit,
-    onTasksNotDone : () -> Unit,
-    snackbarHost   : SnackbarHostState
+    event         : SeasonalEvent,
+    today         : SimpleDate,
+    allTasksDone  : Boolean,
+    bonusClaimed  : Boolean,
+    onClaimBonus  : () -> Unit,
+    onTasksNotDone: () -> Unit
 ) {
     val daysLeft      = daysRemainingInEvent(event, today)
     val countdownText = when (daysLeft) {
