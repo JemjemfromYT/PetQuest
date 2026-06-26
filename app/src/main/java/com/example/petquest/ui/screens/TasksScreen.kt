@@ -34,6 +34,27 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 import kotlinx.coroutines.delay
 import java.util.Calendar
 
+// ---------------------------------------------------------------------------
+// Virtue colour lookup — matches VirtueIdentityCard in PetDetailScreen
+// ---------------------------------------------------------------------------
+private fun virtueAccentColor(virtueName: String): Color = when (virtueName.uppercase()) {
+    "COURAGE"    -> Color(0xFFC62828)
+    "JUSTICE"    -> Color(0xFF1565C0)
+    "TEMPERANCE" -> Color(0xFF2E7D32)
+    "WISDOM"     -> Color(0xFF6A1B9A)
+    "LOYALTY"    -> Color(0xFFE65100)
+    else         -> Color(0xFF37474F)
+}
+
+private fun virtueAccentBg(virtueName: String): Color = when (virtueName.uppercase()) {
+    "COURAGE"    -> Color(0xFFFFEBEE)
+    "JUSTICE"    -> Color(0xFFE3F2FD)
+    "TEMPERANCE" -> Color(0xFFE8F5E9)
+    "WISDOM"     -> Color(0xFFF3E5F5)
+    "LOYALTY"    -> Color(0xFFFFF3E0)
+    else         -> Color(0xFFECEFF1)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksScreen(
@@ -66,7 +87,7 @@ fun TasksScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Today's Tasks", fontWeight = FontWeight.Bold) },
+                    title  = { Text("Today's Tasks", fontWeight = FontWeight.Bold) },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
@@ -115,9 +136,10 @@ fun TasksScreen(
                                     verticalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
                                     Box(contentAlignment = Alignment.BottomEnd) {
+                                        // Avatar circle — slightly larger + rarity border hint
                                         Box(
                                             modifier         = Modifier
-                                                .size(36.dp)
+                                                .size(40.dp)
                                                 .clip(CircleShape)
                                                 .background(MaterialTheme.colorScheme.secondaryContainer),
                                             contentAlignment = Alignment.Center
@@ -132,8 +154,8 @@ fun TasksScreen(
                                             } else {
                                                 Text(
                                                     pet.name.take(1).uppercase(),
-                                                    fontSize   = 16.sp,
-                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize   = 18.sp,
+                                                    fontWeight = FontWeight.ExtraBold,
                                                     color      = MaterialTheme.colorScheme.onSecondaryContainer
                                                 )
                                             }
@@ -154,10 +176,24 @@ fun TasksScreen(
                                         maxLines   = 1
                                     )
                                     when {
-                                        isLocked              -> Text("Locked",  fontSize = 10.sp, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.SemiBold)
-                                        petTasks.isEmpty()    -> {}
-                                        allDone               -> Text("✓ Done",  fontSize = 10.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                                        else                  -> Text("$donePet/${petTasks.size}", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        isLocked           -> Text(
+                                            "Locked",
+                                            fontSize   = 10.sp,
+                                            color      = MaterialTheme.colorScheme.error,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        petTasks.isEmpty() -> {}
+                                        allDone            -> Text(
+                                            "✓ Done",
+                                            fontSize   = 10.sp,
+                                            color      = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        else               -> Text(
+                                            "$donePet/${petTasks.size}",
+                                            fontSize = 10.sp,
+                                            color    = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     }
                                 }
                             }
@@ -230,6 +266,11 @@ fun TasksScreen(
                 val virtue    = petTasks.filter { it.type == TaskType.VIRTUE }
                 val optional  = petTasks.filter { it.type == TaskType.OPTIONAL }
                 val doneCount = petTasks.count { it.isCompleted }
+                val allDone   = petTasks.isNotEmpty() && doneCount == petTasks.size
+
+                // Virtue-specific accent — same palette as PetDetailScreen
+                val virtueColor = virtueAccentColor(selectedPet.virtue.name)
+                val virtueBg    = virtueAccentBg(selectedPet.virtue.name)
 
                 if (petTasks.isEmpty()) {
                     Box(
@@ -262,13 +303,14 @@ fun TasksScreen(
                     contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    // ── Slim progress bar ─────────────────────────────────────
+                    // ── Progress card ─────────────────────────────────────────
                     item(key = "progress") {
-                        ProgressBar(
+                        ProgressCard(
                             progress  = taskProgress,
                             done      = doneCount,
                             total     = petTasks.size,
-                            petName   = selectedPet.name
+                            petName   = selectedPet.name,
+                            allDone   = allDone
                         )
                     }
 
@@ -301,13 +343,15 @@ fun TasksScreen(
                             VirtueSectionHeader(
                                 virtueName = selectedPet.virtue.name,
                                 emblemRes  = virtueInfo.emblemRes,
-                                color      = MaterialTheme.colorScheme.tertiary
+                                color      = virtueColor,
+                                bgColor    = virtueBg
                             )
                         }
                         items(virtue, key = { "v_${it.id}" }) { task ->
                             TaskRow(
                                 task        = task,
-                                accentColor = MaterialTheme.colorScheme.tertiary,
+                                accentColor = virtueColor,
+                                cardBg      = virtueBg.copy(alpha = 0.5f),
                                 emblemRes   = virtueInfo.emblemRes
                             ) { viewModel.completeTask(task) }
                         }
@@ -343,40 +387,71 @@ fun TasksScreen(
 }
 
 // ---------------------------------------------------------------------------
-// Slim progress bar row (replaces the bulky Card)
+// Progress card — replaces the slim inline bar; shows done count + pet name
 // ---------------------------------------------------------------------------
 @Composable
-private fun ProgressBar(progress: Float, done: Int, total: Int, petName: String) {
-    Column(
-        modifier          = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+private fun ProgressCard(
+    progress: Float,
+    done    : Int,
+    total   : Int,
+    petName : String,
+    allDone : Boolean
+) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        colors    = CardDefaults.cardColors(
+            containerColor = if (allDone)
+                MaterialTheme.colorScheme.primaryContainer
+            else
+                MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(0.dp),
+        shape     = MaterialTheme.shapes.medium
     ) {
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.CenterVertically
-        ) {
-            Text(
-                "$petName's Progress",
-                fontSize   = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                "$done / $total done",
-                fontSize   = 13.sp,
-                fontWeight = FontWeight.Bold,
-                color      = if (done == total) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment     = Alignment.CenterVertically
+            ) {
+                Text(
+                    if (allDone) "All done! 🎉" else "$petName's Progress",
+                    fontSize   = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color      = if (allDone)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurface
+                )
+                Surface(
+                    shape = RoundedCornerShape(4.dp),
+                    color = if (allDone)
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    else
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        "$done / $total done",
+                        modifier   = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        fontSize   = 12.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color      = if (allDone)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress   = { progress },
+                modifier   = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp)),
+                trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
             )
         }
-        LinearProgressIndicator(
-            progress             = { progress },
-            modifier             = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-            trackColor           = MaterialTheme.colorScheme.surfaceVariant,
-            color                = if (done == total) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-        )
     }
 }
 
@@ -412,14 +487,16 @@ private fun TaskResetTimer() {
 
     Text(
         text     = label,
-        fontSize = 12.sp,
+        fontSize = 11.sp,
         color    = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 2.dp, bottom = 2.dp)
     )
 }
 
 // ---------------------------------------------------------------------------
-// Section header — bold label with left accent bar + pts badge
+// Section header — left accent bar + bold label + pts badge
 // ---------------------------------------------------------------------------
 @Composable
 private fun SectionHeader(label: String, pts: String, color: Color) {
@@ -427,7 +504,6 @@ private fun SectionHeader(label: String, pts: String, color: Color) {
         verticalAlignment = Alignment.CenterVertically,
         modifier          = Modifier.fillMaxWidth()
     ) {
-        // Left accent bar
         Box(
             modifier = Modifier
                 .width(4.dp)
@@ -443,7 +519,6 @@ private fun SectionHeader(label: String, pts: String, color: Color) {
             color      = MaterialTheme.colorScheme.onSurface,
             modifier   = Modifier.weight(1f)
         )
-        // Points badge — right-aligned, subtle
         Surface(
             shape = RoundedCornerShape(20.dp),
             color = color.copy(alpha = 0.12f)
@@ -460,59 +535,71 @@ private fun SectionHeader(label: String, pts: String, color: Color) {
 }
 
 // ---------------------------------------------------------------------------
-// Virtue section header — same layout as SectionHeader + emblem icon
+// Virtue section header — uses per-virtue accent colour
 // ---------------------------------------------------------------------------
 @Composable
-private fun VirtueSectionHeader(virtueName: String, emblemRes: Int, color: Color) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier          = Modifier.fillMaxWidth()
+private fun VirtueSectionHeader(
+    virtueName : String,
+    emblemRes  : Int,
+    color      : Color,
+    bgColor    : Color
+) {
+    Surface(
+        shape  = MaterialTheme.shapes.small,
+        color  = bgColor,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(20.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(color)
-        )
-        Spacer(Modifier.width(10.dp))
-        Image(
-            painter            = painterResource(id = emblemRes),
-            contentDescription = "$virtueName emblem",
-            modifier           = Modifier.size(18.dp),
-            contentScale       = ContentScale.Fit
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            "${virtueName.lowercase().replaceFirstChar { it.uppercase() }} Task",
-            fontWeight = FontWeight.ExtraBold,
-            fontSize   = 15.sp,
-            color      = MaterialTheme.colorScheme.onSurface,
-            modifier   = Modifier.weight(1f)
-        )
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = color.copy(alpha = 0.12f)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier          = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
         ) {
-            Text(
-                "+10 pts each",
-                modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                fontSize   = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color      = color
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(20.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(color)
             )
+            Spacer(Modifier.width(10.dp))
+            Image(
+                painter            = painterResource(id = emblemRes),
+                contentDescription = "$virtueName emblem",
+                modifier           = Modifier.size(18.dp),
+                contentScale       = ContentScale.Fit
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                "${virtueName.lowercase().replaceFirstChar { it.uppercase() }} Task",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize   = 15.sp,
+                color      = color,
+                modifier   = Modifier.weight(1f)
+            )
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = color.copy(alpha = 0.15f)
+            ) {
+                Text(
+                    "+10 pts each",
+                    modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = color
+                )
+            }
         }
     }
 }
 
 // ---------------------------------------------------------------------------
-// Unified Task Row — left accent strip instead of full background color
+// Task Row — coloured checkbox + accent left strip
 // ---------------------------------------------------------------------------
 @Composable
 private fun TaskRow(
     task        : TaskEntity,
     accentColor : Color,
-    emblemRes   : Int? = null,
+    cardBg      : Color  = Color.Unspecified,
+    emblemRes   : Int?   = null,
     onCheck     : () -> Unit
 ) {
     val isDone = task.isCompleted
@@ -523,24 +610,25 @@ private fun TaskRow(
         label         = "task_alpha_${task.id}"
     )
 
+    val resolvedBg = when {
+        isDone      -> MaterialTheme.colorScheme.surfaceVariant
+        cardBg != Color.Unspecified -> cardBg
+        else        -> MaterialTheme.colorScheme.surface
+    }
+
     Card(
         modifier  = Modifier
             .fillMaxWidth()
             .alpha(cardAlpha),
         shape     = MaterialTheme.shapes.medium,
-        colors    = CardDefaults.cardColors(
-            containerColor = if (isDone)
-                MaterialTheme.colorScheme.surfaceVariant
-            else
-                MaterialTheme.colorScheme.surface
-        ),
+        colors    = CardDefaults.cardColors(containerColor = resolvedBg),
         elevation = CardDefaults.cardElevation(if (isDone) 0.dp else 2.dp)
     ) {
         Row(
             modifier          = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left accent strip
+            // Left accent strip — dims when done
             Box(
                 modifier = Modifier
                     .width(4.dp)
@@ -548,10 +636,18 @@ private fun TaskRow(
                     .background(if (isDone) accentColor.copy(alpha = 0.25f) else accentColor)
             )
 
+            // ── Coloured checkbox — matches the section accent ──────────────
             Checkbox(
                 checked         = isDone,
                 onCheckedChange = { if (!isDone) onCheck() },
-                enabled         = !isDone
+                enabled         = !isDone,
+                colors          = CheckboxDefaults.colors(
+                    checkedColor           = accentColor,
+                    checkmarkColor         = Color.White,
+                    uncheckedColor         = accentColor.copy(alpha = 0.55f),
+                    disabledCheckedColor   = accentColor.copy(alpha = 0.38f),
+                    disabledUncheckedColor = accentColor.copy(alpha = 0.18f)
+                )
             )
 
             Text(
@@ -563,7 +659,9 @@ private fun TaskRow(
                     MaterialTheme.colorScheme.onSurfaceVariant
                 else
                     MaterialTheme.colorScheme.onSurface,
-                modifier       = Modifier.weight(1f).padding(end = 4.dp)
+                modifier       = Modifier
+                    .weight(1f)
+                    .padding(end = 4.dp, top = 14.dp, bottom = 14.dp)
             )
 
             if (!isDone && emblemRes != null) {
