@@ -159,17 +159,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
             ScrollableTabRow(
                 selectedTabIndex = rarityTabs.indexOf(selectedRarity),
                 edgePadding      = 16.dp,
-                containerColor   = MaterialTheme.colorScheme.surface,
-                indicator        = { tabPositions ->
-                    val index = rarityTabs.indexOf(selectedRarity)
-                    if (index in tabPositions.indices) {
-                        TabRowDefaults.SecondaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[index]),
-                            color    = if (selectedRarity == null) Color(0xFFFF8C42)
-                            else encyclopediaRarityColor(selectedRarity!!)
-                        )
-                    }
-                }
+                containerColor   = MaterialTheme.colorScheme.surface
             ) {
                 rarityTabs.forEachIndexed { index, rarity ->
                     val tabColor = if (rarity == null)

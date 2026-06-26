@@ -911,7 +911,7 @@ private fun PetMemoryTimeline(petName: String, memories: List<PetMemory>) {
 // LevelUpDialog — unchanged from original
 // ---------------------------------------------------------------------------
 @Composable
-private fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
+fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
     val isMilestone = event.newLevel % 5 == 0
 
     var phase by remember { mutableIntStateOf(0) }
