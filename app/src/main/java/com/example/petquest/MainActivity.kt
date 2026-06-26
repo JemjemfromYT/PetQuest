@@ -199,7 +199,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                     onNavigateToProfile = { tab = 5 }
                 )
                 2 -> EncyclopediaScreen(viewModel)
-                3 -> AchievementsScreen(
+                3 -> AwardsScreen(
                     viewModel         = viewModel,
                     onNavigateToTasks = { tab = 1 }
                 )

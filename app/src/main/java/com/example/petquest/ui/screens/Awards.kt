@@ -1,5 +1,5 @@
 // ============================================================
-// FILE: app/src/main/java/com/example/petquest/ui/screens/AchievementsScreen.kt
+// FILE: app/src/main/java/com/example/petquest/ui/screens/AwardsScreen.kt
 //
 // REDESIGN: Awards screen
 //
@@ -236,7 +236,7 @@ private sealed interface GridItem {
 // ── Main screen ───────────────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AchievementsScreen(
+fun AwardsScreen(
     viewModel        : PetQuestViewModel,
     onNavigateToTasks: () -> Unit = {}
 ) {
@@ -608,3 +608,4 @@ private fun AchievementTile(
         }
     }
 }
+    
