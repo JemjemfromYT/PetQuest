@@ -453,7 +453,7 @@ private fun formatTime(hour: Int, minute: Int): String {
 @Composable
 private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
     val rarityColor = when (pet.type.rarity.name) {
-        "COMMON"   -> MaterialTheme.colorScheme.tertiary
+        "COMMON"   -> Color(0xFF9E9E9E)
         "UNCOMMON" -> MaterialTheme.colorScheme.secondary
         "RARE"     -> MaterialTheme.colorScheme.primary
         else       -> MaterialTheme.colorScheme.error

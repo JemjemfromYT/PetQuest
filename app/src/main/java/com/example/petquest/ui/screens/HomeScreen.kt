@@ -126,7 +126,7 @@ fun StatCard(
 // ---------------------------------------------------------------------------
 @Composable
 private fun rarityAccentColor(rarityName: String): Color = when (rarityName) {
-    "COMMON"   -> MaterialTheme.colorScheme.tertiary
+    "COMMON"   -> Color(0xFF9E9E9E)
     "UNCOMMON" -> MaterialTheme.colorScheme.secondary
     "RARE"     -> MaterialTheme.colorScheme.primary
     else       -> MaterialTheme.colorScheme.error

@@ -319,7 +319,7 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
 
 @Composable
 fun encyclopediaRarityColor(rarity: Rarity): Color = when (rarity) {
-    Rarity.COMMON   -> MaterialTheme.colorScheme.tertiary
+    Rarity.COMMON   -> Color(0xFF9E9E9E)
     Rarity.UNCOMMON -> MaterialTheme.colorScheme.secondary
     Rarity.RARE     -> MaterialTheme.colorScheme.primary
     Rarity.EPIC     -> MaterialTheme.colorScheme.error
