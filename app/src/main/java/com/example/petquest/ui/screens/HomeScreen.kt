@@ -42,7 +42,7 @@ import coil.compose.AsyncImage
 import com.example.petquest.R
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
-import java.time.LocalDate
+// java.time not used — SimpleDate helpers are in EventsScreen.kt
 
 // ---------------------------------------------------------------------------
 // petEmoji — species identity placeholder when no photo exists
@@ -274,7 +274,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     val userLevel       by viewModel.userLevel.collectAsState()
 
     // ── Check for active seasonal event ──────────────────────────────────────
-    val today        = remember { LocalDate.now() }
+    val today        = remember { todaySimpleDate() }
     val activeEvent  = remember { getActiveEvent(today) }
 
     val doneTasks    = tasks.count { it.isCompleted }
