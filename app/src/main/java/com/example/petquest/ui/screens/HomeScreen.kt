@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,7 +36,7 @@ import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 
 // ---------------------------------------------------------------------------
-// petEmoji
+// petEmoji — species identity placeholder when no photo exists
 // ---------------------------------------------------------------------------
 fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
     "DOG"        -> "🐶"
@@ -80,7 +81,7 @@ fun trainerTitle(level: Int): String = when {
 }
 
 // ---------------------------------------------------------------------------
-// StatCard — used by ProfileScreen (unchanged)
+// StatCard — used by ProfileScreen
 // ---------------------------------------------------------------------------
 @Composable
 fun StatCard(
@@ -144,7 +145,8 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     val totalBondPoints by viewModel.totalBondPoints.collectAsState()
     val userLevel       by viewModel.userLevel.collectAsState()
 
-    val doneTasks = tasks.count { it.isCompleted }
+    val doneTasks    = tasks.count { it.isCompleted }
+    val streakActive = doneTasks > 0 || tasks.isEmpty()
 
     val todayProgress by animateFloatAsState(
         targetValue   = if (tasks.isEmpty()) 0f else doneTasks / tasks.size.toFloat(),
@@ -167,37 +169,48 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding      = PaddingValues(vertical = 12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            contentPadding      = PaddingValues(vertical = 16.dp)
         ) {
-            // ── Stat chips + daily progress ───────────────────────────────────
+            // ── Top statistics row ────────────────────────────────────────────
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
-                        modifier          = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Streak chip — goes gray when no tasks done today
-                        CompactStatChip(
-                            iconRes = R.drawable.ic_streak,
-                            value   = "$streak",
-                            dimmed  = doneTasks == 0 && tasks.isNotEmpty()
+                        HomeStatCard(
+                            value    = "$streak",
+                            label    = "Streak",
+                            dimmed   = !streakActive,
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(Modifier.width(8.dp))
-                        // Bond points chip
-                        CompactStatChip(
-                            iconRes = R.drawable.ic_bondpoints,
-                            value   = "$totalBondPoints"
+                        HomeStatCard(
+                            value    = "$totalBondPoints",
+                            label    = "Bond Points",
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(Modifier.width(8.dp))
-                        // Level chip
-                        CompactStatChip(
-                            iconRes = R.drawable.ic_level,
-                            value   = "Lv.$userLevel"
+                        HomeStatCard(
+                            value    = "Lv.$userLevel",
+                            label    = "Level",
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(Modifier.weight(1f))
-                        // Daily task count
-                        if (tasks.isNotEmpty()) {
+                    }
+
+                    if (tasks.isNotEmpty()) {
+                        Row(
+                            modifier              = Modifier.fillMaxWidth(),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            LinearProgressIndicator(
+                                progress   = { todayProgress },
+                                modifier   = Modifier
+                                    .weight(1f)
+                                    .height(4.dp)
+                                    .clip(RoundedCornerShape(2.dp)),
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
                             Text(
                                 "$doneTasks / ${tasks.size}",
                                 fontSize   = 12.sp,
@@ -208,21 +221,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                    }
-                    // Thin daily progress bar
-                    if (tasks.isNotEmpty()) {
-                        LinearProgressIndicator(
-                            progress   = { todayProgress },
-                            modifier   = Modifier
-                                .fillMaxWidth()
-                                .height(3.dp)
-                                .clip(RoundedCornerShape(2.dp)),
-                            color      = if (doneTasks == 0)
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
-                            else
-                                MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
                     }
                 }
             }
@@ -241,6 +239,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
             } else {
                 // ── Pet cards ─────────────────────────────────────────────────
                 itemsIndexed(pets) { index, pet ->
+                    val virtueInfo    = VirtueConfig[pet.virtue]
                     val isVerified    = pet.isVerified
                     val hasGoldBorder = pet.bondLevel >= 20
                     val accentColor   = rarityAccentColor(pet.type.rarity.name)
@@ -261,7 +260,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         label         = "pet_offset_$index"
                     )
                     val interactionSource = remember { MutableInteractionSource() }
-                    val isPressed by interactionSource.collectIsPressedAsState()
+                    val isPressed         by interactionSource.collectIsPressedAsState()
                     val cardScale by animateFloatAsState(
                         targetValue   = if (isPressed) 0.97f else 1f,
                         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
@@ -283,7 +282,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 interactionSource = interactionSource,
                                 indication        = null
                             ) { navController.navigate("pet_detail/${pet.id}") },
-                        elevation = CardDefaults.cardElevation(if (isVerified) 4.dp else 0.dp),
+                        elevation = CardDefaults.cardElevation(if (isVerified) 3.dp else 0.dp),
                         colors    = CardDefaults.cardColors(
                             containerColor = if (isVerified)
                                 MaterialTheme.colorScheme.surface
@@ -291,12 +290,15 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 MaterialTheme.colorScheme.surfaceVariant
                         )
                     ) {
-                        Row(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier          = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             // Rarity accent strip
                             Box(
                                 modifier = Modifier
                                     .width(4.dp)
-                                    .height(96.dp)
+                                    .height(88.dp)
                                     .background(accentColor)
                             )
 
@@ -304,7 +306,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             Box(
                                 modifier         = Modifier
                                     .padding(12.dp)
-                                    .size(72.dp)
+                                    .size(64.dp)
                                     .then(
                                         if (hasGoldBorder)
                                             Modifier.border(
@@ -334,10 +336,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(petEmoji(pet.type.name), fontSize = 42.sp)
+                                        Text(petEmoji(pet.type.name), fontSize = 36.sp)
                                     }
                                 }
-                                // Lock overlay for unverified pets
                                 if (!isVerified) {
                                     Box(
                                         modifier         = Modifier
@@ -349,7 +350,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                             imageVector        = Icons.Default.Lock,
                                             contentDescription = "Unverified",
                                             tint               = Color.White,
-                                            modifier           = Modifier.size(22.dp)
+                                            modifier           = Modifier.size(20.dp)
                                         )
                                     }
                                 }
@@ -359,35 +360,45 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(top = 12.dp, end = 12.dp, bottom = 10.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    .padding(top = 10.dp, end = 12.dp, bottom = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
-                                // Name
-                                Text(
-                                    pet.name,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize   = 17.sp,
-                                    maxLines   = 1,
-                                    overflow   = TextOverflow.Ellipsis
-                                )
+                                // Name + verified shield
+                                Row(
+                                    verticalAlignment     = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Text(
+                                        pet.name,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize   = 16.sp,
+                                        maxLines   = 1,
+                                        overflow   = TextOverflow.Ellipsis,
+                                        modifier   = Modifier.weight(1f, fill = false)
+                                    )
+                                    if (isVerified) {
+                                        Icon(
+                                            imageVector        = Icons.Default.Shield,
+                                            contentDescription = "Verified",
+                                            tint               = MaterialTheme.colorScheme.tertiary,
+                                            modifier           = Modifier.size(13.dp)
+                                        )
+                                    }
+                                }
 
-                                // Rarity label + level
+                                // Rarity · Level
                                 Row(
                                     verticalAlignment     = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    Surface(
-                                        shape = MaterialTheme.shapes.extraSmall,
-                                        color = accentColor.copy(alpha = 0.15f)
-                                    ) {
-                                        Text(
-                                            pet.type.rarity.name,
-                                            modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                                            fontSize   = 9.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color      = accentColor
-                                        )
-                                    }
+                                    Text(
+                                        pet.type.rarity.name.lowercase()
+                                            .replaceFirstChar { it.uppercase() },
+                                        fontSize   = 10.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color      = accentColor.copy(alpha = 0.75f)
+                                    )
+                                    Text("·", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Text(
                                         "Lv.${pet.bondLevel}",
                                         fontSize   = 12.sp,
@@ -406,16 +417,30 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         .height(4.dp)
                                         .clip(RoundedCornerShape(2.dp)),
                                     color      = accentColor,
-                                    trackColor = accentColor.copy(alpha = 0.15f)
+                                    trackColor = accentColor.copy(alpha = 0.12f)
                                 )
 
-                                // Unverified note
-                                if (!isVerified) {
-                                    Text(
-                                        "Needs a photo",
-                                        fontSize   = 10.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color      = MaterialTheme.colorScheme.error
+                                // Virtue emblem + unverified note
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth(),
+                                    verticalAlignment     = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    if (!isVerified) {
+                                        Text(
+                                            "Needs a photo",
+                                            fontSize   = 10.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color      = MaterialTheme.colorScheme.error
+                                        )
+                                    } else {
+                                        Spacer(Modifier.width(1.dp))
+                                    }
+                                    Image(
+                                        painter            = painterResource(id = virtueInfo.emblemRes),
+                                        contentDescription = null,
+                                        modifier           = Modifier.size(20.dp),
+                                        contentScale       = ContentScale.Fit
                                     )
                                 }
                             }
@@ -428,36 +453,55 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 }
 
 // ---------------------------------------------------------------------------
-// CompactStatChip — original pill style with drawable icon
+// HomeStatCard — large centered stat card (no icon)
 // ---------------------------------------------------------------------------
 @Composable
-private fun CompactStatChip(iconRes: Int, value: String, dimmed: Boolean = false) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = if (dimmed)
-            MaterialTheme.colorScheme.surfaceVariant
-        else
-            MaterialTheme.colorScheme.secondaryContainer
+private fun HomeStatCard(
+    value    : String,
+    label    : String,
+    dimmed   : Boolean = false,
+    modifier : Modifier = Modifier
+) {
+    val containerColor = if (dimmed)
+        MaterialTheme.colorScheme.surfaceVariant
+    else
+        MaterialTheme.colorScheme.secondaryContainer
+    val valueColor = if (dimmed)
+        MaterialTheme.colorScheme.onSurfaceVariant
+    else
+        MaterialTheme.colorScheme.onSecondaryContainer
+    val labelColor = if (dimmed)
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    else
+        MaterialTheme.colorScheme.onSurfaceVariant
+
+    Card(
+        modifier  = modifier,
+        shape     = MaterialTheme.shapes.medium,
+        colors    = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
-        Row(
-            modifier              = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        Column(
+            modifier            = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 14.dp, horizontal = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter            = painterResource(id = iconRes),
-                contentDescription = null,
-                modifier           = Modifier.size(14.dp),
-                contentScale       = ContentScale.Fit
-            )
             Text(
-                value,
-                fontSize   = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color      = if (dimmed)
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                else
-                    MaterialTheme.colorScheme.onSecondaryContainer
+                text       = value,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize   = 22.sp,
+                color      = valueColor,
+                maxLines   = 1
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text       = label,
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color      = labelColor,
+                maxLines   = 1
             )
         }
     }
@@ -497,10 +541,7 @@ fun EmptyStateCard(
                 color     = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
-            Button(
-                onClick  = onAction,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Button(onClick = onAction, modifier = Modifier.fillMaxWidth()) {
                 Text(actionLabel, fontWeight = FontWeight.Bold)
             }
         }
