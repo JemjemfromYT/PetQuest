@@ -180,17 +180,20 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         HomeStatCard(
+                            iconRes  = R.drawable.ic_streak,
                             value    = "$streak",
                             label    = "Streak",
                             dimmed   = !streakActive,
                             modifier = Modifier.weight(1f)
                         )
                         HomeStatCard(
+                            iconRes  = R.drawable.ic_bondpoints,
                             value    = "$totalBondPoints",
                             label    = "Bond Points",
                             modifier = Modifier.weight(1f)
                         )
                         HomeStatCard(
+                            iconRes  = R.drawable.ic_level,
                             value    = "Lv.$userLevel",
                             label    = "Level",
                             modifier = Modifier.weight(1f)
@@ -457,6 +460,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 // ---------------------------------------------------------------------------
 @Composable
 private fun HomeStatCard(
+    iconRes  : Int,
     value    : String,
     label    : String,
     dimmed   : Boolean = false,
@@ -484,21 +488,30 @@ private fun HomeStatCard(
         Column(
             modifier            = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 14.dp, horizontal = 10.dp),
+                .padding(vertical = 12.dp, horizontal = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Image(
+                painter            = painterResource(id = iconRes),
+                contentDescription = label,
+                modifier           = Modifier
+                    .size(20.dp)
+                    .alpha(if (dimmed) 0.4f else 1f),
+                contentScale       = ContentScale.Fit
+            )
+            Spacer(Modifier.height(4.dp))
             Text(
                 text       = value,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize   = 22.sp,
+                fontSize   = 20.sp,
                 color      = valueColor,
                 maxLines   = 1
             )
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(1.dp))
             Text(
                 text       = label,
-                fontSize   = 11.sp,
+                fontSize   = 10.sp,
                 fontWeight = FontWeight.Medium,
                 color      = labelColor,
                 maxLines   = 1
