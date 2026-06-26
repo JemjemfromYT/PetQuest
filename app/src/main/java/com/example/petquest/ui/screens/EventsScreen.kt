@@ -470,9 +470,9 @@ fun ActiveEventBanner(
                     onClick = {
                         if (!claimedBonus) {
                             onClaimBonus()
-                            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                            scope.launch {
                                 snackbarHost.showSnackbar(
-                                    message = "${event.emoji} Daily event bonus claimed! Come back tomorrow.",
+                                    message  = "${event.emoji} Daily event bonus claimed! Come back tomorrow.",
                                     duration = SnackbarDuration.Short
                                 )
                             }

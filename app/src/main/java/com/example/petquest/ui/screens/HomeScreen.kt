@@ -746,14 +746,18 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         verticalAlignment     = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            virtueInfo.displayName,
+                                            pet.virtue.name
+                                                .lowercase()
+                                                .replaceFirstChar { it.uppercaseChar() },
                                             fontSize = 11.sp,
                                             color    = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Spacer(Modifier.width(4.dp))
-                                        Text(
-                                            virtueInfo.emblem,
-                                            fontSize = 14.sp
+                                        Image(
+                                            painter            = painterResource(virtueInfo.emblemRes),
+                                            contentDescription = pet.virtue.name,
+                                            modifier           = Modifier.size(14.dp),
+                                            contentScale       = ContentScale.Fit
                                         )
                                     }
                                 }
