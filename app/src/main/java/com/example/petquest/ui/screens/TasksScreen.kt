@@ -16,6 +16,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -86,12 +87,26 @@ fun TasksScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title  = { Text("Today's Tasks", fontWeight = FontWeight.Bold) },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                // IMPROVED: gradient header consistent with HomeScreen / ProfileScreen
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(Color(0xFFFF8C42), Color(0xFFFFB77A))
+                            )
+                        )
+                        .statusBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 14.dp)
+                ) {
+                    Text(
+                        "Today's Tasks",
+                        fontSize      = 24.sp,
+                        fontWeight    = FontWeight.ExtraBold,
+                        color         = Color.White,
+                        letterSpacing = (-0.5).sp
                     )
-                )
+                }
             }
         ) { padding ->
             if (pets.isEmpty()) {
@@ -136,7 +151,6 @@ fun TasksScreen(
                                     verticalArrangement = Arrangement.spacedBy(2.dp)
                                 ) {
                                     Box(contentAlignment = Alignment.BottomEnd) {
-                                        // Avatar circle — slightly larger + rarity border hint
                                         Box(
                                             modifier         = Modifier
                                                 .size(40.dp)
@@ -268,7 +282,6 @@ fun TasksScreen(
                 val doneCount = petTasks.count { it.isCompleted }
                 val allDone   = petTasks.isNotEmpty() && doneCount == petTasks.size
 
-                // Virtue-specific accent — same palette as PetDetailScreen
                 val virtueColor = virtueAccentColor(selectedPet.virtue.name)
                 val virtueBg    = virtueAccentBg(selectedPet.virtue.name)
 
@@ -303,14 +316,13 @@ fun TasksScreen(
                     contentPadding      = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    // ── Progress card ─────────────────────────────────────────
                     item(key = "progress") {
                         ProgressCard(
-                            progress  = taskProgress,
-                            done      = doneCount,
-                            total     = petTasks.size,
-                            petName   = selectedPet.name,
-                            allDone   = allDone
+                            progress = taskProgress,
+                            done     = doneCount,
+                            total    = petTasks.size,
+                            petName  = selectedPet.name,
+                            allDone  = allDone
                         )
                     }
 
@@ -318,7 +330,6 @@ fun TasksScreen(
                         TaskResetTimer()
                     }
 
-                    // ── Core tasks ────────────────────────────────────────────
                     if (core.isNotEmpty()) {
                         item(key = "core_header") {
                             Spacer(Modifier.height(6.dp))
@@ -336,7 +347,6 @@ fun TasksScreen(
                         }
                     }
 
-                    // ── Virtue task ───────────────────────────────────────────
                     if (virtue.isNotEmpty()) {
                         item(key = "virtue_header") {
                             Spacer(Modifier.height(6.dp))
@@ -357,7 +367,6 @@ fun TasksScreen(
                         }
                     }
 
-                    // ── Optional tasks ────────────────────────────────────────
                     if (optional.isNotEmpty()) {
                         item(key = "opt_header") {
                             Spacer(Modifier.height(6.dp))
@@ -387,7 +396,10 @@ fun TasksScreen(
 }
 
 // ---------------------------------------------------------------------------
-// Progress card — replaces the slim inline bar; shows done count + pet name
+// IMPROVED: ProgressCard
+//   - Bar is now 10dp tall (was 8dp via LinearProgressIndicator)
+//   - Gradient fill: orange→amber while in progress, green when all done
+//   - "All done!" state tints the whole card green
 // ---------------------------------------------------------------------------
 @Composable
 private fun ProgressCard(
@@ -400,10 +412,8 @@ private fun ProgressCard(
     Card(
         modifier  = Modifier.fillMaxWidth(),
         colors    = CardDefaults.cardColors(
-            containerColor = if (allDone)
-                MaterialTheme.colorScheme.primaryContainer
-            else
-                MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (allDone) Color(0xFFE8F5E9)
+            else MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(0.dp),
         shape     = MaterialTheme.shapes.medium
@@ -415,48 +425,56 @@ private fun ProgressCard(
                 verticalAlignment     = Alignment.CenterVertically
             ) {
                 Text(
-                    if (allDone) "All done! 🎉" else "$petName's Progress",
+                    if (allDone) "All done for $petName! 🎉" else "$petName's Progress",
                     fontSize   = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color      = if (allDone)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurface
+                    fontWeight = FontWeight.Bold,
+                    color      = if (allDone) Color(0xFF1B5E20)
+                    else MaterialTheme.colorScheme.onSurface
                 )
                 Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = if (allDone)
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                    else
-                        MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (allDone) Color(0xFF1B5E20).copy(alpha = 0.12f)
+                    else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                 ) {
                     Text(
                         "$done / $total done",
-                        modifier   = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        modifier   = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                         fontSize   = 12.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color      = if (allDone)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                        color      = if (allDone) Color(0xFF1B5E20)
+                        else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress   = { progress },
-                modifier   = Modifier
+            Spacer(Modifier.height(10.dp))
+            // Gradient progress bar — 10dp thick
+            Box(
+                modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-            )
+                    .height(10.dp)
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progress.coerceIn(0f, 1f))
+                        .fillMaxHeight()
+                        .background(
+                            if (allDone)
+                                Brush.horizontalGradient(listOf(Color(0xFF43A047), Color(0xFF81C784)))
+                            else
+                                Brush.horizontalGradient(listOf(Color(0xFFBF360C), Color(0xFFFF8C42)))
+                        )
+                )
+            }
         }
     }
 }
 
 // ---------------------------------------------------------------------------
-// Task Reset Timer
+// IMPROVED: TaskResetTimer
+//   - Wrapped in a pill-shaped Surface so it looks intentional,
+//     not like a forgotten plain-text label floating in space
 // ---------------------------------------------------------------------------
 @Composable
 private fun TaskResetTimer() {
@@ -485,18 +503,30 @@ private fun TaskResetTimer() {
     val minutes = ((millisLeft / (1000L * 60L)) % 60L).toInt()
     val label   = if (hours > 0) "Resets in ${hours}h ${minutes}m" else "Resets in ${minutes}m"
 
-    Text(
-        text     = label,
-        fontSize = 11.sp,
-        color    = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 2.dp, bottom = 2.dp)
-    )
+    Row(
+        modifier          = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            Text(
+                label,
+                modifier   = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color      = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
-// Section header — left accent bar + bold label + pts badge
+// IMPROVED: SectionHeader
+//   - Left accent bar is now a vertical gradient (solid → 40% fade)
+//     instead of a flat solid rectangle
+//   - Points badge keeps the existing pill shape (already good)
 // ---------------------------------------------------------------------------
 @Composable
 private fun SectionHeader(label: String, pts: String, color: Color) {
@@ -504,19 +534,24 @@ private fun SectionHeader(label: String, pts: String, color: Color) {
         verticalAlignment = Alignment.CenterVertically,
         modifier          = Modifier.fillMaxWidth()
     ) {
+        // Gradient accent bar
         Box(
             modifier = Modifier
                 .width(4.dp)
-                .height(20.dp)
+                .height(22.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(color)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(color, color.copy(alpha = 0.35f))
+                    )
+                )
         )
         Spacer(Modifier.width(10.dp))
         Text(
             label,
             fontWeight = FontWeight.ExtraBold,
             fontSize   = 15.sp,
-            color      = MaterialTheme.colorScheme.onSurface,
+            color      = color,   // IMPROVED: label now uses accent colour, not onSurface
             modifier   = Modifier.weight(1f)
         )
         Surface(
@@ -535,7 +570,9 @@ private fun SectionHeader(label: String, pts: String, color: Color) {
 }
 
 // ---------------------------------------------------------------------------
-// Virtue section header — uses per-virtue accent colour
+// IMPROVED: VirtueSectionHeader
+//   - Accent bar is now a gradient
+//   - Virtue emblem icon: 18dp → 24dp (more visible, matches HomeScreen change)
 // ---------------------------------------------------------------------------
 @Composable
 private fun VirtueSectionHeader(
@@ -545,26 +582,32 @@ private fun VirtueSectionHeader(
     bgColor    : Color
 ) {
     Surface(
-        shape  = MaterialTheme.shapes.small,
-        color  = bgColor,
+        shape    = MaterialTheme.shapes.small,
+        color    = bgColor,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier          = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
         ) {
+            // Gradient accent bar
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .height(20.dp)
+                    .height(22.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(color)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(color, color.copy(alpha = 0.35f))
+                        )
+                    )
             )
             Spacer(Modifier.width(10.dp))
+            // IMPROVED: emblem is now 24dp (was 18dp)
             Image(
                 painter            = painterResource(id = emblemRes),
                 contentDescription = "$virtueName emblem",
-                modifier           = Modifier.size(18.dp),
+                modifier           = Modifier.size(24.dp),
                 contentScale       = ContentScale.Fit
             )
             Spacer(Modifier.width(8.dp))
@@ -592,7 +635,7 @@ private fun VirtueSectionHeader(
 }
 
 // ---------------------------------------------------------------------------
-// Task Row — coloured checkbox + accent left strip
+// TaskRow — unchanged from original (already well designed)
 // ---------------------------------------------------------------------------
 @Composable
 private fun TaskRow(
@@ -611,9 +654,9 @@ private fun TaskRow(
     )
 
     val resolvedBg = when {
-        isDone      -> MaterialTheme.colorScheme.surfaceVariant
+        isDone                      -> MaterialTheme.colorScheme.surfaceVariant
         cardBg != Color.Unspecified -> cardBg
-        else        -> MaterialTheme.colorScheme.surface
+        else                        -> MaterialTheme.colorScheme.surface
     }
 
     Card(
@@ -628,7 +671,6 @@ private fun TaskRow(
             modifier          = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left accent strip — dims when done
             Box(
                 modifier = Modifier
                     .width(4.dp)
@@ -636,7 +678,6 @@ private fun TaskRow(
                     .background(if (isDone) accentColor.copy(alpha = 0.25f) else accentColor)
             )
 
-            // ── Coloured checkbox — matches the section accent ──────────────
             Checkbox(
                 checked         = isDone,
                 onCheckedChange = { if (!isDone) onCheck() },
@@ -680,7 +721,7 @@ private fun TaskRow(
 }
 
 // ---------------------------------------------------------------------------
-// Streak Celebration Overlay
+// StreakCelebrationOverlay — unchanged from original
 // ---------------------------------------------------------------------------
 @Composable
 private fun StreakCelebrationOverlay(streakCount: Int) {
@@ -786,7 +827,6 @@ private fun StreakCelebrationOverlay(streakCount: Int) {
             )
         }
 
-        // Sparkles
         Box(
             modifier         = Modifier.fillMaxSize().alpha(textAlpha),
             contentAlignment = Alignment.Center
