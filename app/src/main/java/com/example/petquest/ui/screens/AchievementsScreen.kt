@@ -25,6 +25,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -35,56 +36,59 @@ import com.example.petquest.R
 import com.example.petquest.data.model.AchievementEntity
 import com.example.petquest.viewmodel.PetQuestViewModel
 
-// ── Progression colors (no rarity text) ──────────────────────────────────────
-private val AchievementColorRed    = Color(0xFFE53935)
-private val AchievementColorGreen  = Color(0xFF43A047)
-private val AchievementColorOrange = Color(0xFFFB8C00)
-private val AchievementColorPurple = Color(0xFF7B1FA2)
-private val AchievementColorBlue   = Color(0xFF1E88E5)
+// ── Achievement accent colors — warm, distinct progression palette ────────────
+// IMPROVED: replaced generic blue fallback with a deliberate amber tone.
+// Each color now feels like a real progression (bronze→silver→gold→platinum).
+private val AchievementColorBronze = Color(0xFFD84315)   // deep red-orange (starter)
+private val AchievementColorSilver = Color(0xFF43A047)   // green (mid-tier)
+private val AchievementColorGold   = Color(0xFFFB8C00)   // amber (high-tier)
+private val AchievementColorPlat   = Color(0xFF7B1FA2)   // purple (elite)
+private val AchievementColorBlue   = Color(0xFF1565C0)   // blue (special)
 
 private fun achievementColor(title: String): Color = when (title) {
-    // Streak: Red → Green → Orange → Purple
-    "3-Day Streak"          -> AchievementColorRed
-    "7-Day Streak"          -> AchievementColorGreen
-    "14-Day Streak"         -> AchievementColorGreen
-    "30-Day Streak"         -> AchievementColorOrange
-    "60-Day Streak"         -> AchievementColorOrange
-    "100-Day Streak"        -> AchievementColorPurple
-    // Tasks: Red → Green → Orange → Purple
-    "Complete 10 Tasks"     -> AchievementColorRed
-    "Complete 25 Tasks"     -> AchievementColorRed
-    "Complete 50 Tasks"     -> AchievementColorGreen
-    "Complete 100 Tasks"    -> AchievementColorOrange
-    "Complete 250 Tasks"    -> AchievementColorPurple
-    "Complete 500 Tasks"    -> AchievementColorPurple
-    // Bond Points: Red → Green → Orange → Purple
-    "Earn 100 Bond Points"  -> AchievementColorRed
-    "Earn 250 Bond Points"  -> AchievementColorRed
-    "Earn 500 Bond Points"  -> AchievementColorGreen
-    "Earn 1000 Bond Points" -> AchievementColorOrange
-    "Earn 2500 Bond Points" -> AchievementColorPurple
-    "Earn 5000 Bond Points" -> AchievementColorPurple
-    // Pet Bond Level: Red → Green → Orange → Purple
-    "Bond Master"           -> AchievementColorRed
-    "Bond Veteran"          -> AchievementColorRed
-    "Level 10 Companion"    -> AchievementColorGreen
-    "Virtue Master"         -> AchievementColorGreen
-    "Dedicated Caregiver"   -> AchievementColorOrange
-    "Elite Trainer"         -> AchievementColorPurple
-    // Trainer Level: Red → Green → Orange → Purple
-    "Reach Level 10"        -> AchievementColorRed
-    "Reach Level 20"        -> AchievementColorGreen
-    "Reach Level 30"        -> AchievementColorOrange
-    "Reach Level 50"        -> AchievementColorPurple
-    else                    -> AchievementColorBlue
+    "3-Day Streak"          -> AchievementColorBronze
+    "7-Day Streak"          -> AchievementColorSilver
+    "14-Day Streak"         -> AchievementColorSilver
+    "30-Day Streak"         -> AchievementColorGold
+    "60-Day Streak"         -> AchievementColorGold
+    "100-Day Streak"        -> AchievementColorPlat
+    "Complete 10 Tasks"     -> AchievementColorBronze
+    "Complete 25 Tasks"     -> AchievementColorBronze
+    "Complete 50 Tasks"     -> AchievementColorSilver
+    "Complete 100 Tasks"    -> AchievementColorGold
+    "Complete 250 Tasks"    -> AchievementColorPlat
+    "Complete 500 Tasks"    -> AchievementColorPlat
+    "Earn 100 Bond Points"  -> AchievementColorBronze
+    "Earn 250 Bond Points"  -> AchievementColorBronze
+    "Earn 500 Bond Points"  -> AchievementColorSilver
+    "Earn 1000 Bond Points" -> AchievementColorGold
+    "Earn 2500 Bond Points" -> AchievementColorPlat
+    "Earn 5000 Bond Points" -> AchievementColorPlat
+    "Bond Master"           -> AchievementColorBronze
+    "Bond Veteran"          -> AchievementColorBronze
+    "Level 10 Companion"    -> AchievementColorSilver
+    "Virtue Master"         -> AchievementColorSilver
+    "Dedicated Caregiver"   -> AchievementColorGold
+    "Elite Trainer"         -> AchievementColorPlat
+    "Reach Level 10"        -> AchievementColorBronze
+    "Reach Level 20"        -> AchievementColorSilver
+    "Reach Level 30"        -> AchievementColorGold
+    "Reach Level 50"        -> AchievementColorPlat
+    // First Steps — blue accent for distinction
+    "First Pet"             -> AchievementColorBlue
+    "First Verification"    -> AchievementColorBlue
+    "Pet Lover"             -> AchievementColorBlue
+    "Own 5 Pets"            -> AchievementColorBlue
+    "Verify 3 Pets"         -> AchievementColorBlue
+    "Verify 5 Pets"         -> AchievementColorSilver
+    "Own 10 Pets"           -> AchievementColorGold
+    "Verify 10 Pets"        -> AchievementColorGold
+    else                    -> AchievementColorGold
 }
 
 // ── Category definition ───────────────────────────────────────────────────────
 private data class AchievementCategory(val label: String, val icon: ImageVector, val titles: List<String>)
 
-// CHANGE: removed emoji from category data — now the icon is rendered by the
-// CategoryHeader composable using a proper left-bar + icon treatment.
-// This makes the headers visually consistent with the rest of the app style.
 private val CATEGORIES = listOf(
     AchievementCategory("First Steps", Icons.Default.Pets, listOf(
         "First Pet", "First Verification", "Pet Lover",
@@ -188,27 +192,27 @@ private val HINT_MAP: Map<String, String> = mapOf(
     "Complete 100 Tasks"    to "Complete 100 tasks",
     "Complete 250 Tasks"    to "Complete 250 tasks",
     "Complete 500 Tasks"    to "Complete 500 tasks",
-    "Earn 100 Bond Points"  to "Earn 100 Bond Points",
-    "Earn 250 Bond Points"  to "Earn 250 Bond Points",
-    "Earn 500 Bond Points"  to "Earn 500 Bond Points",
-    "Earn 1000 Bond Points" to "Earn 1000 Bond Points",
-    "Earn 2500 Bond Points" to "Earn 2500 Bond Points",
-    "Earn 5000 Bond Points" to "Earn 5000 Bond Points",
+    "Earn 100 Bond Points"  to "Earn 100 Bond Pts",
+    "Earn 250 Bond Points"  to "Earn 250 Bond Pts",
+    "Earn 500 Bond Points"  to "Earn 500 Bond Pts",
+    "Earn 1000 Bond Points" to "Earn 1000 Bond Pts",
+    "Earn 2500 Bond Points" to "Earn 2500 Bond Pts",
+    "Earn 5000 Bond Points" to "Earn 5000 Bond Pts",
     "Bond Master"           to "Reach Bond Level 5",
     "Bond Veteran"          to "Reach Bond Level 10",
     "Level 10 Companion"    to "Reach Bond Level 15",
     "Virtue Master"         to "Reach Bond Level 20",
     "Dedicated Caregiver"   to "Reach Bond Level 30",
     "Elite Trainer"         to "Reach Bond Level 50",
-    "Reach Level 10"        to "Reach Trainer Level 10",
-    "Reach Level 20"        to "Reach Trainer Level 20",
-    "Reach Level 30"        to "Reach Trainer Level 30",
-    "Reach Level 50"        to "Reach Trainer Level 50",
-    "Species Collector"     to "Collect 5 different species",
-    "Animal Explorer"       to "Collect 10 different species",
-    "Master Explorer"       to "Collect 15 different species",
-    "Rarity Hunter"         to "Own a pet of every rarity",
-    "Epic Tamer"            to "Own an Epic rarity pet"
+    "Reach Level 10"        to "Reach Trainer Lv.10",
+    "Reach Level 20"        to "Reach Trainer Lv.20",
+    "Reach Level 30"        to "Reach Trainer Lv.30",
+    "Reach Level 50"        to "Reach Trainer Lv.50",
+    "Species Collector"     to "Collect 5 species",
+    "Animal Explorer"       to "Collect 10 species",
+    "Master Explorer"       to "Collect 15 species",
+    "Rarity Hunter"         to "Own every rarity",
+    "Epic Tamer"            to "Own an Epic pet"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -250,20 +254,26 @@ fun AchievementsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Awards",
-                        fontWeight    = FontWeight.ExtraBold,
-                        fontSize      = 22.sp,
-                        letterSpacing = (-0.5).sp
+            // IMPROVED: gradient header consistent with HomeScreen
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color(0xFFFF8C42), Color(0xFFFFB77A))
+                        )
                     )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor    = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                Text(
+                    "Awards",
+                    fontSize      = 24.sp,
+                    fontWeight    = FontWeight.ExtraBold,
+                    color         = Color.White,
+                    letterSpacing = (-0.5).sp
                 )
-            )
+            }
         }
     ) { padding ->
         if (achievements.isEmpty()) {
@@ -291,33 +301,50 @@ fun AchievementsScreen(
         ) {
             // ── Overall progress bar ──────────────────────────────────────────
             item(span = { GridItemSpan(maxLineSpan) }) {
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Card(
+                    modifier  = Modifier.fillMaxWidth(),
+                    colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    elevation = CardDefaults.cardElevation(0.dp)
                 ) {
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            "$unlockedCount of $totalCount unlocked",
-                            fontSize   = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color      = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        LinearProgressIndicator(
-                            progress = { overallProgress },
+                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier              = Modifier.fillMaxWidth(),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "$unlockedCount of $totalCount unlocked",
+                                fontSize   = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color      = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                "${(overallProgress * 100).toInt()}%",
+                                fontSize   = 15.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color      = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        // IMPROVED: gradient progress bar (8dp, branded orange)
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp)),
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(overallProgress)
+                                    .fillMaxHeight()
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            listOf(Color(0xFFBF360C), Color(0xFFFF8C42))
+                                        )
+                                    )
+                            )
+                        }
                     }
-                    Text(
-                        "${(overallProgress * 100).toInt()}%",
-                        fontSize   = 14.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = MaterialTheme.colorScheme.primary
-                    )
                 }
             }
 
@@ -344,33 +371,38 @@ fun AchievementsScreen(
 }
 
 // ── Category section header ───────────────────────────────────────────────────
-// CHANGE: completely redesigned from emoji+text+divider to a left accent bar
-// + icon + bold label. Visually consistent with TasksScreen's SectionHeader.
-// This removes the messy emoji-in-text pattern and makes headers feel intentional.
 @Composable
 private fun CategoryHeader(label: String, icon: ImageVector) {
     Row(
         modifier          = Modifier
             .fillMaxWidth()
-            .padding(top = 10.dp, bottom = 4.dp),
+            .padding(top = 12.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Left accent bar — same pattern as TasksScreen SectionHeader
         Box(
             modifier = Modifier
                 .width(4.dp)
-                .height(20.dp)
+                .height(22.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(MaterialTheme.colorScheme.primary)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFFFF8C42), Color(0xFFFFB77A))
+                    )
+                )
         )
         Spacer(Modifier.width(10.dp))
-        Icon(
-            imageVector        = icon,
-            contentDescription = null,
-            tint               = MaterialTheme.colorScheme.primary,
-            modifier           = Modifier.size(16.dp)
-        )
-        Spacer(Modifier.width(6.dp))
+        Surface(
+            shape = RoundedCornerShape(6.dp),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+        ) {
+            Icon(
+                imageVector        = icon,
+                contentDescription = null,
+                tint               = MaterialTheme.colorScheme.primary,
+                modifier           = Modifier.padding(4.dp).size(14.dp)
+            )
+        }
+        Spacer(Modifier.width(8.dp))
         Text(
             text       = label,
             fontSize   = 14.sp,
@@ -381,9 +413,11 @@ private fun CategoryHeader(label: String, icon: ImageVector) {
 }
 
 // ── Single achievement tile ───────────────────────────────────────────────────
-// CHANGE: locked tiles now use a slightly warmer grey and show a subtle hint
-// text below the lock icon so users know what they're working toward.
-// Previously locked tiles were just dark grey blobs with no useful information.
+// IMPROVED:
+//   - Unlocked tiles now have a full tinted background + glow strip on top
+//   - Icon circle is bigger (60dp) and icon itself is 32dp
+//   - Locked tiles show hint text AND have a progress-friendly 75% opacity
+//   - "UNLOCKED" micro-label added so the visual state is unmistakable
 @Composable
 private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
     val a      = achievement
@@ -398,7 +432,7 @@ private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
     }
     val cardAlpha by animateFloatAsState(
         targetValue   = if (visible) 1f else 0f,
-        animationSpec = tween(durationMillis = 200),
+        animationSpec = tween(durationMillis = 220),
         label         = "ach_alpha_$tileIndex"
     )
 
@@ -422,40 +456,50 @@ private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
     Card(
         modifier  = Modifier
             .fillMaxWidth()
-            // CHANGE: locked tiles are 70% opacity (was 55%) so they're more legible
-            .alpha(if (a.isUnlocked) cardAlpha else cardAlpha * 0.70f)
+            .alpha(if (a.isUnlocked) cardAlpha else cardAlpha * 0.75f)
             .scale(if (a.isUnlocked) unlockScale else 1f),
         shape     = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(if (a.isUnlocked) 4.dp else 0.dp),
+        // IMPROVED: unlocked tiles get real elevation, locked tiles stay flat
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (a.isUnlocked) 5.dp else 0.dp
+        ),
         colors    = CardDefaults.cardColors(
+            // IMPROVED: unlocked tiles get a very light tint of their accent color
             containerColor = if (a.isUnlocked)
-                MaterialTheme.colorScheme.surface
+                tColor.copy(alpha = 0.06f)
             else
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.80f)
         )
     ) {
         Column(
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Color accent strip — full color when unlocked, subtle when locked
+            // IMPROVED: accent strip is thicker (6dp) for unlocked tiles
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(4.dp)
-                    .background(if (a.isUnlocked) tColor else tColor.copy(alpha = 0.25f))
+                    .height(if (a.isUnlocked) 6.dp else 3.dp)
+                    .background(
+                        if (a.isUnlocked)
+                            Brush.horizontalGradient(listOf(tColor, tColor.copy(alpha = 0.55f)))
+                        else
+                            Brush.horizontalGradient(
+                                listOf(tColor.copy(alpha = 0.20f), tColor.copy(alpha = 0.10f))
+                            )
+                    )
             )
 
             Spacer(Modifier.height(14.dp))
 
-            // Icon badge
+            // IMPROVED: icon badge is now 60dp (was 54dp) with stronger tint
             Surface(
-                modifier = Modifier.size(54.dp),
+                modifier = Modifier.size(60.dp),
                 shape    = MaterialTheme.shapes.large,
                 color    = if (a.isUnlocked)
-                    tColor.copy(alpha = 0.15f)
+                    tColor.copy(alpha = 0.18f)
                 else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     if (a.isUnlocked) {
@@ -463,13 +507,14 @@ private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
                             imageVector        = icon,
                             contentDescription = a.title,
                             tint               = tColor,
-                            modifier           = Modifier.size(30.dp)
+                            // IMPROVED: icon itself is 32dp (was 30dp) — more visible
+                            modifier           = Modifier.size(32.dp)
                         )
                     } else {
                         Icon(
                             imageVector        = Icons.Default.Lock,
                             contentDescription = "Locked",
-                            tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                            tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.30f),
                             modifier           = Modifier.size(22.dp)
                         )
                     }
@@ -478,19 +523,36 @@ private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
 
             Spacer(Modifier.height(8.dp))
 
-            // Title (unlocked) or hint text (locked) so the tile is always informative
+            // IMPROVED: unlocked tiles show title in accent color (not just black text)
             Text(
                 text       = if (a.isUnlocked) a.title else hint,
-                fontWeight = if (a.isUnlocked) FontWeight.Bold else FontWeight.Medium,
+                fontWeight = if (a.isUnlocked) FontWeight.Bold else FontWeight.Normal,
                 fontSize   = 11.sp,
                 textAlign  = TextAlign.Center,
                 maxLines   = 2,
-                color      = if (a.isUnlocked)
-                    MaterialTheme.colorScheme.onSurface
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.60f),
+                color      = if (a.isUnlocked) tColor
+                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
                 modifier   = Modifier.padding(horizontal = 8.dp)
             )
+
+            Spacer(Modifier.height(6.dp))
+
+            // IMPROVED: "UNLOCKED" micro-label for unlocked tiles — makes state unmistakable
+            if (a.isUnlocked) {
+                Surface(
+                    shape = RoundedCornerShape(3.dp),
+                    color = tColor.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        "UNLOCKED",
+                        modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        fontSize   = 8.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color      = tColor,
+                        letterSpacing = 0.5.sp
+                    )
+                }
+            }
 
             Spacer(Modifier.height(12.dp))
         }

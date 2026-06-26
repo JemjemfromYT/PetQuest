@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -81,8 +83,7 @@ fun trainerTitle(level: Int): String = when {
 }
 
 // ---------------------------------------------------------------------------
-// StatCard — shared, used by PetDetailScreen.
-// accentContainer / accentContent override the default secondaryContainer tone.
+// StatCard — shared helper used by PetDetailScreen too
 // ---------------------------------------------------------------------------
 @Composable
 fun StatCard(
@@ -124,8 +125,8 @@ fun StatCard(
                 )
                 Spacer(Modifier.height(2.dp))
             }
-            Text(value, fontWeight = FontWeight.Bold,   fontSize = 16.sp, color = contentColor)
-            Text(label, fontSize   = 10.sp,             color    = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = contentColor)
+            Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -134,7 +135,7 @@ fun StatCard(
 // Rarity color helper
 // ---------------------------------------------------------------------------
 @Composable
-private fun rarityAccentColor(rarityName: String): Color = when (rarityName) {
+fun rarityAccentColor(rarityName: String): Color = when (rarityName) {
     "COMMON"   -> Color(0xFF9E9E9E)
     "UNCOMMON" -> MaterialTheme.colorScheme.secondary
     "RARE"     -> MaterialTheme.colorScheme.primary
@@ -165,12 +166,29 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title  = { Text("PetQuest", fontWeight = FontWeight.ExtraBold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+            // IMPROVED: gradient header instead of flat solid color
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFFFF8C42),  // warm orange-amber start
+                                Color(0xFFFFB77A)   // lighter peach end
+                            )
+                        )
+                    )
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                Text(
+                    "PetQuest",
+                    fontSize   = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = Color.White,
+                    letterSpacing = (-0.5).sp
                 )
-            )
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -218,20 +236,20 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         )
                     }
 
-                    // Today's progress — upgraded to a proper card
+                    // Today's tasks progress — premium card
                     if (tasks.isNotEmpty()) {
                         Card(
                             modifier  = Modifier.fillMaxWidth(),
                             colors    = CardDefaults.cardColors(
                                 containerColor = if (allDone)
-                                    MaterialTheme.colorScheme.primaryContainer
+                                    Color(0xFFE8F5E9)  // green tint when all done
                                 else
                                     MaterialTheme.colorScheme.surfaceVariant
                             ),
                             elevation = CardDefaults.cardElevation(0.dp),
                             shape     = MaterialTheme.shapes.medium
                         ) {
-                            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
                                 Row(
                                     modifier              = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -239,32 +257,47 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 ) {
                                     Text(
                                         if (allDone) "All done today! 🎉" else "Today's Tasks",
-                                        fontSize   = 12.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color      = if (allDone)
-                                            MaterialTheme.colorScheme.primary
-                                        else
-                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        fontSize   = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color      = if (allDone) Color(0xFF1B5E20)
+                                        else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-                                    Text(
-                                        "$doneTasks / ${tasks.size}",
-                                        fontSize   = 12.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color      = if (allDone)
-                                            MaterialTheme.colorScheme.primary
-                                        else
-                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    Surface(
+                                        shape = RoundedCornerShape(20.dp),
+                                        color = if (allDone) Color(0xFF1B5E20).copy(alpha = 0.12f)
+                                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                                    ) {
+                                        Text(
+                                            "$doneTasks / ${tasks.size}",
+                                            modifier   = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                            fontSize   = 12.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color      = if (allDone) Color(0xFF1B5E20)
+                                            else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.height(8.dp))
+                                // IMPROVED: thicker progress bar (8dp) with rounded gradient
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(8.dp)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(todayProgress)
+                                            .fillMaxHeight()
+                                            .background(
+                                                if (allDone)
+                                                    Brush.horizontalGradient(listOf(Color(0xFF43A047), Color(0xFF81C784)))
+                                                else
+                                                    Brush.horizontalGradient(listOf(Color(0xFFBF360C), Color(0xFFFF8C42)))
+                                            )
                                     )
                                 }
-                                Spacer(Modifier.height(6.dp))
-                                LinearProgressIndicator(
-                                    progress   = { todayProgress },
-                                    modifier   = Modifier
-                                        .fillMaxWidth()
-                                        .height(6.dp)
-                                        .clip(RoundedCornerShape(3.dp)),
-                                    trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
-                                )
                             }
                         }
                     }
@@ -312,6 +345,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
                         label         = "card_scale_$index"
                     )
+                    // IMPROVED: bond progress now shows in 0..1 within current level
                     val bondProgress by animateFloatAsState(
                         targetValue   = (pet.bondPoints % 100) / 100f,
                         animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
@@ -322,13 +356,16 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         modifier  = Modifier
                             .fillMaxWidth()
                             .offset(y = offsetY)
-                            .alpha(if (isVerified) cardAlpha else cardAlpha * 0.6f)
+                            .alpha(if (isVerified) cardAlpha else cardAlpha * 0.65f)
                             .scale(cardScale)
                             .clickable(
                                 interactionSource = interactionSource,
                                 indication        = null
                             ) { navController.navigate("pet_detail/${pet.id}") },
-                        elevation = CardDefaults.cardElevation(if (isVerified) 3.dp else 0.dp),
+                        // IMPROVED: verified pets get real elevation (shadow depth)
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = if (isVerified) 4.dp else 0.dp
+                        ),
                         colors    = CardDefaults.cardColors(
                             containerColor = if (isVerified)
                                 MaterialTheme.colorScheme.surface
@@ -340,23 +377,26 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             modifier          = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Rarity accent strip — full card height
+                            // IMPROVED: accent strip is taller (matches full card height)
                             Box(
                                 modifier = Modifier
                                     .width(5.dp)
-                                    .height(88.dp)
-                                    .background(accentColor)
+                                    .height(96.dp)
+                                    .background(
+                                        if (isVerified) accentColor
+                                        else accentColor.copy(alpha = 0.35f)
+                                    )
                             )
 
                             // Pet photo
                             Box(
                                 modifier         = Modifier
                                     .padding(12.dp)
-                                    .size(64.dp)
+                                    .size(68.dp)
                                     .then(
                                         if (hasGoldBorder)
                                             Modifier.border(
-                                                width = 2.dp,
+                                                width = 2.5.dp,
                                                 color = Color(0xFFFFD700),
                                                 shape = MaterialTheme.shapes.medium
                                             )
@@ -385,19 +425,25 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         Text(petEmoji(pet.type.name), fontSize = 36.sp)
                                     }
                                 }
+                                // IMPROVED: lock overlay is darker and icon is bigger
                                 if (!isVerified) {
                                     Box(
                                         modifier         = Modifier
                                             .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.35f)),
+                                            .background(Color.Black.copy(alpha = 0.45f)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(
-                                            imageVector        = Icons.Default.Lock,
-                                            contentDescription = "Unverified",
-                                            tint               = Color.White,
-                                            modifier           = Modifier.size(20.dp)
-                                        )
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector        = Icons.Default.CameraAlt,
+                                                contentDescription = "Needs photo",
+                                                tint               = Color.White,
+                                                modifier           = Modifier.size(22.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -407,7 +453,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(top = 10.dp, end = 12.dp, bottom = 10.dp),
-                                verticalArrangement = Arrangement.spacedBy(3.dp)
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 // Name + verified checkmark
                                 Row(
@@ -427,7 +473,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                             imageVector        = Icons.Default.CheckCircle,
                                             contentDescription = "Verified",
                                             tint               = Color(0xFF43A047),
-                                            modifier           = Modifier.size(14.dp)
+                                            modifier           = Modifier.size(15.dp)
                                         )
                                     }
                                 }
@@ -438,14 +484,14 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
                                     Surface(
-                                        shape = RoundedCornerShape(3.dp),
-                                        color = accentColor.copy(alpha = 0.12f)
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = accentColor.copy(alpha = 0.13f)
                                     ) {
                                         Text(
                                             pet.type.rarity.name.lowercase()
                                                 .replaceFirstChar { it.uppercase() },
-                                            modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                                            fontSize   = 9.sp,
+                                            modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                            fontSize   = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             color      = accentColor
                                         )
@@ -453,26 +499,38 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     Text("·", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Text(
                                         "Lv.${pet.bondLevel}",
-                                        fontSize   = 12.sp,
+                                        fontSize   = 13.sp,
                                         fontWeight = FontWeight.Bold,
                                         color      = MaterialTheme.colorScheme.primary
                                     )
                                 }
 
-                                Spacer(Modifier.weight(1f))
+                                Spacer(Modifier.height(2.dp))
 
-                                // Bond XP bar — accent-tinted
-                                LinearProgressIndicator(
-                                    progress   = { bondProgress },
-                                    modifier   = Modifier
+                                // IMPROVED: bond XP bar is now 8dp (was 5dp) — much more visible
+                                Box(
+                                    modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(5.dp)
-                                        .clip(RoundedCornerShape(2.5.dp)),
-                                    color      = accentColor,
-                                    trackColor = accentColor.copy(alpha = 0.12f)
-                                )
+                                        .height(8.dp)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(accentColor.copy(alpha = 0.12f))
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(bondProgress.coerceIn(0f, 1f))
+                                            .fillMaxHeight()
+                                            .background(
+                                                Brush.horizontalGradient(
+                                                    listOf(
+                                                        accentColor,
+                                                        accentColor.copy(alpha = 0.70f)
+                                                    )
+                                                )
+                                            )
+                                    )
+                                }
 
-                                // Virtue emblem + unverified label
+                                // IMPROVED: virtue row — now shows virtue name next to emblem
                                 Row(
                                     modifier              = Modifier.fillMaxWidth(),
                                     verticalAlignment     = Alignment.CenterVertically,
@@ -488,12 +546,25 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     } else {
                                         Spacer(Modifier.width(1.dp))
                                     }
-                                    Image(
-                                        painter            = painterResource(id = virtueInfo.emblemRes),
-                                        contentDescription = null,
-                                        modifier           = Modifier.size(20.dp),
-                                        contentScale       = ContentScale.Fit
-                                    )
+                                    // IMPROVED: virtue emblem is now 28dp (was 20dp) + name label
+                                    Row(
+                                        verticalAlignment     = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            pet.virtue.name.lowercase()
+                                                .replaceFirstChar { it.uppercase() },
+                                            fontSize   = 9.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color      = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f)
+                                        )
+                                        Image(
+                                            painter            = painterResource(id = virtueInfo.emblemRes),
+                                            contentDescription = pet.virtue.name,
+                                            modifier           = Modifier.size(28.dp),
+                                            contentScale       = ContentScale.Fit
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -528,12 +599,13 @@ private fun HomeStatCard(
         modifier  = modifier,
         shape     = MaterialTheme.shapes.medium,
         colors    = CardDefaults.cardColors(containerColor = resolvedContainer),
-        elevation = CardDefaults.cardElevation(0.dp)
+        // IMPROVED: stat cards now have subtle elevation so they lift off the background
+        elevation = CardDefaults.cardElevation(defaultElevation = if (dimmed) 0.dp else 2.dp)
     ) {
         Column(
             modifier            = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 10.dp),
+                .padding(vertical = 14.dp, horizontal = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -541,11 +613,11 @@ private fun HomeStatCard(
                 painter            = painterResource(id = iconRes),
                 contentDescription = label,
                 modifier           = Modifier
-                    .size(22.dp)
+                    .size(24.dp)
                     .alpha(if (dimmed) 0.35f else 1f),
                 contentScale       = ContentScale.Fit
             )
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(6.dp))
             Text(
                 text       = value,
                 fontWeight = FontWeight.ExtraBold,

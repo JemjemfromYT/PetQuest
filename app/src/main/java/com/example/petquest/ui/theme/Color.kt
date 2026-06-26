@@ -9,7 +9,7 @@ val PetOrange10   = Color(0xFF3D1A00)
 val PetOrange20   = Color(0xFF6B2D00)
 val PetOrange40   = Color(0xFFBF5C00)
 val PetOrange80   = Color(0xFFFFB77A)
-val PetOrange90   = Color(0xFFFFCFA8)   // slightly richer than before
+val PetOrange90   = Color(0xFFFFCFA8)
 val PetOrange95   = Color(0xFFFFEEDD)
 
 // Secondary — nature green (calm, caring)
@@ -41,10 +41,31 @@ val PetError80    = Color(0xFFFFB4AB)
 val PetError90    = Color(0xFFFFDAD6)
 
 // ── Accent colors used by individual UI elements ───────────────────────────
-// Stat cards (each stat gets its own identity)
 val StatStreakOrange  = Color(0xFFE65100)   // deep orange — heat, energy
 val StatBondGreen     = Color(0xFF2E7D32)   // forest green — growth, care
 val StatLevelViolet   = Color(0xFF6A1B9A)   // purple — prestige, power
 
 // Gold highlight (bond level 20+ border, special badge)
 val GoldAccent        = Color(0xFFFFB300)
+
+// ── IMPROVED: Header gradient colors ──────────────────────────────────────
+// Used in Box+Brush.horizontalGradient for all screen top bars.
+// Start is a deeper warm orange; end is the lighter peach for depth.
+// Usage example:
+//   Box(modifier = Modifier
+//       .fillMaxWidth()
+//       .background(Brush.horizontalGradient(listOf(HeaderGradientStart, HeaderGradientEnd)))
+//       .statusBarsPadding()
+//       .padding(horizontal = 16.dp, vertical = 14.dp)
+//   ) { Text("Screen Title", color = Color.White, ...) }
+val HeaderGradientStart = Color(0xFFFF8C42)   // deeper warm orange
+val HeaderGradientEnd   = Color(0xFFFFB77A)   // softer peach
+
+// ── Achievement tier palette ───────────────────────────────────────────────
+// A deliberate progression: bronze → silver → gold → platinum
+// No more random blue fallback on unlocked tiles.
+val AchBronze = Color(0xFFD84315)   // deep red-orange  (starter  tier)
+val AchSilver = Color(0xFF43A047)   // green            (mid      tier)
+val AchGold   = Color(0xFFFB8C00)   // amber            (high     tier)
+val AchPlat   = Color(0xFF7B1FA2)   // purple           (elite    tier)
+val AchBlue   = Color(0xFF1565C0)   // blue             (special / first-steps)

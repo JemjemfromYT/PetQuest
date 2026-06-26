@@ -26,6 +26,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -165,21 +166,39 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title   = { Text("Profile", fontWeight = FontWeight.Bold) },
-                actions = {
+            // IMPROVED: gradient header consistent with other screens
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color(0xFFFF8C42), Color(0xFFFFB77A))
+                        )
+                    )
+                    .statusBarsPadding()
+                    .padding(start = 16.dp, end = 4.dp, top = 14.dp, bottom = 14.dp)
+            ) {
+                Row(
+                    modifier          = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Profile",
+                        fontSize      = 24.sp,
+                        fontWeight    = FontWeight.ExtraBold,
+                        color         = Color.White,
+                        letterSpacing = (-0.5).sp
+                    )
                     IconButton(onClick = onAdminClick) {
                         Icon(
                             Icons.Default.Build,
                             contentDescription = "Admin",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            tint               = Color.White.copy(alpha = 0.85f)
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            )
+                }
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -189,100 +208,125 @@ fun ProfileScreen(
         ) {
 
             // ── Trainer level card ────────────────────────────────────────────
+            // IMPROVED: card uses a warm gradient background instead of flat primaryContainer
             item {
                 Card(
                     modifier  = Modifier.fillMaxWidth(),
-                    colors    = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    elevation = CardDefaults.cardElevation(4.dp)
+                    elevation = CardDefaults.cardElevation(6.dp),
+                    shape     = MaterialTheme.shapes.large
                 ) {
-                    Row(
-                        modifier          = Modifier
+                    Box(
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Profile illustration
-                        Image(
-                            painter            = painterResource(id = R.drawable.profile_banner),
-                            contentDescription = null,
-                            modifier           = Modifier.size(72.dp),
-                            contentScale       = ContentScale.Fit
-                        )
-
-                        Spacer(Modifier.width(16.dp))
-
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { onLevelTap() }
-                        ) {
-                            // Level + title chip
-                            Row(
-                                verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    "Level $userLevel",
-                                    fontSize   = 26.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color      = MaterialTheme.colorScheme.primary
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(Color(0xFFFF8C42), Color(0xFFFFCFA8))
                                 )
-                                val title = trainerTitle(userLevel)
-                                if (title.isNotEmpty()) {
-                                    Surface(
-                                        shape = MaterialTheme.shapes.extraSmall,
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                                    ) {
-                                        Text(
-                                            title,
-                                            modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                            fontSize   = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color      = MaterialTheme.colorScheme.primary
-                                        )
+                            )
+                    ) {
+                        Row(
+                            modifier          = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Profile illustration
+                            Card(
+                                shape  = MaterialTheme.shapes.medium,
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.White.copy(alpha = 0.25f)
+                                ),
+                                elevation = CardDefaults.cardElevation(0.dp)
+                            ) {
+                                Image(
+                                    painter            = painterResource(id = R.drawable.profile_banner),
+                                    contentDescription = null,
+                                    modifier           = Modifier.size(72.dp).padding(4.dp),
+                                    contentScale       = ContentScale.Fit
+                                )
+                            }
+
+                            Spacer(Modifier.width(16.dp))
+
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { onLevelTap() }
+                            ) {
+                                // Level + title chip
+                                Row(
+                                    verticalAlignment     = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        "Level $userLevel",
+                                        fontSize   = 28.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color      = Color.White
+                                    )
+                                    val title = trainerTitle(userLevel)
+                                    if (title.isNotEmpty()) {
+                                        Surface(
+                                            shape = MaterialTheme.shapes.extraSmall,
+                                            color = Color.White.copy(alpha = 0.25f)
+                                        ) {
+                                            Text(
+                                                title,
+                                                modifier   = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                                                fontSize   = 10.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color      = Color.White
+                                            )
+                                        }
                                     }
                                 }
-                            }
 
-                            if (showAdminHint) {
-                                Text(
-                                    "Keep tapping...",
-                                    fontSize = 10.sp,
-                                    color    = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                                if (showAdminHint) {
+                                    Text(
+                                        "Keep tapping...",
+                                        fontSize = 10.sp,
+                                        color    = Color.White.copy(alpha = 0.70f)
+                                    )
+                                }
 
-                            Spacer(Modifier.height(8.dp))
+                                Spacer(Modifier.height(10.dp))
 
-                            // XP progress
-                            Row(
-                                modifier              = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment     = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "XP",
-                                    fontSize   = 10.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color      = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    "$xpInLevel / 100",
-                                    fontSize   = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color      = MaterialTheme.colorScheme.primary
-                                )
+                                // XP bar labels
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment     = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        "XP to next level",
+                                        fontSize   = 10.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color      = Color.White.copy(alpha = 0.80f)
+                                    )
+                                    Text(
+                                        "$xpInLevel / 100",
+                                        fontSize   = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color      = Color.White
+                                    )
+                                }
+                                Spacer(Modifier.height(5.dp))
+                                // IMPROVED: thicker XP progress bar (8dp) with white track
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(8.dp)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(Color.White.copy(alpha = 0.25f))
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(xpProgress.coerceIn(0f, 1f))
+                                            .fillMaxHeight()
+                                            .background(Color.White)
+                                    )
+                                }
                             }
-                            Spacer(Modifier.height(4.dp))
-                            LinearProgressIndicator(
-                                progress = { xpProgress },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(7.dp)
-                                    .clip(RoundedCornerShape(3.5.dp))
-                            )
                         }
                     }
                 }
@@ -296,49 +340,49 @@ fun ProfileScreen(
                 ) {
                     // Total bond points
                     Card(
-                        modifier = Modifier.weight(1f),
-                        colors   = CardDefaults.cardColors(
-                            containerColor = Color(0xFFE8F5E9)
-                        )
+                        modifier  = Modifier.weight(1f),
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        colors    = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
                     ) {
                         Column(
-                            modifier            = Modifier.padding(12.dp),
+                            modifier            = Modifier.fillMaxWidth().padding(14.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 "$totalBondPoints",
-                                fontSize   = 22.sp,
+                                fontSize   = 24.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color      = Color(0xFF1B5E20)
                             )
                             Text(
                                 "Total Bond Pts",
-                                fontSize = 10.sp,
-                                color    = MaterialTheme.colorScheme.onSurfaceVariant
+                                fontSize   = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color      = Color(0xFF2E7D32)
                             )
                         }
                     }
                     // Pet count
                     Card(
-                        modifier = Modifier.weight(1f),
-                        colors   = CardDefaults.cardColors(
-                            containerColor = Color(0xFFF3E5F5)
-                        )
+                        modifier  = Modifier.weight(1f),
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        colors    = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5))
                     ) {
                         Column(
-                            modifier            = Modifier.padding(12.dp),
+                            modifier            = Modifier.fillMaxWidth().padding(14.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 "${pets.size}",
-                                fontSize   = 22.sp,
+                                fontSize   = 24.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color      = Color(0xFF4A148C)
                             )
                             Text(
                                 "Active Pets",
-                                fontSize = 10.sp,
-                                color    = MaterialTheme.colorScheme.onSurfaceVariant
+                                fontSize   = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color      = Color(0xFF6A1B9A)
                             )
                         }
                     }
@@ -348,10 +392,11 @@ fun ProfileScreen(
             // ── Species collection card ───────────────────────────────────────
             item {
                 Card(
-                    modifier = Modifier
+                    modifier  = Modifier
                         .fillMaxWidth()
                         .clickable { onNavigateToCollection() },
-                    colors = CardDefaults.cardColors(
+                    elevation = CardDefaults.cardElevation(2.dp),
+                    colors    = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                     )
                 ) {
@@ -373,26 +418,38 @@ fun ProfileScreen(
                                     fontSize   = 13.sp
                                 )
                                 Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                    shape = RoundedCornerShape(20.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.13f)
                                 ) {
                                     Text(
                                         "$speciesCount / $totalSpecies",
-                                        modifier   = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                        modifier   = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                                         fontWeight = FontWeight.ExtraBold,
                                         fontSize   = 12.sp,
                                         color      = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
-                            Spacer(Modifier.height(6.dp))
-                            LinearProgressIndicator(
-                                progress = { speciesProgress },
+                            Spacer(Modifier.height(8.dp))
+                            // IMPROVED: gradient progress bar for species collection
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(6.dp)
-                                    .clip(RoundedCornerShape(3.dp))
-                            )
+                                    .height(7.dp)
+                                    .clip(RoundedCornerShape(3.5.dp))
+                                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(speciesProgress.coerceIn(0f, 1f))
+                                        .fillMaxHeight()
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                listOf(Color(0xFF1A6B44), Color(0xFF70C99A))
+                                            )
+                                        )
+                                )
+                            }
                         }
                         Spacer(Modifier.width(10.dp))
                         Icon(
@@ -477,7 +534,7 @@ private fun SettingsCard(
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Settings", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("Settings", fontSize = 15.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
             HorizontalDivider()
             Spacer(Modifier.height(12.dp))
@@ -544,7 +601,7 @@ private fun SettingsCard(
                         Text("Reminder Time", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                         Text(
                             formatTime(notificationHour, notificationMinute),
-                            fontSize   = 15.sp,
+                            fontSize   = 16.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color      = MaterialTheme.colorScheme.primary
                         )
@@ -574,19 +631,23 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
 
     Card(
         modifier  = modifier,
-        elevation = CardDefaults.cardElevation(3.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Rarity accent strip — thicker for more impact
+            // IMPROVED: rarity accent strip is now 5dp (was 4dp) with gradient
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(4.dp)
-                    .background(rarityColor)
+                    .height(5.dp)
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(rarityColor, rarityColor.copy(alpha = 0.55f))
+                        )
+                    )
             )
 
             Column(
@@ -656,12 +717,12 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Surface(
-                        shape = RoundedCornerShape(3.dp),
-                        color = rarityColor.copy(alpha = 0.12f)
+                        shape = RoundedCornerShape(4.dp),
+                        color = rarityColor.copy(alpha = 0.13f)
                     ) {
                         Text(
                             pet.type.rarity.name.lowercase().replaceFirstChar { it.uppercase() },
-                            modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                            modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             fontSize   = 9.sp,
                             fontWeight = FontWeight.Bold,
                             color      = rarityColor
@@ -669,7 +730,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                     }
                     Text(
                         "Lv.${pet.bondLevel}",
-                        fontSize   = 11.sp,
+                        fontSize   = 12.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color      = MaterialTheme.colorScheme.primary
                     )
