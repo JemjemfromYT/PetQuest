@@ -527,20 +527,34 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                     }
                 }
 
-                // Name + level row
+                // Name
+                Text(
+                    pet.name,
+                    fontSize   = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis,
+                    modifier   = Modifier.fillMaxWidth()
+                )
+
+                // Rarity chip + level inline
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Text(
-                        pet.name,
-                        fontSize   = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines   = 1,
-                        overflow   = TextOverflow.Ellipsis,
-                        modifier   = Modifier.weight(1f, fill = false)
-                    )
+                    Surface(
+                        shape = MaterialTheme.shapes.extraSmall,
+                        color = rarityColor.copy(alpha = 0.13f)
+                    ) {
+                        Text(
+                            pet.type.rarity.name,
+                            modifier   = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                            fontSize   = 9.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = rarityColor
+                        )
+                    }
                     Text(
                         "Lv.${pet.bondLevel}",
                         fontSize   = 11.sp,
@@ -548,32 +562,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                         color      = MaterialTheme.colorScheme.primary
                     )
                 }
-
-                // Rarity badge + bond bar
-                Surface(
-                    shape = MaterialTheme.shapes.extraSmall,
-                    color = rarityColor.copy(alpha = 0.13f)
-                ) {
-                    Text(
-                        pet.type.rarity.name,
-                        modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                        fontSize   = 9.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = rarityColor
-                    )
-                }
-
-                val bondProgress by animateFloatAsState(
-                    targetValue   = (pet.bondPoints % 100) / 100f,
-                    animationSpec = tween(durationMillis = 600),
-                    label         = "bond_${pet.id}"
-                )
-                LinearProgressIndicator(
-                    progress   = { bondProgress },
-                    modifier   = Modifier.fillMaxWidth().height(3.dp),
-                    color      = rarityColor,
-                    trackColor = rarityColor.copy(alpha = 0.12f)
-                )
             }
         }
     }
