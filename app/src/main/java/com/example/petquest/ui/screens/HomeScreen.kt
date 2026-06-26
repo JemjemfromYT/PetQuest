@@ -25,13 +25,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.petquest.R
-
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 
@@ -81,26 +81,35 @@ fun trainerTitle(level: Int): String = when {
 }
 
 // ---------------------------------------------------------------------------
-// StatCard — used by ProfileScreen
+// StatCard — shared, used by PetDetailScreen.
+// accentContainer / accentContent override the default secondaryContainer tone.
 // ---------------------------------------------------------------------------
 @Composable
 fun StatCard(
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-    iconRes: Int? = null,
-    dimmed: Boolean = false
+    value           : String,
+    label           : String,
+    modifier        : Modifier = Modifier,
+    iconRes         : Int?     = null,
+    dimmed          : Boolean  = false,
+    accentContainer : Color?   = null,
+    accentContent   : Color?   = null
 ) {
-    val containerColor = if (dimmed)
-        MaterialTheme.colorScheme.surfaceVariant
-    else
-        MaterialTheme.colorScheme.secondaryContainer
-    val contentColor = if (dimmed)
-        MaterialTheme.colorScheme.onSurfaceVariant
-    else
-        MaterialTheme.colorScheme.onSecondaryContainer
+    val containerColor = when {
+        dimmed               -> MaterialTheme.colorScheme.surfaceVariant
+        accentContainer != null -> accentContainer
+        else                 -> MaterialTheme.colorScheme.secondaryContainer
+    }
+    val contentColor = when {
+        dimmed           -> MaterialTheme.colorScheme.onSurfaceVariant
+        accentContent != null -> accentContent
+        else             -> MaterialTheme.colorScheme.onSecondaryContainer
+    }
 
-    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = containerColor)) {
+    Card(
+        modifier  = modifier,
+        colors    = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(0.dp)
+    ) {
         Column(
             modifier            = Modifier.padding(8.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -115,8 +124,8 @@ fun StatCard(
                 )
                 Spacer(Modifier.height(2.dp))
             }
-            Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = contentColor)
-            Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, fontWeight = FontWeight.Bold,   fontSize = 16.sp, color = contentColor)
+            Text(label, fontSize   = 10.sp,             color    = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -146,6 +155,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
     val doneTasks    = tasks.count { it.isCompleted }
     val streakActive = doneTasks > 0 || tasks.isEmpty()
+    val allDone      = tasks.isNotEmpty() && doneTasks == tasks.size
 
     val todayProgress by animateFloatAsState(
         targetValue   = if (tasks.isEmpty()) 0f else doneTasks / tasks.size.toFloat(),
@@ -178,50 +188,84 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         modifier              = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
+                        // STREAK — warm orange
                         HomeStatCard(
-                            iconRes  = R.drawable.ic_streak,
-                            value    = "$streak",
-                            label    = "Streak",
-                            dimmed   = !streakActive,
-                            modifier = Modifier.weight(1f)
+                            iconRes        = R.drawable.ic_streak,
+                            value          = "$streak",
+                            label          = "Streak",
+                            dimmed         = !streakActive,
+                            containerColor = Color(0xFFFFF3E0),
+                            valueColor     = Color(0xFFBF360C),
+                            modifier       = Modifier.weight(1f)
                         )
+                        // BOND POINTS — deep green
                         HomeStatCard(
-                            iconRes  = R.drawable.ic_bondpoints,
-                            value    = "$totalBondPoints",
-                            label    = "Bond Points",
-                            modifier = Modifier.weight(1f)
+                            iconRes        = R.drawable.ic_bondpoints,
+                            value          = "$totalBondPoints",
+                            label          = "Bond Pts",
+                            containerColor = Color(0xFFE8F5E9),
+                            valueColor     = Color(0xFF1B5E20),
+                            modifier       = Modifier.weight(1f)
                         )
+                        // LEVEL — deep violet
                         HomeStatCard(
-                            iconRes  = R.drawable.ic_level,
-                            value    = "Lv.$userLevel",
-                            label    = "Level",
-                            modifier = Modifier.weight(1f)
+                            iconRes        = R.drawable.ic_level,
+                            value          = "Lv.$userLevel",
+                            label          = "Level",
+                            containerColor = Color(0xFFF3E5F5),
+                            valueColor     = Color(0xFF4A148C),
+                            modifier       = Modifier.weight(1f)
                         )
                     }
 
+                    // Today's progress — upgraded to a proper card
                     if (tasks.isNotEmpty()) {
-                        Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            verticalAlignment     = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            LinearProgressIndicator(
-                                progress   = { todayProgress },
-                                modifier   = Modifier
-                                    .weight(1f)
-                                    .height(4.dp)
-                                    .clip(RoundedCornerShape(2.dp)),
-                                trackColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                            Text(
-                                "$doneTasks / ${tasks.size}",
-                                fontSize   = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color      = if (doneTasks == tasks.size)
-                                    MaterialTheme.colorScheme.primary
+                        Card(
+                            modifier  = Modifier.fillMaxWidth(),
+                            colors    = CardDefaults.cardColors(
+                                containerColor = if (allDone)
+                                    MaterialTheme.colorScheme.primaryContainer
                                 else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                                    MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            elevation = CardDefaults.cardElevation(0.dp),
+                            shape     = MaterialTheme.shapes.medium
+                        ) {
+                            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                                Row(
+                                    modifier              = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment     = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        if (allDone) "All done today! 🎉" else "Today's Tasks",
+                                        fontSize   = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color      = if (allDone)
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        "$doneTasks / ${tasks.size}",
+                                        fontSize   = 12.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color      = if (allDone)
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Spacer(Modifier.height(6.dp))
+                                LinearProgressIndicator(
+                                    progress   = { todayProgress },
+                                    modifier   = Modifier
+                                        .fillMaxWidth()
+                                        .height(6.dp)
+                                        .clip(RoundedCornerShape(3.dp)),
+                                    trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)
+                                )
+                            }
                         }
                     }
                 }
@@ -296,10 +340,10 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             modifier          = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Rarity accent strip
+                            // Rarity accent strip — full card height
                             Box(
                                 modifier = Modifier
-                                    .width(4.dp)
+                                    .width(5.dp)
                                     .height(88.dp)
                                     .background(accentColor)
                             )
@@ -333,7 +377,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         modifier         = Modifier
                                             .fillMaxSize()
                                             .background(
-                                                accentColor.copy(alpha = 0.08f),
+                                                accentColor.copy(alpha = 0.10f),
                                                 MaterialTheme.shapes.medium
                                             ),
                                         contentAlignment = Alignment.Center
@@ -365,7 +409,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     .padding(top = 10.dp, end = 12.dp, bottom = 10.dp),
                                 verticalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
-                                // Name + verified shield
+                                // Name + verified checkmark
                                 Row(
                                     verticalAlignment     = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -388,18 +432,24 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     }
                                 }
 
-                                // Rarity · Level
+                                // Rarity chip + level
                                 Row(
                                     verticalAlignment     = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    Text(
-                                        pet.type.rarity.name.lowercase()
-                                            .replaceFirstChar { it.uppercase() },
-                                        fontSize   = 10.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color      = accentColor.copy(alpha = 0.75f)
-                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(3.dp),
+                                        color = accentColor.copy(alpha = 0.12f)
+                                    ) {
+                                        Text(
+                                            pet.type.rarity.name.lowercase()
+                                                .replaceFirstChar { it.uppercase() },
+                                            modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                                            fontSize   = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color      = accentColor
+                                        )
+                                    }
                                     Text("·", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     Text(
                                         "Lv.${pet.bondLevel}",
@@ -411,18 +461,18 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                                 Spacer(Modifier.weight(1f))
 
-                                // Bond XP bar
+                                // Bond XP bar — accent-tinted
                                 LinearProgressIndicator(
                                     progress   = { bondProgress },
                                     modifier   = Modifier
                                         .fillMaxWidth()
-                                        .height(4.dp)
-                                        .clip(RoundedCornerShape(2.dp)),
+                                        .height(5.dp)
+                                        .clip(RoundedCornerShape(2.5.dp)),
                                     color      = accentColor,
                                     trackColor = accentColor.copy(alpha = 0.12f)
                                 )
 
-                                // Virtue emblem + unverified note
+                                // Virtue emblem + unverified label
                                 Row(
                                     modifier              = Modifier.fillMaxWidth(),
                                     verticalAlignment     = Alignment.CenterVertically,
@@ -455,33 +505,29 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 }
 
 // ---------------------------------------------------------------------------
-// HomeStatCard — large centered stat card (no icon)
+// HomeStatCard — each card has its own personality colour
 // ---------------------------------------------------------------------------
 @Composable
 private fun HomeStatCard(
-    iconRes  : Int,
-    value    : String,
-    label    : String,
-    dimmed   : Boolean = false,
-    modifier : Modifier = Modifier
+    iconRes        : Int,
+    value          : String,
+    label          : String,
+    dimmed         : Boolean = false,
+    containerColor : Color   = MaterialTheme.colorScheme.secondaryContainer,
+    valueColor     : Color   = MaterialTheme.colorScheme.onSecondaryContainer,
+    modifier       : Modifier = Modifier
 ) {
-    val containerColor = if (dimmed)
-        MaterialTheme.colorScheme.surfaceVariant
-    else
-        MaterialTheme.colorScheme.secondaryContainer
-    val valueColor = if (dimmed)
-        MaterialTheme.colorScheme.onSurfaceVariant
-    else
-        MaterialTheme.colorScheme.onSecondaryContainer
-    val labelColor = if (dimmed)
-        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    val resolvedContainer = if (dimmed) MaterialTheme.colorScheme.surfaceVariant else containerColor
+    val resolvedValue     = if (dimmed) MaterialTheme.colorScheme.onSurfaceVariant else valueColor
+    val resolvedLabel     = if (dimmed)
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
     else
         MaterialTheme.colorScheme.onSurfaceVariant
 
     Card(
         modifier  = modifier,
         shape     = MaterialTheme.shapes.medium,
-        colors    = CardDefaults.cardColors(containerColor = containerColor),
+        colors    = CardDefaults.cardColors(containerColor = resolvedContainer),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
@@ -495,16 +541,16 @@ private fun HomeStatCard(
                 painter            = painterResource(id = iconRes),
                 contentDescription = label,
                 modifier           = Modifier
-                    .size(20.dp)
-                    .alpha(if (dimmed) 0.4f else 1f),
+                    .size(22.dp)
+                    .alpha(if (dimmed) 0.35f else 1f),
                 contentScale       = ContentScale.Fit
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(5.dp))
             Text(
                 text       = value,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize   = 20.sp,
-                color      = valueColor,
+                color      = resolvedValue,
                 maxLines   = 1
             )
             Spacer(Modifier.height(1.dp))
@@ -512,7 +558,7 @@ private fun HomeStatCard(
                 text       = label,
                 fontSize   = 10.sp,
                 fontWeight = FontWeight.Medium,
-                color      = labelColor,
+                color      = resolvedLabel,
                 maxLines   = 1
             )
         }
@@ -551,9 +597,9 @@ fun EmptyStateCard(
                 description,
                 fontSize  = 14.sp,
                 color     = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
-            Button(onClick = onAction, modifier = Modifier.fillMaxWidth()) {
+            Button(onClick = onAction) {
                 Text(actionLabel, fontWeight = FontWeight.Bold)
             }
         }

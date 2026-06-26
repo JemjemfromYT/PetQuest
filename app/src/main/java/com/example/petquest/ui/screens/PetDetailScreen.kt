@@ -2,9 +2,12 @@ package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -22,6 +25,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -148,6 +152,7 @@ fun PetDetailScreen(
             return@Scaffold
         }
 
+        // ── Rarity accent colour ──────────────────────────────────────────────
         val rarityColor = when (pet.type.rarity.name) {
             "COMMON"   -> Color(0xFF9E9E9E)
             "UNCOMMON" -> MaterialTheme.colorScheme.secondary
@@ -198,12 +203,11 @@ fun PetDetailScreen(
 
         val hasGoldBorder = pet.bondLevel >= 20
 
-        // ── Compute memories from existing pet state ────────────────────────────
         val memories = remember(pet, streak) {
             buildList {
-                add(PetMemory(Icons.Default.Pets,        "First Steps",    "${pet.name} joined your family"))
+                add(PetMemory(Icons.Default.Pets,        "First Steps",      "${pet.name} joined your family"))
                 if (pet.isVerified)
-                    add(PetMemory(Icons.Default.CameraAlt,   "Verified",       "${pet.name} is fully active"))
+                    add(PetMemory(Icons.Default.CameraAlt,   "Verified",         "${pet.name} is fully active"))
                 if (pet.bondLevel >= 5)
                     add(PetMemory(Icons.Default.Star,        "Level 5 Reached",  "+1 daily task unlocked"))
                 if (pet.bondLevel >= 10)
@@ -235,7 +239,8 @@ fun PetDetailScreen(
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Pet photo card — gold border at Level 20 ───────────────────────
+
+            // ── Pet photo card — rarity-tinted background when no photo ────────
             Box(contentAlignment = Alignment.Center) {
                 Card(
                     modifier  = Modifier
@@ -249,7 +254,11 @@ fun PetDetailScreen(
                                 )
                             else Modifier
                         ),
-                    elevation = CardDefaults.cardElevation(8.dp)
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    colors    = CardDefaults.cardColors(
+                        containerColor = if (pet.photoUri != null) Color.Transparent
+                        else rarityColor.copy(alpha = 0.10f)
+                    )
                 ) {
                     if (pet.photoUri != null) {
                         AsyncImage(
@@ -259,37 +268,61 @@ fun PetDetailScreen(
                             contentScale       = ContentScale.Crop
                         )
                     } else {
-                        Box(Modifier.fillMaxSize(), Alignment.Center) {
+                        Box(
+                            modifier         = Modifier
+                                .fillMaxSize()
+                                .background(rarityColor.copy(alpha = 0.10f)),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Text(petEmoji(pet.type.name), fontSize = 56.sp)
+                                Text(petEmoji(pet.type.name), fontSize = 64.sp)
                                 Text(
                                     "No Photo Yet",
-                                    fontSize = 12.sp,
-                                    color    = MaterialTheme.colorScheme.onSurfaceVariant
+                                    fontSize   = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color      = rarityColor.copy(alpha = 0.65f)
                                 )
                             }
                         }
+                    }
+                }
+
+                // Gold sparkle overlay for level 20+
+                if (hasGoldBorder) {
+                    Box(
+                        modifier         = Modifier
+                            .size(220.dp)
+                            .alpha(0.4f),
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        Text("✨", fontSize = 18.sp)
                     }
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
-            Badge(containerColor = rarityColor) {
+            // ── Rarity badge — bolder, bigger ──────────────────────────────────
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = rarityColor
+            ) {
                 Text(
                     " ${pet.type.rarity.name} ",
-                    fontSize   = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.onPrimary
+                    modifier   = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    fontSize   = 12.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = Color.White,
+                    letterSpacing = 1.sp
                 )
             }
 
             // Level 15 Bond Badge
             if (pet.bondLevel >= 15) {
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 Surface(
                     shape = MaterialTheme.shapes.medium,
                     color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
@@ -317,37 +350,49 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // ── Stat row: Level, Type, Bond Points ────────────────────────────
+            // ── Stat row: Bond Level / Type / Bond Points — each with its own tint ──
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 StatCard(
-                    value    = "Lv.${pet.bondLevel}",
-                    label    = "Bond Level",
-                    modifier = Modifier.weight(1f),
-                    iconRes  = R.drawable.ic_level
+                    value           = "Lv.${pet.bondLevel}",
+                    label           = "Bond Level",
+                    modifier        = Modifier.weight(1f),
+                    iconRes         = R.drawable.ic_level,
+                    accentContainer = MaterialTheme.colorScheme.primaryContainer,
+                    accentContent   = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 StatCard(
-                    value    = pet.type.name.replace("_", " "),
-                    label    = "Type",
-                    modifier = Modifier.weight(1f)
+                    value           = pet.type.name.replace("_", " "),
+                    label           = "Type",
+                    modifier        = Modifier.weight(1f),
+                    accentContainer = MaterialTheme.colorScheme.secondaryContainer,
+                    accentContent   = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 StatCard(
-                    value    = "${pet.bondPoints}",
-                    label    = "Bond Pts",
-                    modifier = Modifier.weight(1f),
-                    iconRes  = R.drawable.ic_bondpoints
+                    value           = "${pet.bondPoints}",
+                    label           = "Bond Pts",
+                    modifier        = Modifier.weight(1f),
+                    iconRes         = R.drawable.ic_bondpoints,
+                    accentContainer = MaterialTheme.colorScheme.tertiaryContainer,
+                    accentContent   = MaterialTheme.colorScheme.onTertiaryContainer
                 )
             }
 
             Spacer(Modifier.height(12.dp))
 
-            // ── Bond progress bar ──────────────────────────────────────────────
+            // ── Bond progress bar — rarity-tinted, taller, rounded ─────────────
             LinearProgressIndicator(
-                progress = { bondProgress },
-                modifier = Modifier.fillMaxWidth().height(8.dp)
+                progress   = { bondProgress },
+                modifier   = Modifier
+                    .fillMaxWidth()
+                    .height(10.dp)
+                    .clip(RoundedCornerShape(5.dp)),
+                color      = rarityColor,
+                trackColor = rarityColor.copy(alpha = 0.15f)
             )
+            Spacer(Modifier.height(4.dp))
             Text(
                 "${pet.bondPoints % 100}/100 pts to Level ${pet.bondLevel + 1}",
                 fontSize = 12.sp,
@@ -368,7 +413,7 @@ fun PetDetailScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ── Virtue identity card ───────────────────────────────────────────
+            // ── Virtue identity card — redesigned horizontal layout ────────────
             Box(modifier = Modifier.alpha(virtueAlpha)) {
                 VirtueIdentityCard(virtue = pet.virtue)
             }
@@ -438,7 +483,7 @@ fun PetDetailScreen(
                     }
                 }
             } else {
-                // ── Unverified state — camera icon instead of emoji ────────────
+                // ── Unverified — prompt to verify ──────────────────────────────
                 Card(
                     modifier  = Modifier.fillMaxWidth(),
                     colors    = CardDefaults.cardColors(
@@ -611,27 +656,38 @@ private fun BondTitleCard(title: String, unlockedAt: Int) {
         shape    = MaterialTheme.shapes.medium,
         color    = MaterialTheme.colorScheme.tertiaryContainer
     ) {
-        Column(
-            modifier            = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+        Row(
+            modifier          = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                "Bond Title",
-                fontSize   = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.65f)
+            Icon(
+                imageVector        = Icons.Default.Stars,
+                contentDescription = "Bond title",
+                tint               = MaterialTheme.colorScheme.tertiary,
+                modifier           = Modifier.size(24.dp)
             )
-            Text(
-                title,
-                fontSize   = 18.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color      = MaterialTheme.colorScheme.onTertiaryContainer
-            )
-            Text(
-                "Unlocked at Level $unlockedAt",
-                fontSize = 11.sp,
-                color    = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.65f)
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    "Bond Title",
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color      = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.65f)
+                )
+                Text(
+                    title,
+                    fontSize   = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+                Text(
+                    "Unlocked at Level $unlockedAt",
+                    fontSize = 11.sp,
+                    color    = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.65f)
+                )
+            }
         }
     }
 }
@@ -643,7 +699,7 @@ private fun NextRewardCard(level: Int, reward: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape    = MaterialTheme.shapes.medium,
-        color    = MaterialTheme.colorScheme.secondaryContainer
+        color    = Color(0xFFFFF8E1)
     ) {
         Row(
             modifier              = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -653,64 +709,114 @@ private fun NextRewardCard(level: Int, reward: String) {
             Icon(
                 imageVector        = Icons.Default.EmojiEvents,
                 contentDescription = "Next reward",
-                tint               = MaterialTheme.colorScheme.primary,
-                modifier           = Modifier.size(22.dp)
+                tint               = Color(0xFFE65100),
+                modifier           = Modifier.size(24.dp)
             )
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     "Next Reward — Level $level",
                     fontSize   = 11.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color      = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.65f)
+                    color      = Color(0xFFBF360C).copy(alpha = 0.75f)
                 )
                 Text(
                     "Reach Level $level and $reward",
                     fontSize   = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color      = MaterialTheme.colorScheme.onSecondaryContainer
+                    color      = Color(0xFF4E2000)
                 )
             }
         }
     }
 }
 
-// ─── Virtue Identity Card ──────────────────────────────────────────────────────
+// ─── Virtue Identity Card — redesigned horizontal layout ──────────────────────
 
 @Composable
 fun VirtueIdentityCard(virtue: Virtue, modifier: Modifier = Modifier) {
     val info = VirtueConfig[virtue]
 
+    // Virtue-specific accent colour — each virtue has a distinct identity
+    val virtueColor = when (virtue.name.uppercase()) {
+        "COURAGE"    -> Color(0xFFC62828)
+        "JUSTICE"    -> Color(0xFF1565C0)
+        "TEMPERANCE" -> Color(0xFF2E7D32)
+        "WISDOM"     -> Color(0xFF6A1B9A)
+        "LOYALTY"    -> Color(0xFFE65100)
+        else         -> Color(0xFF37474F)
+    }
+    val virtueBg = when (virtue.name.uppercase()) {
+        "COURAGE"    -> Color(0xFFFFEBEE)
+        "JUSTICE"    -> Color(0xFFE3F2FD)
+        "TEMPERANCE" -> Color(0xFFE8F5E9)
+        "WISDOM"     -> Color(0xFFF3E5F5)
+        "LOYALTY"    -> Color(0xFFFFF3E0)
+        else         -> Color(0xFFECEFF1)
+    }
+
     Card(
         modifier  = modifier.fillMaxWidth(),
-        colors    = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        ),
-        elevation = CardDefaults.cardElevation(4.dp)
+        colors    = CardDefaults.cardColors(containerColor = virtueBg),
+        elevation = CardDefaults.cardElevation(4.dp),
+        shape     = MaterialTheme.shapes.medium
     ) {
-        Column(
-            modifier            = Modifier.fillMaxWidth().padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+        Row(
+            modifier          = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter            = painterResource(id = info.emblemRes),
-                contentDescription = "${virtue.name} emblem",
-                modifier           = Modifier.size(96.dp),
-                contentScale       = ContentScale.Fit
+            // Left virtue-coloured accent bar
+            Box(
+                modifier = Modifier
+                    .width(5.dp)
+                    .fillMaxHeight()
+                    .background(virtueColor)
             )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text       = virtue.name,
-                fontSize   = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color      = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text      = info.description,
-                fontSize  = 13.sp,
-                color     = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
+
+            // Circular emblem container
+            Box(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(virtueColor.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter            = painterResource(id = info.emblemRes),
+                    contentDescription = "${virtue.name} emblem",
+                    modifier           = Modifier.size(52.dp),
+                    contentScale       = ContentScale.Fit
+                )
+            }
+
+            // Text column
+            Column(
+                modifier            = Modifier
+                    .weight(1f)
+                    .padding(end = 16.dp, top = 16.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    "Virtue Identity",
+                    fontSize      = 10.sp,
+                    fontWeight    = FontWeight.SemiBold,
+                    color         = virtueColor.copy(alpha = 0.65f),
+                    letterSpacing = 0.8.sp
+                )
+                Text(
+                    text       = virtue.name,
+                    fontSize   = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = virtueColor
+                )
+                Text(
+                    text  = info.description,
+                    fontSize = 13.sp,
+                    color    = virtueColor.copy(alpha = 0.75f)
+                )
+            }
         }
     }
 }
