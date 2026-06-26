@@ -1,0 +1,65 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- Paw pad (main central pad) -->
+    <path
+        android:fillColor="#BCAAA4"
+        android:pathData="M48,42 C48,36.48 43.52,32 38,32 C32.48,32 28,36.48 28,42 C28,50 38,60 48,68 C58,60 68,50 68,42 C68,36.48 63.52,32 58,32 C52.48,32 48,36.48 48,42 Z"
+        android:fillAlpha="0" />
+
+    <!-- Large central paw pad -->
+    <path
+        android:fillColor="#D7CCC8"
+        android:pathData="M48,55 C42,55 36,49 36,43 C36,37 42,33 48,33 C54,33 60,37 60,43 C60,49 54,55 48,55 Z" />
+
+    <!-- Top-left toe pad -->
+    <path
+        android:fillColor="#D7CCC8"
+        android:pathData="M30,36 C27,36 24,38 24,41 C24,44 27,46 30,46 C33,46 36,44 36,41 C36,38 33,36 30,36 Z" />
+
+    <!-- Top-right toe pad -->
+    <path
+        android:fillColor="#D7CCC8"
+        android:pathData="M66,36 C63,36 60,38 60,41 C60,44 63,46 66,46 C69,46 72,44 72,41 C72,38 69,36 66,36 Z" />
+
+    <!-- Top-center-left toe pad -->
+    <path
+        android:fillColor="#D7CCC8"
+        android:pathData="M39,25 C36.5,25 34,27 34,30 C34,33 36.5,35 39,35 C41.5,35 44,33 44,30 C44,27 41.5,25 39,25 Z" />
+
+    <!-- Top-center-right toe pad -->
+    <path
+        android:fillColor="#D7CCC8"
+        android:pathData="M57,25 C54.5,25 52,27 52,30 C52,33 54.5,35 57,35 C59.5,35 62,33 62,30 C62,27 59.5,25 57,25 Z" />
+
+    <!-- Question mark overlay — "no pets yet" -->
+    <path
+        android:fillColor="#A1887F"
+        android:pathData="M44,38 C44,35.79 45.79,34 48,34 C50.21,34 52,35.79 52,38 C52,39.5 51.2,40.8 50,41.5 L50,44 L46,44 L46,40 C47.2,39.3 48,38.2 48,38 Z"
+        android:fillAlpha="0" />
+
+    <!-- Simple "+" icon in center to hint "add pet" -->
+    <path
+        android:fillColor="#8D6E63"
+        android:pathData="M46,41 L46,39 C46,38.45 46.45,38 47,38 L49,38 C49.55,38 50,38.45 50,39 L50,41 L52,41 C52.55,41 53,41.45 53,42 L53,44 C53,44.55 52.55,45 52,45 L50,45 L50,47 C50,47.55 49.55,48 49,48 L47,48 C46.45,48 46,47.55 46,47 L46,45 L44,45 C43.45,45 43,44.55 43,44 L43,42 C43,41.45 43.45,41 44,41 Z"
+        android:fillAlpha="0.6" />
+
+    <!-- Dotted border circle (empty state feel) -->
+    <path
+        android:strokeColor="#BCAAA4"
+        android:strokeWidth="2"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M48,70 C34.19,70 23,58.81 23,45 C23,31.19 34.19,20 48,20 C61.81,20 73,31.19 73,45 C73,58.81 61.81,70 48,70 Z"
+        android:strokeLineJoin="round"
+        android:fillAlpha="0.4" />
+
+    <!-- Tagline arrow / chevron at bottom -->
+    <path
+        android:fillColor="#BCAAA4"
+        android:pathData="M44,78 L48,82 L52,78 Z"
+        android:fillAlpha="0.5" />
+
+</vector>

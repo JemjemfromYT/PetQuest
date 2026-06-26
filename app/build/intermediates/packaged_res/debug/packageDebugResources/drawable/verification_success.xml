@@ -1,0 +1,30 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- Shield body -->
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M48,8 L16,22 L16,46 C16,64 30,79 48,84 C66,79 80,64 80,46 L80,22 Z" />
+
+    <!-- Shield inner lighter area -->
+    <path
+        android:fillColor="#388E3C"
+        android:pathData="M48,14 L22,26 L22,46 C22,61 34,74 48,79 C62,74 74,61 74,46 L74,26 Z" />
+
+    <!-- Shield highlight (top gloss) -->
+    <path
+        android:fillColor="#A5D6A7"
+        android:pathData="M48,16 L26,27 L26,36 C26,36 34,35 40,30 C44,26 46,20 48,16 Z"
+        android:fillAlpha="0.3" />
+
+    <!-- Check mark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M35,47 L44,56 L61,38 L64.5,41.5 L44,63 L31.5,50.5 Z" />
+
+</vector>

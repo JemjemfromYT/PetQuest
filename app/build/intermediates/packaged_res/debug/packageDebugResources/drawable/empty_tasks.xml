@@ -1,0 +1,57 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- Clipboard body -->
+    <path
+        android:fillColor="#ECEFF1"
+        android:pathData="M24,20 C24,17.79 25.79,16 28,16 L68,16 C70.21,16 72,17.79 72,20 L72,80 C72,82.21 70.21,84 68,84 L28,84 C25.79,84 24,82.21 24,80 Z" />
+
+    <!-- Clipboard top clip -->
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M38,12 C38,10.9 38.9,10 40,10 L56,10 C57.1,10 58,10.9 58,12 L58,22 L38,22 Z" />
+
+    <!-- Clip rim overlay -->
+    <path
+        android:fillColor="#78909C"
+        android:pathData="M36,18 L60,18 L60,22 L36,22 Z" />
+
+    <!-- Row 1 check -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M32,37 L35,40 L41,34 L43,36 L35,44 L30,39 Z" />
+
+    <!-- Row 1 line -->
+    <path
+        android:fillColor="#CFD8DC"
+        android:pathData="M46,36 L64,36 L64,40 L46,40 Z" />
+
+    <!-- Row 2 empty box -->
+    <path
+        android:strokeColor="#CFD8DC"
+        android:strokeWidth="2"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M31,50 L41,50 L41,60 L31,60 Z" />
+
+    <!-- Row 2 line -->
+    <path
+        android:fillColor="#E3E8EC"
+        android:pathData="M46,52 L64,52 L64,56 L46,56 Z" />
+
+    <!-- Row 3 empty box -->
+    <path
+        android:strokeColor="#CFD8DC"
+        android:strokeWidth="2"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M31,66 L41,66 L41,76 L31,76 Z" />
+
+    <!-- Row 3 shorter line -->
+    <path
+        android:fillColor="#E3E8EC"
+        android:pathData="M46,68 L58,68 L58,72 L46,72 Z" />
+
+</vector>
+    

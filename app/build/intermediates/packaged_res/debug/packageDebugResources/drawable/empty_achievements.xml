@@ -1,0 +1,51 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- Trophy base -->
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M36,76 L60,76 L60,80 C60,81.1 59.1,82 58,82 L38,82 C36.9,82 36,81.1 36,80 Z" />
+
+    <!-- Trophy stem -->
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M44,60 L52,60 L52,76 L44,76 Z" />
+
+    <!-- Trophy body -->
+    <path
+        android:fillColor="#CFD8DC"
+        android:pathData="M22,16 L74,16 L74,22 C74,40 62,56 48,60 C34,56 22,40 22,22 Z" />
+
+    <!-- Trophy handles left -->
+    <path
+        android:strokeColor="#B0BEC5"
+        android:strokeWidth="4"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M22,18 C16,18 12,24 12,30 C12,40 18,46 26,48" />
+
+    <!-- Trophy handles right -->
+    <path
+        android:strokeColor="#B0BEC5"
+        android:strokeWidth="4"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M74,18 C80,18 84,24 84,30 C84,40 78,46 70,48" />
+
+    <!-- Star inside trophy (achievement symbol) -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M48,24 L50.47,31.29 L58.18,31.29 L52,35.71 L54.47,43 L48,38.57 L41.53,43 L44,35.71 L37.82,31.29 L45.53,31.29 Z" />
+
+    <!-- Trophy rim / top edge -->
+    <path
+        android:fillColor="#90A4AE"
+        android:pathData="M20,14 L76,14 L76,20 L20,20 Z" />
+
+    <!-- Base plate -->
+    <path
+        android:fillColor="#78909C"
+        android:pathData="M33,78 L63,78 L63,82 L33,82 Z" />
+
+</vector>
