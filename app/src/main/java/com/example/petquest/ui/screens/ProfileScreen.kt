@@ -498,12 +498,14 @@ fun ProfileScreen(
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         pets.chunked(2).forEach { rowPets ->
+                            // IntrinsicSize.Max makes both cards in a row share
+                            // the same height regardless of which face is showing.
                             Row(
-                                modifier              = Modifier.fillMaxWidth(),
+                                modifier              = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 rowPets.forEach { pet ->
-                                    PetCollectionCard(pet = pet, modifier = Modifier.weight(1f))
+                                    PetCollectionCard(pet = pet, modifier = Modifier.weight(1f).fillMaxHeight())
                                 }
                                 if (rowPets.size == 1) Spacer(modifier = Modifier.weight(1f))
                             }
@@ -911,7 +913,9 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Back face — virtue, bond title, bond points, species, verified
+// Back face — virtue, bond title, verified
+// fillMaxHeight() makes the card stretch to match the front face height.
+// Content is centered vertically so it doesn't cluster at the top.
 // ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -921,12 +925,14 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
     Card(
         elevation = CardDefaults.cardElevation(4.dp),
         colors    = CardDefaults.cardColors(containerColor = rarityColor.copy(alpha = 0.06f)),
-        modifier  = Modifier.fillMaxWidth()
+        modifier  = Modifier.fillMaxWidth().fillMaxHeight()
     ) {
         Column(
-            modifier            = Modifier.fillMaxWidth().padding(12.dp),
+            modifier            = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 pet.name,
@@ -937,7 +943,9 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 color      = MaterialTheme.colorScheme.onSurface
             )
 
+            Spacer(Modifier.height(8.dp))
             HorizontalDivider(color = rarityColor.copy(alpha = 0.25f))
+            Spacer(Modifier.height(12.dp))
 
             // Virtue
             Row(
@@ -965,6 +973,8 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 }
             }
 
+            Spacer(Modifier.height(10.dp))
+
             // Bond title
             Row(
                 modifier              = Modifier.fillMaxWidth(),
@@ -987,52 +997,9 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 }
             }
 
-            // Bond points
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text("💛", fontSize = 14.sp)
-                Column {
-                    Text(
-                        "Bond Points",
-                        fontSize = 8.sp,
-                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                    Text(
-                        "${pet.bondPoints} pts",
-                        fontSize   = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            // Species
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text("🐾", fontSize = 14.sp)
-                Column {
-                    Text(
-                        "Species",
-                        fontSize = 8.sp,
-                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                    Text(
-                        pet.type.name.lowercase().replace("_", " ").replaceFirstChar { it.uppercase() },
-                        fontSize   = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            // Verified badge
+            // Verified badge (only shown if pet is verified)
             if (pet.isVerified) {
+                Spacer(Modifier.height(12.dp))
                 Surface(
                     shape    = RoundedCornerShape(20.dp),
                     color    = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
