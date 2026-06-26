@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Shield
@@ -80,7 +81,7 @@ fun trainerTitle(level: Int): String = when {
 }
 
 // ---------------------------------------------------------------------------
-// StatCard
+// StatCard — used by ProfileScreen
 // ---------------------------------------------------------------------------
 @Composable
 fun StatCard(
@@ -138,13 +139,14 @@ private fun rarityAccentColor(rarityName: String): Color = when (rarityName) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
-    val pets             by viewModel.allPets.collectAsState()
-    val tasks            by viewModel.todaysTasks.collectAsState()
-    val streak           by viewModel.userStreak.collectAsState()
-    val totalBondPoints  by viewModel.totalBondPoints.collectAsState()
-    val userLevel        by viewModel.userLevel.collectAsState()
+    val pets            by viewModel.allPets.collectAsState()
+    val tasks           by viewModel.todaysTasks.collectAsState()
+    val streak          by viewModel.userStreak.collectAsState()
+    val totalBondPoints by viewModel.totalBondPoints.collectAsState()
+    val userLevel       by viewModel.userLevel.collectAsState()
 
-    val doneTasks  = tasks.count { it.isCompleted }
+    val doneTasks = tasks.count { it.isCompleted }
+    val streakActive = doneTasks > 0 || tasks.isEmpty()
 
     val todayProgress by animateFloatAsState(
         targetValue   = if (tasks.isEmpty()) 0f else doneTasks / tasks.size.toFloat(),
@@ -167,37 +169,52 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding      = PaddingValues(vertical = 12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+            contentPadding      = PaddingValues(vertical = 16.dp)
         ) {
-            // ── Compact stat + daily progress strip ───────────────────────────
+            // ── Top statistics row ────────────────────────────────────────────
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
-                        modifier          = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Streak chip
-                        CompactStatChip(
-                            iconRes = R.drawable.ic_streak,
-                            value   = "$streak",
-                            dimmed  = doneTasks == 0
+                        // Streak — goes gray when no tasks completed today
+                        HomeStatCard(
+                            value  = "$streak",
+                            label  = "Streak",
+                            dimmed = !streakActive,
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(Modifier.width(8.dp))
-                        // Bond pts chip
-                        CompactStatChip(
-                            iconRes = R.drawable.ic_bondpoints,
-                            value   = "$totalBondPoints"
+                        // Bond Points
+                        HomeStatCard(
+                            value    = "$totalBondPoints",
+                            label    = "Bond Points",
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(Modifier.width(8.dp))
-                        // Level chip
-                        CompactStatChip(
-                            iconRes = R.drawable.ic_level,
-                            value   = "Lv.$userLevel"
+                        // Level
+                        HomeStatCard(
+                            value    = "Lv.$userLevel",
+                            label    = "Level",
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(Modifier.weight(1f))
-                        // Daily done count
-                        if (tasks.isNotEmpty()) {
+                    }
+
+                    // Daily task progress bar
+                    if (tasks.isNotEmpty()) {
+                        Row(
+                            modifier          = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            LinearProgressIndicator(
+                                progress   = { todayProgress },
+                                modifier   = Modifier
+                                    .weight(1f)
+                                    .height(4.dp)
+                                    .clip(RoundedCornerShape(2.dp)),
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
                             Text(
                                 "$doneTasks / ${tasks.size}",
                                 fontSize   = 12.sp,
@@ -208,13 +225,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                    }
-                    // Daily progress bar — thin, no label
-                    if (tasks.isNotEmpty()) {
-                        LinearProgressIndicator(
-                            progress = { todayProgress },
-                            modifier = Modifier.fillMaxWidth().height(3.dp)
-                        )
                     }
                 }
             }
@@ -231,7 +241,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     )
                 }
             } else {
-                // ── Hero pet cards ────────────────────────────────────────────
+                // ── Pet cards ─────────────────────────────────────────────────
                 itemsIndexed(pets) { index, pet ->
                     val virtueInfo    = VirtueConfig[pet.virtue]
                     val isVerified    = pet.isVerified
@@ -276,7 +286,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 interactionSource = interactionSource,
                                 indication        = null
                             ) { navController.navigate("pet_detail/${pet.id}") },
-                        elevation = CardDefaults.cardElevation(if (isVerified) 4.dp else 0.dp),
+                        elevation = CardDefaults.cardElevation(if (isVerified) 3.dp else 0.dp),
                         colors    = CardDefaults.cardColors(
                             containerColor = if (isVerified)
                                 MaterialTheme.colorScheme.surface
@@ -284,20 +294,23 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 MaterialTheme.colorScheme.surfaceVariant
                         )
                     ) {
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            // ── Rarity accent strip ───────────────────────────
+                        Row(
+                            modifier          = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // ── Rarity accent strip (thin left border only) ────
                             Box(
                                 modifier = Modifier
                                     .width(4.dp)
-                                    .height(96.dp)
+                                    .height(88.dp)
                                     .background(accentColor)
                             )
 
-                            // ── Hero photo ────────────────────────────────────
+                            // ── Pet photo ─────────────────────────────────────
                             Box(
                                 modifier         = Modifier
                                     .padding(12.dp)
-                                    .size(72.dp)
+                                    .size(64.dp)
                                     .then(
                                         if (hasGoldBorder)
                                             Modifier.border(
@@ -327,7 +340,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(petEmoji(pet.type.name), fontSize = 42.sp)
+                                        Text(petEmoji(pet.type.name), fontSize = 36.sp)
                                     }
                                 }
                                 // Lock overlay for unverified
@@ -342,7 +355,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                             imageVector        = Icons.Default.Lock,
                                             contentDescription = "Unverified",
                                             tint               = Color.White,
-                                            modifier           = Modifier.size(22.dp)
+                                            modifier           = Modifier.size(20.dp)
                                         )
                                     }
                                 }
@@ -352,8 +365,8 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(top = 12.dp, end = 12.dp, bottom = 10.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    .padding(top = 10.dp, end = 12.dp, bottom = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 // Name + verified badge
                                 Row(
@@ -363,7 +376,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     Text(
                                         pet.name,
                                         fontWeight = FontWeight.ExtraBold,
-                                        fontSize   = 17.sp,
+                                        fontSize   = 16.sp,
                                         maxLines   = 1,
                                         overflow   = TextOverflow.Ellipsis,
                                         modifier   = Modifier.weight(1f, fill = false)
@@ -373,28 +386,29 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                             imageVector        = Icons.Default.Shield,
                                             contentDescription = "Verified",
                                             tint               = MaterialTheme.colorScheme.tertiary,
-                                            modifier           = Modifier.size(14.dp)
+                                            modifier           = Modifier.size(13.dp)
                                         )
                                     }
                                 }
 
-                                // Rarity badge + level
+                                // Rarity label (small, low-weight) + level
                                 Row(
                                     verticalAlignment     = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    Surface(
-                                        shape = MaterialTheme.shapes.extraSmall,
-                                        color = accentColor.copy(alpha = 0.15f)
-                                    ) {
-                                        Text(
-                                            pet.type.rarity.name,
-                                            modifier   = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
-                                            fontSize   = 9.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color      = accentColor
-                                        )
-                                    }
+                                    // Small rarity text — no heavy badge background
+                                    Text(
+                                        pet.type.rarity.name.lowercase()
+                                            .replaceFirstChar { it.uppercase() },
+                                        fontSize   = 10.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color      = accentColor.copy(alpha = 0.75f)
+                                    )
+                                    Text(
+                                        "·",
+                                        fontSize = 10.sp,
+                                        color    = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                     Text(
                                         "Lv.${pet.bondLevel}",
                                         fontSize   = 12.sp,
@@ -405,15 +419,18 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                                 Spacer(Modifier.weight(1f))
 
-                                // Bond progress bar
+                                // Bond XP bar
                                 LinearProgressIndicator(
-                                    progress = { bondProgress },
-                                    modifier = Modifier.fillMaxWidth().height(4.dp),
-                                    color    = accentColor,
-                                    trackColor = accentColor.copy(alpha = 0.15f)
+                                    progress   = { bondProgress },
+                                    modifier   = Modifier
+                                        .fillMaxWidth()
+                                        .height(4.dp)
+                                        .clip(RoundedCornerShape(2.dp)),
+                                    color      = accentColor,
+                                    trackColor = accentColor.copy(alpha = 0.12f)
                                 )
 
-                                // Virtue + unverified note
+                                // Unverified note OR virtue emblem
                                 Row(
                                     modifier              = Modifier.fillMaxWidth(),
                                     verticalAlignment     = Alignment.CenterVertically,
@@ -432,7 +449,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     Image(
                                         painter            = painterResource(id = virtueInfo.emblemRes),
                                         contentDescription = null,
-                                        modifier           = Modifier.size(22.dp),
+                                        modifier           = Modifier.size(20.dp),
                                         contentScale       = ContentScale.Fit
                                     )
                                 }
@@ -446,36 +463,55 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 }
 
 // ---------------------------------------------------------------------------
-// CompactStatChip — small pill showing icon + value
+// HomeStatCard — icon-free stat card for the top stats row
 // ---------------------------------------------------------------------------
 @Composable
-private fun CompactStatChip(iconRes: Int, value: String, dimmed: Boolean = false) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = if (dimmed)
-            MaterialTheme.colorScheme.surfaceVariant
-        else
-            MaterialTheme.colorScheme.secondaryContainer
+private fun HomeStatCard(
+    value    : String,
+    label    : String,
+    dimmed   : Boolean = false,
+    modifier : Modifier = Modifier
+) {
+    val containerColor = if (dimmed)
+        MaterialTheme.colorScheme.surfaceVariant
+    else
+        MaterialTheme.colorScheme.secondaryContainer
+    val valueColor = if (dimmed)
+        MaterialTheme.colorScheme.onSurfaceVariant
+    else
+        MaterialTheme.colorScheme.onSecondaryContainer
+    val labelColor = if (dimmed)
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    else
+        MaterialTheme.colorScheme.onSurfaceVariant
+
+    Card(
+        modifier = modifier,
+        shape    = MaterialTheme.shapes.medium,
+        colors   = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
-        Row(
-            modifier          = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        Column(
+            modifier            = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 14.dp, horizontal = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter            = painterResource(id = iconRes),
-                contentDescription = null,
-                modifier           = Modifier.size(14.dp),
-                contentScale       = ContentScale.Fit
-            )
             Text(
-                value,
-                fontSize   = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color      = if (dimmed)
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                else
-                    MaterialTheme.colorScheme.onSecondaryContainer
+                text       = value,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize   = 22.sp,
+                color      = valueColor,
+                maxLines   = 1
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text      = label,
+                fontSize  = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color     = labelColor,
+                maxLines  = 1
             )
         }
     }
@@ -504,19 +540,22 @@ fun EmptyStateCard(
         ) {
             Image(
                 painter            = painterResource(id = imageRes),
-                contentDescription = title,
+                contentDescription = null,
                 modifier           = Modifier.size(96.dp),
                 contentScale       = ContentScale.Fit
             )
-            Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
             Text(
                 description,
                 fontSize  = 14.sp,
                 color     = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
-            FilledTonalButton(onClick = onAction) {
-                Text(actionLabel, fontWeight = FontWeight.SemiBold)
+            Button(
+                onClick  = onAction,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(actionLabel, fontWeight = FontWeight.Bold)
             }
         }
     }
