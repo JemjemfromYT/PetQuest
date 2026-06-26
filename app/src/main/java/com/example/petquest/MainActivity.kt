@@ -1,3 +1,8 @@
+// ============================================================
+// FILE: app/src/main/java/com/example/petquest/MainActivity.kt
+// FULL REPLACEMENT — adds "Events" tab between Awards and Profile
+// ============================================================
+
 package com.example.petquest
 
 import android.os.Bundle
@@ -127,19 +132,19 @@ class MainActivity : ComponentActivity() {
 
 // ── Bottom nav item data ───────────────────────────────────────────────────────
 private data class NavItem(
-    val label        : String,
-    val selectedIcon : androidx.compose.ui.graphics.vector.ImageVector,
+    val label         : String,
+    val selectedIcon  : androidx.compose.ui.graphics.vector.ImageVector,
     val unselectedIcon: androidx.compose.ui.graphics.vector.ImageVector
 )
 
-// CHANGE: icons now use filled/outlined pairs for the standard Android "selected =
-// filled, unselected = outlined" pattern. Also swapped Explore → AutoAwesome for
-// Collection tab because Explore feels too generic for a pet encyclopedia.
+// 6-tab navigation:
+// Home | Tasks | Collection | Awards | Events | Profile
 private val NAV_ITEMS = listOf(
     NavItem("Home",       Icons.Filled.Home,        Icons.Outlined.Home),
     NavItem("Tasks",      Icons.Filled.CheckCircle, Icons.Outlined.CheckCircle),
     NavItem("Collection", Icons.Filled.Pets,        Icons.Outlined.Pets),
     NavItem("Awards",     Icons.Filled.EmojiEvents, Icons.Outlined.EmojiEvents),
+    NavItem("Events",     Icons.Filled.Celebration, Icons.Outlined.Celebration),
     NavItem("Profile",    Icons.Filled.Person,      Icons.Outlined.Person)
 )
 
@@ -174,7 +179,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                             Text(
                                 item.label,
                                 fontWeight = if (tab == index) FontWeight.Bold else FontWeight.Normal,
-                                fontSize   = 11.sp
+                                fontSize   = 10.sp  // slightly smaller to fit 6 tabs
                             )
                         }
                     )
@@ -188,14 +193,15 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 1 -> TasksScreen(
                     viewModel           = viewModel,
                     onVerifyPet         = { petId -> outerNav.navigate("pet_verify/$petId") },
-                    onNavigateToProfile = { tab = 4 }
+                    onNavigateToProfile = { tab = 5 }   // Profile is now index 5
                 )
                 2 -> EncyclopediaScreen(viewModel)
                 3 -> AchievementsScreen(
                     viewModel         = viewModel,
                     onNavigateToTasks = { tab = 1 }
                 )
-                4 -> ProfileScreen(
+                4 -> EventsScreen()
+                5 -> ProfileScreen(
                     viewModel              = viewModel,
                     onAddPetClick          = { outerNav.navigate("add_more_pet") },
                     onAdminClick           = { outerNav.navigate("admin") },
