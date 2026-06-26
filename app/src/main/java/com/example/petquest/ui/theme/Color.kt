@@ -9,7 +9,7 @@ val PetOrange10   = Color(0xFF3D1A00)
 val PetOrange20   = Color(0xFF6B2D00)
 val PetOrange40   = Color(0xFFBF5C00)
 val PetOrange80   = Color(0xFFFFB77A)
-val PetOrange90   = Color(0xFFFFDCBC)
+val PetOrange90   = Color(0xFFFFCFA8)   // slightly richer than before
 val PetOrange95   = Color(0xFFFFEEDD)
 
 // Secondary — nature green (calm, caring)
@@ -39,3 +39,12 @@ val PetNeutral99  = Color(0xFFFFFBFF)
 val PetError40    = Color(0xFFBA1A1A)
 val PetError80    = Color(0xFFFFB4AB)
 val PetError90    = Color(0xFFFFDAD6)
+
+// ── Accent colors used by individual UI elements ───────────────────────────
+// Stat cards (each stat gets its own identity)
+val StatStreakOrange  = Color(0xFFE65100)   // deep orange — heat, energy
+val StatBondGreen     = Color(0xFF2E7D32)   // forest green — growth, care
+val StatLevelViolet   = Color(0xFF6A1B9A)   // purple — prestige, power
+
+// Gold highlight (bond level 20+ border, special badge)
+val GoldAccent        = Color(0xFFFFB300)

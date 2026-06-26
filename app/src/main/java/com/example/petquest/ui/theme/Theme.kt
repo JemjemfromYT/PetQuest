@@ -9,10 +9,13 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+// KEY CHANGE: primaryContainer is now PetOrange80 (a real warm orange) instead of
+// PetOrange90 (the washed-out peach that made every TopAppBar look identical).
+// This gives each screen's top bar a proper branded color with enough contrast.
 private val LightColorScheme = lightColorScheme(
     primary                = PetOrange40,
     onPrimary              = PetNeutral99,
-    primaryContainer       = PetOrange90,
+    primaryContainer       = PetOrange80,         // was PetOrange90 (too pale)
     onPrimaryContainer     = PetOrange10,
 
     secondary              = PetGreen40,
@@ -76,14 +79,16 @@ fun PetQuestTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
+            // Status bar now matches the richer primaryContainer (warm orange)
             window.statusBarColor = colorScheme.primaryContainer.toArgb()
+            // Light status bar icons when in light mode (dark icons on orange bg)
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography   = Typography,
-        content      = content
+        typography  = Typography,
+        content     = content
     )
 }

@@ -6,11 +6,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
@@ -122,6 +125,24 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// ── Bottom nav item data ───────────────────────────────────────────────────────
+private data class NavItem(
+    val label        : String,
+    val selectedIcon : androidx.compose.ui.graphics.vector.ImageVector,
+    val unselectedIcon: androidx.compose.ui.graphics.vector.ImageVector
+)
+
+// CHANGE: icons now use filled/outlined pairs for the standard Android "selected =
+// filled, unselected = outlined" pattern. Also swapped Explore → AutoAwesome for
+// Collection tab because Explore feels too generic for a pet encyclopedia.
+private val NAV_ITEMS = listOf(
+    NavItem("Home",       Icons.Filled.Home,        Icons.Outlined.Home),
+    NavItem("Tasks",      Icons.Filled.CheckCircle, Icons.Outlined.CheckCircle),
+    NavItem("Collection", Icons.Filled.Pets,        Icons.Outlined.Pets),
+    NavItem("Awards",     Icons.Filled.EmojiEvents, Icons.Outlined.EmojiEvents),
+    NavItem("Profile",    Icons.Filled.Person,      Icons.Outlined.Person)
+)
+
 @Composable
 fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     var tab by remember { mutableIntStateOf(0) }
@@ -139,36 +160,25 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     Scaffold(
         bottomBar = {
             NavigationBar {
-                NavigationBarItem(
-                    selected = tab == 0,
-                    onClick  = { tab = 0 },
-                    icon     = { Icon(Icons.Default.Home, "Home") },
-                    label    = { Text("Home") }
-                )
-                NavigationBarItem(
-                    selected = tab == 1,
-                    onClick  = { tab = 1 },
-                    icon     = { Icon(Icons.Default.CheckCircle, "Tasks") },
-                    label    = { Text("Tasks") }
-                )
-                NavigationBarItem(
-                    selected = tab == 2,
-                    onClick  = { tab = 2 },
-                    icon     = { Icon(Icons.Default.Explore, "Collection") },
-                    label    = { Text("Collection") }
-                )
-                NavigationBarItem(
-                    selected = tab == 3,
-                    onClick  = { tab = 3 },
-                    icon     = { Icon(Icons.Default.EmojiEvents, "Awards") },
-                    label    = { Text("Awards") }
-                )
-                NavigationBarItem(
-                    selected = tab == 4,
-                    onClick  = { tab = 4 },
-                    icon     = { Icon(Icons.Default.Person, "Profile") },
-                    label    = { Text("Profile") }
-                )
+                NAV_ITEMS.forEachIndexed { index, item ->
+                    NavigationBarItem(
+                        selected = tab == index,
+                        onClick  = { tab = index },
+                        icon = {
+                            Icon(
+                                imageVector        = if (tab == index) item.selectedIcon else item.unselectedIcon,
+                                contentDescription = item.label
+                            )
+                        },
+                        label = {
+                            Text(
+                                item.label,
+                                fontWeight = if (tab == index) FontWeight.Bold else FontWeight.Normal,
+                                fontSize   = 11.sp
+                            )
+                        }
+                    )
+                }
             }
         }
     ) { padding ->

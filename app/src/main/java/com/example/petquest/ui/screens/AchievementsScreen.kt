@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
@@ -22,6 +23,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -78,34 +80,37 @@ private fun achievementColor(title: String): Color = when (title) {
 }
 
 // ── Category definition ───────────────────────────────────────────────────────
-private data class AchievementCategory(val label: String, val titles: List<String>)
+private data class AchievementCategory(val label: String, val icon: ImageVector, val titles: List<String>)
 
+// CHANGE: removed emoji from category data — now the icon is rendered by the
+// CategoryHeader composable using a proper left-bar + icon treatment.
+// This makes the headers visually consistent with the rest of the app style.
 private val CATEGORIES = listOf(
-    AchievementCategory("🐾  First Steps", listOf(
+    AchievementCategory("First Steps", Icons.Default.Pets, listOf(
         "First Pet", "First Verification", "Pet Lover",
         "Own 5 Pets", "Own 10 Pets",
         "Verify 3 Pets", "Verify 5 Pets", "Verify 10 Pets"
     )),
-    AchievementCategory("🔥  Streak", listOf(
+    AchievementCategory("Streak", Icons.Default.Whatshot, listOf(
         "3-Day Streak", "7-Day Streak", "14-Day Streak",
         "30-Day Streak", "60-Day Streak", "100-Day Streak"
     )),
-    AchievementCategory("✅  Tasks", listOf(
+    AchievementCategory("Tasks", Icons.Default.CheckCircle, listOf(
         "Complete 10 Tasks", "Complete 25 Tasks", "Complete 50 Tasks",
         "Complete 100 Tasks", "Complete 250 Tasks", "Complete 500 Tasks"
     )),
-    AchievementCategory("💎  Bond Points", listOf(
+    AchievementCategory("Bond Points", Icons.Default.Star, listOf(
         "Earn 100 Bond Points", "Earn 250 Bond Points", "Earn 500 Bond Points",
         "Earn 1000 Bond Points", "Earn 2500 Bond Points", "Earn 5000 Bond Points"
     )),
-    AchievementCategory("⭐  Pet Bond Level", listOf(
+    AchievementCategory("Pet Bond Level", Icons.Default.EmojiEvents, listOf(
         "Bond Master", "Bond Veteran", "Level 10 Companion",
         "Virtue Master", "Dedicated Caregiver", "Elite Trainer"
     )),
-    AchievementCategory("🏆  Trainer Level", listOf(
+    AchievementCategory("Trainer Level", Icons.Default.Stars, listOf(
         "Reach Level 10", "Reach Level 20", "Reach Level 30", "Reach Level 50"
     )),
-    AchievementCategory("🌍  Species & Rarity", listOf(
+    AchievementCategory("Species & Rarity", Icons.Default.Explore, listOf(
         "Species Collector", "Animal Explorer", "Master Explorer",
         "Rarity Hunter", "Epic Tamer"
     ))
@@ -113,7 +118,7 @@ private val CATEGORIES = listOf(
 
 // ── Grid item model ───────────────────────────────────────────────────────────
 private sealed interface GridItem {
-    data class Header(val label: String) : GridItem
+    data class Header(val label: String, val icon: ImageVector) : GridItem
     data class Tile(val achievement: AchievementEntity, val tileIndex: Int) : GridItem
 }
 
@@ -217,7 +222,6 @@ fun AchievementsScreen(
     val unlockedCount = achievements.count { it.isUnlocked }
     val totalCount    = achievements.size
 
-    // Build ordered grid items from categories
     val achievementMap = remember(achievements) { achievements.associateBy { it.title } }
     val gridItems: List<GridItem> = remember(achievementMap) {
         var tileIdx = 0
@@ -225,15 +229,14 @@ fun AchievementsScreen(
         for (cat in CATEGORIES) {
             val catItems = cat.titles.mapNotNull { achievementMap[it] }
             if (catItems.isNotEmpty()) {
-                result.add(GridItem.Header(cat.label))
+                result.add(GridItem.Header(cat.label, cat.icon))
                 catItems.forEach { a -> result.add(GridItem.Tile(a, tileIdx++)) }
             }
         }
-        // Uncategorized achievements go at the end
         val knownTitles = CATEGORIES.flatMap { it.titles }.toSet()
         val extras = achievements.filter { it.title !in knownTitles }
         if (extras.isNotEmpty()) {
-            result.add(GridItem.Header("Other"))
+            result.add(GridItem.Header("Other", Icons.Default.Star))
             extras.forEach { a -> result.add(GridItem.Tile(a, tileIdx++)) }
         }
         result
@@ -248,9 +251,17 @@ fun AchievementsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Awards", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "Awards",
+                        fontWeight    = FontWeight.ExtraBold,
+                        fontSize      = 22.sp,
+                        letterSpacing = (-0.5).sp
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor    = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }
@@ -285,13 +296,25 @@ fun AchievementsScreen(
                     verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    LinearProgressIndicator(
-                        progress = { overallProgress },
-                        modifier = Modifier.weight(1f).height(6.dp)
-                    )
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            "$unlockedCount of $totalCount unlocked",
+                            fontSize   = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color      = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        LinearProgressIndicator(
+                            progress = { overallProgress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp)),
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    }
                     Text(
-                        "$unlockedCount / $totalCount",
-                        fontSize   = 13.sp,
+                        "${(overallProgress * 100).toInt()}%",
+                        fontSize   = 14.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color      = MaterialTheme.colorScheme.primary
                     )
@@ -309,7 +332,7 @@ fun AchievementsScreen(
                 }
             ) { i ->
                 when (val item = gridItems[i]) {
-                    is GridItem.Header -> CategoryHeader(item.label)
+                    is GridItem.Header -> CategoryHeader(item.label, item.icon)
                     is GridItem.Tile   -> AchievementTile(
                         achievement = item.achievement,
                         tileIndex   = item.tileIndex
@@ -321,29 +344,51 @@ fun AchievementsScreen(
 }
 
 // ── Category section header ───────────────────────────────────────────────────
+// CHANGE: completely redesigned from emoji+text+divider to a left accent bar
+// + icon + bold label. Visually consistent with TasksScreen's SectionHeader.
+// This removes the messy emoji-in-text pattern and makes headers feel intentional.
 @Composable
-private fun CategoryHeader(label: String) {
-    Column(modifier = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 2.dp)) {
+private fun CategoryHeader(label: String, icon: ImageVector) {
+    Row(
+        modifier          = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Left accent bar — same pattern as TasksScreen SectionHeader
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(20.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(MaterialTheme.colorScheme.primary)
+        )
+        Spacer(Modifier.width(10.dp))
+        Icon(
+            imageVector        = icon,
+            contentDescription = null,
+            tint               = MaterialTheme.colorScheme.primary,
+            modifier           = Modifier.size(16.dp)
+        )
+        Spacer(Modifier.width(6.dp))
         Text(
             text       = label,
-            fontSize   = 13.sp,
+            fontSize   = 14.sp,
             fontWeight = FontWeight.ExtraBold,
             color      = MaterialTheme.colorScheme.onSurface
-        )
-        HorizontalDivider(
-            modifier  = Modifier.padding(top = 4.dp),
-            thickness = 1.dp,
-            color     = MaterialTheme.colorScheme.outlineVariant
         )
     }
 }
 
 // ── Single achievement tile ───────────────────────────────────────────────────
+// CHANGE: locked tiles now use a slightly warmer grey and show a subtle hint
+// text below the lock icon so users know what they're working toward.
+// Previously locked tiles were just dark grey blobs with no useful information.
 @Composable
 private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
     val a      = achievement
-    val icon   = ICON_MAP[a.title]  ?: Icons.Default.Star
-    val hint   = HINT_MAP[a.title]  ?: "Keep playing"
+    val icon   = ICON_MAP[a.title] ?: Icons.Default.Star
+    val hint   = HINT_MAP[a.title] ?: "Keep playing"
     val tColor = achievementColor(a.title)
 
     var visible by remember { mutableStateOf(false) }
@@ -377,39 +422,40 @@ private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
     Card(
         modifier  = Modifier
             .fillMaxWidth()
-            .alpha(if (a.isUnlocked) cardAlpha else cardAlpha * 0.55f)
+            // CHANGE: locked tiles are 70% opacity (was 55%) so they're more legible
+            .alpha(if (a.isUnlocked) cardAlpha else cardAlpha * 0.70f)
             .scale(if (a.isUnlocked) unlockScale else 1f),
         shape     = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(if (a.isUnlocked) 5.dp else 0.dp),
+        elevation = CardDefaults.cardElevation(if (a.isUnlocked) 4.dp else 0.dp),
         colors    = CardDefaults.cardColors(
             containerColor = if (a.isUnlocked)
                 MaterialTheme.colorScheme.surface
             else
-                MaterialTheme.colorScheme.surfaceVariant
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
         )
     ) {
         Column(
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Color accent strip
+            // Color accent strip — full color when unlocked, subtle when locked
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(4.dp)
-                    .background(if (a.isUnlocked) tColor else tColor.copy(alpha = 0.2f))
+                    .background(if (a.isUnlocked) tColor else tColor.copy(alpha = 0.25f))
             )
 
             Spacer(Modifier.height(14.dp))
 
             // Icon badge
             Surface(
-                modifier = Modifier.size(56.dp),
+                modifier = Modifier.size(54.dp),
                 shape    = MaterialTheme.shapes.large,
                 color    = if (a.isUnlocked)
                     tColor.copy(alpha = 0.15f)
                 else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     if (a.isUnlocked) {
@@ -417,14 +463,14 @@ private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
                             imageVector        = icon,
                             contentDescription = a.title,
                             tint               = tColor,
-                            modifier           = Modifier.size(32.dp)
+                            modifier           = Modifier.size(30.dp)
                         )
                     } else {
                         Icon(
                             imageVector        = Icons.Default.Lock,
                             contentDescription = "Locked",
-                            tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                            modifier           = Modifier.size(24.dp)
+                            tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                            modifier           = Modifier.size(22.dp)
                         )
                     }
                 }
@@ -432,17 +478,17 @@ private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
 
             Spacer(Modifier.height(8.dp))
 
-            // Title / hint
+            // Title (unlocked) or hint text (locked) so the tile is always informative
             Text(
                 text       = if (a.isUnlocked) a.title else hint,
-                fontWeight = FontWeight.Bold,
-                fontSize   = 12.sp,
+                fontWeight = if (a.isUnlocked) FontWeight.Bold else FontWeight.Medium,
+                fontSize   = 11.sp,
                 textAlign  = TextAlign.Center,
                 maxLines   = 2,
                 color      = if (a.isUnlocked)
                     MaterialTheme.colorScheme.onSurface
                 else
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.60f),
                 modifier   = Modifier.padding(horizontal = 8.dp)
             )
 
