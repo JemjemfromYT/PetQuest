@@ -289,8 +289,7 @@ fun TasksScreen(
                         items(core, key = { "c_${it.id}" }) { task ->
                             TaskRow(
                                 task        = task,
-                                accentColor = MaterialTheme.colorScheme.primary,
-                                pts         = "+10"
+                                accentColor = MaterialTheme.colorScheme.primary
                             ) { viewModel.completeTask(task) }
                         }
                     }
@@ -309,7 +308,6 @@ fun TasksScreen(
                             TaskRow(
                                 task        = task,
                                 accentColor = MaterialTheme.colorScheme.tertiary,
-                                pts         = "+10",
                                 emblemRes   = virtueInfo.emblemRes
                             ) { viewModel.completeTask(task) }
                         }
@@ -328,8 +326,7 @@ fun TasksScreen(
                         items(optional, key = { "o_${it.id}" }) { task ->
                             TaskRow(
                                 task        = task,
-                                accentColor = MaterialTheme.colorScheme.secondary,
-                                pts         = "+5"
+                                accentColor = MaterialTheme.colorScheme.secondary
                             ) { viewModel.completeTask(task) }
                         }
                     }
@@ -515,7 +512,6 @@ private fun VirtueSectionHeader(virtueName: String, emblemRes: Int, color: Color
 private fun TaskRow(
     task        : TaskEntity,
     accentColor : Color,
-    pts         : String,
     emblemRes   : Int? = null,
     onCheck     : () -> Unit
 ) {
@@ -581,30 +577,15 @@ private fun TaskRow(
                 modifier       = Modifier.weight(1f).padding(end = 4.dp)
             )
 
-            if (!isDone) {
-                // Optional emblem icon for virtue tasks
-                if (emblemRes != null) {
-                    Image(
-                        painter            = painterResource(id = emblemRes),
-                        contentDescription = null,
-                        modifier           = Modifier.size(18.dp),
-                        contentScale       = ContentScale.Fit
-                    )
-                    Spacer(Modifier.width(4.dp))
-                }
-                // Points badge
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = accentColor.copy(alpha = 0.12f),
-                ) {
-                    Text(
-                        pts,
-                        modifier   = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
-                        fontSize   = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color      = accentColor
-                    )
-                }
+            if (!isDone && emblemRes != null) {
+                Spacer(Modifier.width(6.dp))
+                Image(
+                    painter            = painterResource(id = emblemRes),
+                    contentDescription = null,
+                    modifier           = Modifier.size(18.dp).padding(end = 10.dp),
+                    contentScale       = ContentScale.Fit
+                )
+            } else {
                 Spacer(Modifier.width(10.dp))
             }
         }

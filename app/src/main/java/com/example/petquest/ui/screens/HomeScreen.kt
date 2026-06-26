@@ -13,7 +13,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -381,10 +381,10 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     )
                                     if (isVerified) {
                                         Icon(
-                                            imageVector        = Icons.Default.Shield,
+                                            imageVector        = Icons.Default.CheckCircle,
                                             contentDescription = "Verified",
-                                            tint               = MaterialTheme.colorScheme.tertiary,
-                                            modifier           = Modifier.size(13.dp)
+                                            tint               = Color(0xFF43A047),
+                                            modifier           = Modifier.size(14.dp)
                                         )
                                     }
                                 }
