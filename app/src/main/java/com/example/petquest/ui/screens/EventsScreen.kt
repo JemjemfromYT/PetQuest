@@ -1,6 +1,6 @@
 // ============================================================
 // FILE: app/src/main/java/com/example/petquest/ui/screens/EventsScreen.kt
-// COPY THIS ENTIRE FILE — create it fresh in Android Studio
+// COPY THIS ENTIRE FILE — replace the existing one in Android Studio
 // ============================================================
 
 package com.example.petquest.ui.screens
@@ -15,8 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.petquest.viewmodel.PetQuestViewModel
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -67,116 +71,93 @@ private fun daysBetween(from: SimpleDate, to: SimpleDate): Long {
 // ──────────────────────────────────────────────────────────────────────────────
 
 data class SeasonalEvent(
-    val id            : String,
-    val name          : String,
-    val emoji         : String,
-    val description   : String,
-    val startMonth    : Int,
-    val startDay      : Int,
-    val endMonth      : Int,
-    val endDay        : Int,
-    val gradientStart : Color,
-    val gradientEnd   : Color,
-    val accentColor   : Color,
-    val rewards       : List<EventReward>
-)
-
-data class EventReward(
-    val task   : String,
-    val reward : String,
-    val icon   : String
+    val id           : String,
+    val name         : String,
+    val emoji        : String,
+    val description  : String,
+    val startMonth   : Int,
+    val startDay     : Int,
+    val endMonth     : Int,
+    val endDay       : Int,
+    val gradientStart: Color,
+    val gradientEnd  : Color,
+    val accentColor  : Color,
+    val badgeTitle   : String,       // Achievement title unlocked on claim
+    val badgeEmoji   : String        // Emoji shown on the badge chip in Profile
 )
 
 // ──────────────────────────────────────────────────────────────────────────────
-// All Seasonal Events (hardcoded — no backend needed)
+// All Seasonal Events — badgeTitle must be unique, shown on Profile
 // ──────────────────────────────────────────────────────────────────────────────
 
 val ALL_SEASONAL_EVENTS = listOf(
     SeasonalEvent(
         id = "new_year", name = "New Year Celebration", emoji = "🎊",
-        description   = "Ring in the new year with your pets! Gold confetti and sparkling bonds await.",
+        description    = "Ring in the new year with your pets! Complete all today's tasks and claim your New Year bonus.",
         startMonth = 12, startDay = 26, endMonth = 1, endDay = 7,
-        gradientStart = Color(0xFFFFC107), gradientEnd = Color(0xFFFF6F00),
-        accentColor   = Color(0xFFFFD54F),
-        rewards = listOf(
-            EventReward("Complete all pet tasks 3 days in a row", "✨ Golden Confetti Badge", "🏅"),
-            EventReward("Log in 5 days during the event",          "🎊 New Year Crest",        "🎊"),
-            EventReward("Earn 500+ bond points today",             "⭐ Star Keeper Title",      "⭐")
-        )
+        gradientStart  = Color(0xFFFFC107), gradientEnd = Color(0xFFFF6F00),
+        accentColor    = Color(0xFFFFD54F),
+        badgeTitle     = "New Year Celebrant",
+        badgeEmoji     = "🎊"
     ),
     SeasonalEvent(
         id = "valentine", name = "Valentine's Day", emoji = "💝",
-        description   = "Celebrate the love between you and your pets. Hearts, roses, and extra bond points!",
+        description    = "Celebrate the love between you and your pets. Finish all tasks today and claim your Valentine bonus.",
         startMonth = 2, startDay = 1, endMonth = 2, endDay = 14,
-        gradientStart = Color(0xFFE91E63), gradientEnd = Color(0xFFFF80AB),
-        accentColor   = Color(0xFFFF4081),
-        rewards = listOf(
-            EventReward("Complete your pet's virtue task today",  "💖 Heart Locket Badge",   "💖"),
-            EventReward("Earn bond points 7 days in a row",       "🌹 Rose Gold Title",      "🌹"),
-            EventReward("Verify a pet this week",                 "💝 Beloved Keeper Badge", "💝")
-        )
+        gradientStart  = Color(0xFFE91E63), gradientEnd = Color(0xFFFF80AB),
+        accentColor    = Color(0xFFFF4081),
+        badgeTitle     = "Beloved Keeper",
+        badgeEmoji     = "💝"
     ),
     SeasonalEvent(
         id = "chinese_new_year", name = "Lunar New Year", emoji = "🏮",
-        description   = "Celebrate the Lunar New Year with festive lanterns and golden blessings for your pets!",
+        description    = "Celebrate the Lunar New Year with golden blessings. Complete all tasks and claim your Lucky bonus.",
         startMonth = 1, startDay = 25, endMonth = 2, endDay = 9,
-        gradientStart = Color(0xFFD32F2F), gradientEnd = Color(0xFFFF6F00),
-        accentColor   = Color(0xFFFFD700),
-        rewards = listOf(
-            EventReward("Complete all tasks on New Year's Day", "🏮 Lucky Lantern Badge",  "🏮"),
-            EventReward("Feed your pet 5 days in a row",        "🐉 Dragon Keeper Title",  "🐉"),
-            EventReward("Earn 1000 total bond points",          "🥢 Fortune Bond Crest",   "🥢")
-        )
+        gradientStart  = Color(0xFFD32F2F), gradientEnd = Color(0xFFFF6F00),
+        accentColor    = Color(0xFFFFD700),
+        badgeTitle     = "Lucky Lantern Holder",
+        badgeEmoji     = "🏮"
     ),
     SeasonalEvent(
         id = "easter", name = "Easter Egg Hunt", emoji = "🐣",
-        description   = "Spring has arrived! Hunt for Easter eggs hidden in your daily tasks.",
+        description    = "Spring has arrived! Hunt for Easter eggs hidden in your daily tasks and claim your Spring bonus.",
         startMonth = 3, startDay = 30, endMonth = 4, endDay = 20,
-        gradientStart = Color(0xFF9C27B0), gradientEnd = Color(0xFF81C784),
-        accentColor   = Color(0xFFCE93D8),
-        rewards = listOf(
-            EventReward("Complete all optional tasks this week", "🐣 Easter Hatchling Badge", "🐣"),
-            EventReward("Keep a 5-day streak during the event", "🌸 Spring Spirit Title",    "🌸"),
-            EventReward("Bond with 3 different pets today",     "🥚 Golden Egg Crest",       "🥚")
-        )
+        gradientStart  = Color(0xFF9C27B0), gradientEnd = Color(0xFF81C784),
+        accentColor    = Color(0xFFCE93D8),
+        badgeTitle     = "Easter Hatchling",
+        badgeEmoji     = "🐣"
     ),
     SeasonalEvent(
         id = "summer", name = "Summer Splash", emoji = "☀️",
-        description   = "The sunniest season is here! Keep your pets cool and happy all summer long.",
+        description    = "The sunniest season is here! Keep your pets cool and happy. Finish all tasks daily to claim your Sun bonus.",
         startMonth = 6, startDay = 21, endMonth = 8, endDay = 31,
-        gradientStart = Color(0xFF0288D1), gradientEnd = Color(0xFFFDD835),
-        accentColor   = Color(0xFF29B6F6),
-        rewards = listOf(
-            EventReward("Complete all core tasks for 7 days",  "☀️ Sun Keeper Badge",   "☀️"),
-            EventReward("Give your pet fresh water every day", "💧 Cool Blue Title",    "💧"),
-            EventReward("Reach a 14-day streak",               "🌊 Wave Rider Crest",  "🌊")
-        )
+        gradientStart  = Color(0xFF0288D1), gradientEnd = Color(0xFFFDD835),
+        accentColor    = Color(0xFF29B6F6),
+        badgeTitle     = "Sun Keeper",
+        badgeEmoji     = "☀️"
     ),
     SeasonalEvent(
         id = "halloween", name = "Halloween", emoji = "🎃",
-        description   = "Spooky season is here! Trick or treat your way through special Halloween tasks.",
+        description    = "Spooky season is here! Trick or treat your way through tasks and claim your Halloween bonus.",
         startMonth = 10, startDay = 1, endMonth = 10, endDay = 31,
-        gradientStart = Color(0xFF6A1B9A), gradientEnd = Color(0xFFE65100),
-        accentColor   = Color(0xFFFF6F00),
-        rewards = listOf(
-            EventReward("Complete tasks after 6 PM for 3 days", "🎃 Pumpkin Master Badge",  "🎃"),
-            EventReward("Earn bond points on Halloween day",     "👻 Spooky Keeper Title",  "👻"),
-            EventReward("Keep a 7-day streak this month",        "🦇 Night Guardian Crest", "🦇")
-        )
+        gradientStart  = Color(0xFF6A1B9A), gradientEnd = Color(0xFFE65100),
+        accentColor    = Color(0xFFFF6F00),
+        badgeTitle     = "Pumpkin Master",
+        badgeEmoji     = "🎃"
     ),
     SeasonalEvent(
         id = "christmas", name = "Christmas", emoji = "🎄",
-        description   = "The most wonderful time of year! Share the holiday spirit with your beloved pets.",
+        description    = "The most wonderful time of year! Share the holiday spirit, finish all tasks, and claim your Festive bonus.",
         startMonth = 12, startDay = 1, endMonth = 12, endDay = 25,
-        gradientStart = Color(0xFF1B5E20), gradientEnd = Color(0xFFD32F2F),
-        accentColor   = Color(0xFF81C784),
-        rewards = listOf(
-            EventReward("Complete all tasks on Christmas Eve",  "🎄 Festive Keeper Badge", "🎄"),
-            EventReward("Keep a 12-day streak in December",    "🌟 Yuletide Star Title",  "🌟"),
-            EventReward("Gift your pet a special task today",  "🎁 Secret Santa Crest",   "🎁")
-        )
+        gradientStart  = Color(0xFF1B5E20), gradientEnd = Color(0xFFD32F2F),
+        accentColor    = Color(0xFF81C784),
+        badgeTitle     = "Festive Keeper",
+        badgeEmoji     = "🎄"
     )
 )
+
+// Used by ProfileScreen to identify which achievements are event badges
+val EVENT_BADGE_TITLES: Set<String> = ALL_SEASONAL_EVENTS.map { it.badgeTitle }.toSet()
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Date helpers (all Calendar-based, API 24+ compatible)
@@ -194,7 +175,6 @@ fun isEventActive(event: SeasonalEvent, today: SimpleDate): Boolean {
     val start = eventStart(event, today.year)
     val end   = eventEnd(event, today.year)
     return if (end.toMillis() < start.toMillis()) {
-        // year-spanning event (e.g. Dec 26 – Jan 7)
         today.isAfterOrEqual(start) || today.isBeforeOrEqual(end)
     } else {
         today.isAfterOrEqual(start) && today.isBeforeOrEqual(end)
@@ -222,18 +202,27 @@ fun getNextEvent(today: SimpleDate): SeasonalEvent? =
         .minByOrNull { daysUntilEvent(it, today) }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Main EventsScreen
+// Main EventsScreen — receives viewModel so Claim button is real
 // ──────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EventsScreen() {
+fun EventsScreen(viewModel: PetQuestViewModel) {
     val today       = remember { todaySimpleDate() }
     val activeEvent = remember { getActiveEvent(today) }
     val nextEvent   = remember { getNextEvent(today) }
 
+    val todaysTasks        by viewModel.todaysTasks.collectAsState()
+    val bonusClaimed       by viewModel.todayEventBonusClaimed.collectAsState()
+    val allAchievements    by viewModel.allAchievements.collectAsState()
+
+    val allTasksDone = todaysTasks.isNotEmpty() && todaysTasks.all { it.isCompleted }
+    val hasVerifiedPets by remember {
+        derivedStateOf { viewModel.allPets.value.any { it.isVerified } }
+    }
+
     val snackbarHostState = remember { SnackbarHostState() }
-    var claimedBonus by remember { mutableStateOf(false) }
+    val scope             = rememberCoroutineScope()
 
     val headerStart = activeEvent?.gradientStart ?: Color(0xFFFF8C42)
     val headerEnd   = activeEvent?.gradientEnd   ?: Color(0xFFFFB77A)
@@ -270,15 +259,44 @@ fun EventsScreen() {
             if (activeEvent != null) {
                 item {
                     ActiveEventBanner(
-                        event         = activeEvent,
-                        today         = today,
-                        claimedBonus  = claimedBonus,
-                        onClaimBonus  = { claimedBonus = true },
-                        snackbarHost  = snackbarHostState
+                        event           = activeEvent,
+                        today           = today,
+                        allTasksDone    = allTasksDone,
+                        bonusClaimed    = bonusClaimed,
+                        hasVerifiedPets = hasVerifiedPets,
+                        onClaimBonus    = {
+                            viewModel.claimEventBonus(
+                                badgeTitle       = activeEvent.badgeTitle,
+                                badgeDescription = "Badge earned during ${activeEvent.name}"
+                            )
+                            scope.launch {
+                                snackbarHost.showSnackbar(
+                                    message  = "${activeEvent.emoji} Bonus claimed! +20 bond pts per pet. Badge unlocked!",
+                                    duration = SnackbarDuration.Long
+                                )
+                            }
+                        },
+                        onTasksNotDone = {
+                            scope.launch {
+                                snackbarHost.showSnackbar(
+                                    message  = "Finish all today's tasks first to claim the bonus!",
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                        },
+                        snackbarHost   = snackbarHostState
                     )
                 }
-                item { EventRewardsCard(event = activeEvent) }
-                item { EventThemeCard(event = activeEvent) }
+
+                item {
+                    val alreadyOwns = allAchievements.any {
+                        it.title == activeEvent.badgeTitle && it.isUnlocked
+                    }
+                    EventBadgeCard(
+                        event       = activeEvent,
+                        badgeEarned = alreadyOwns
+                    )
+                }
             } else {
                 item { NoActiveEventCard() }
             }
@@ -308,11 +326,14 @@ fun EventsScreen() {
 
 @Composable
 fun ActiveEventBanner(
-    event        : SeasonalEvent,
-    today        : SimpleDate,
-    claimedBonus : Boolean,
-    onClaimBonus : () -> Unit,
-    snackbarHost : SnackbarHostState
+    event          : SeasonalEvent,
+    today          : SimpleDate,
+    allTasksDone   : Boolean,
+    bonusClaimed   : Boolean,
+    hasVerifiedPets: Boolean,
+    onClaimBonus   : () -> Unit,
+    onTasksNotDone : () -> Unit,
+    snackbarHost   : SnackbarHostState
 ) {
     val daysLeft      = daysRemainingInEvent(event, today)
     val countdownText = when (daysLeft) {
@@ -331,8 +352,6 @@ fun ActiveEventBanner(
         ),
         label = "emoji_scale"
     )
-
-    val scope = rememberCoroutineScope()
 
     Card(
         modifier  = Modifier.fillMaxWidth(),
@@ -421,22 +440,45 @@ fun ActiveEventBanner(
                     }
                 }
 
+                // Status hint — show task progress requirement when not claimed
+                if (!bonusClaimed && !allTasksDone) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color.White.copy(alpha = 0.15f)
+                    ) {
+                        Row(
+                            modifier              = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector        = Icons.Default.Warning,
+                                contentDescription = null,
+                                tint               = Color.White.copy(alpha = 0.85f),
+                                modifier           = Modifier.size(14.dp)
+                            )
+                            Text(
+                                "Complete all today's tasks to unlock the claim",
+                                fontSize   = 12.sp,
+                                color      = Color.White.copy(alpha = 0.85f),
+                                lineHeight = 16.sp
+                            )
+                        }
+                    }
+                }
+
                 Spacer(Modifier.height(4.dp))
 
                 // Claim Daily Bonus button
                 Button(
                     onClick = {
-                        if (!claimedBonus) {
-                            onClaimBonus()
-                            scope.launch {
-                                snackbarHost.showSnackbar(
-                                    message  = "${event.emoji} Daily bonus claimed! Come back tomorrow.",
-                                    duration = SnackbarDuration.Short
-                                )
-                            }
+                        when {
+                            bonusClaimed    -> { /* already claimed, button is disabled */ }
+                            !allTasksDone   -> onTasksNotDone()
+                            else            -> onClaimBonus()
                         }
                     },
-                    enabled = !claimedBonus,
+                    enabled = !bonusClaimed,
                     colors  = ButtonDefaults.buttonColors(
                         containerColor         = Color.White,
                         contentColor           = event.gradientStart,
@@ -446,14 +488,22 @@ fun ActiveEventBanner(
                     shape    = RoundedCornerShape(14.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (claimedBonus) {
-                        Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Bonus Claimed", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
-                    } else {
-                        Icon(Icons.Default.CardGiftcard, null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("Claim Daily Event Bonus", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                    when {
+                        bonusClaimed  -> {
+                            Icon(Icons.Default.CheckCircle, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Bonus Claimed ✓", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                        }
+                        !allTasksDone -> {
+                            Icon(Icons.Default.Lock, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Finish Tasks to Claim", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                        }
+                        else          -> {
+                            Icon(Icons.Default.CardGiftcard, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Claim Daily Event Bonus", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                        }
                     }
                 }
             }
@@ -462,119 +512,88 @@ fun ActiveEventBanner(
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Limited Rewards Card
+// Event Badge Card — shows the exclusive badge users can earn
 // ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
-fun EventRewardsCard(event: SeasonalEvent) {
+fun EventBadgeCard(event: SeasonalEvent, badgeEarned: Boolean) {
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(2.dp),
         colors    = CardDefaults.cardColors(
-            containerColor = event.gradientStart.copy(alpha = 0.07f)
+            containerColor = if (badgeEarned)
+                event.gradientStart.copy(alpha = 0.10f)
+            else
+                MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
-        Column(
-            modifier            = Modifier.fillMaxWidth().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    Icons.Default.Star, null,
-                    tint     = event.accentColor,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    "Limited-Time Rewards",
-                    fontSize   = 16.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
-
-            HorizontalDivider(color = event.accentColor.copy(alpha = 0.20f))
-
-            event.rewards.forEach { reward ->
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment     = Alignment.Top
-                ) {
-                    Surface(
-                        shape    = RoundedCornerShape(10.dp),
-                        color    = event.accentColor.copy(alpha = 0.15f),
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(reward.icon, fontSize = 20.sp)
-                        }
-                    }
-                    Column(
-                        modifier            = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(
-                            reward.task,
-                            fontSize   = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            lineHeight = 18.sp
-                        )
-                        Text(
-                            "Reward: ${reward.reward}",
-                            fontSize   = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color      = event.gradientStart
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Event Theme Card
-// ──────────────────────────────────────────────────────────────────────────────
-
-@Composable
-fun EventThemeCard(event: SeasonalEvent) {
-    Card(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(0.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
         Row(
-            modifier              = Modifier.fillMaxWidth().padding(14.dp),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier          = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy((-8).dp)) {
-                listOf(event.gradientStart, event.accentColor, event.gradientEnd).forEach { c ->
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(c)
-                            .border(2.dp, Color.White, RoundedCornerShape(14.dp))
+            // Badge icon
+            Surface(
+                shape    = RoundedCornerShape(14.dp),
+                color    = if (badgeEarned) event.accentColor.copy(alpha = 0.20f)
+                else MaterialTheme.colorScheme.outline.copy(alpha = 0.10f),
+                modifier = Modifier.size(56.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        if (badgeEarned) event.badgeEmoji else "🔒",
+                        fontSize = 28.sp
                     )
                 }
             }
-            Column(modifier = Modifier.weight(1f)) {
+
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector        = Icons.Default.EmojiEvents,
+                        contentDescription = null,
+                        tint               = if (badgeEarned) event.accentColor
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier           = Modifier.size(14.dp)
+                    )
+                    Text(
+                        "Limited Badge",
+                        fontSize   = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = if (badgeEarned) event.accentColor
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 Text(
-                    "Event Theme",
-                    fontSize   = 11.sp,
-                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium
+                    event.badgeTitle,
+                    fontSize   = 15.sp,
+                    fontWeight = FontWeight.ExtraBold
                 )
+
                 Text(
-                    "${event.name} palette is active",
-                    fontSize   = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    lineHeight = 18.sp
+                    if (badgeEarned)
+                        "Earned! Displayed on your Profile."
+                    else
+                        "Complete all tasks → claim the daily bonus to earn this badge.",
+                    fontSize   = 12.sp,
+                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 17.sp
+                )
+            }
+
+            if (badgeEarned) {
+                Icon(
+                    imageVector        = Icons.Default.CheckCircle,
+                    contentDescription = "Earned",
+                    tint               = event.accentColor,
+                    modifier           = Modifier.size(22.dp)
                 )
             }
         }
@@ -672,6 +691,11 @@ fun ComingSoonCard(event: SeasonalEvent, today: SimpleDate) {
                     fontSize   = 13.sp,
                     fontWeight = FontWeight.Medium,
                     color      = event.gradientStart
+                )
+                Text(
+                    "Badge: ${event.badgeEmoji} ${event.badgeTitle}",
+                    fontSize = 11.sp,
+                    color    = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

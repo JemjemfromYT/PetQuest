@@ -1,3 +1,8 @@
+// ============================================================
+// FILE: app/src/main/java/com/example/petquest/data/repository/UserPreferencesRepository.kt
+// COPY THIS ENTIRE FILE — replace the existing one in Android Studio
+// ============================================================
+
 package com.example.petquest.data.repository
 
 import android.content.Context
@@ -13,16 +18,18 @@ class UserPreferencesRepository(context: Context) {
     private val dataStore = context.dataStore
 
     companion object {
-        val STREAK_KEY                   = intPreferencesKey("streak")
-        val LAST_STREAK_DATE_KEY         = stringPreferencesKey("last_streak_date")
-        val HAS_ONBOARDED_KEY            = booleanPreferencesKey("has_onboarded")
-        val LAST_TASK_DATE_KEY           = stringPreferencesKey("last_task_date")
-        val NOTIFICATIONS_ENABLED_KEY    = booleanPreferencesKey("notifications_enabled")
-        val NOTIFICATION_HOUR_KEY        = intPreferencesKey("notification_hour")
-        val NOTIFICATION_MINUTE_KEY      = intPreferencesKey("notification_minute")
-        val TOTAL_TASKS_COMPLETED_KEY    = intPreferencesKey("total_tasks_completed")
-        val HAS_SEEN_ONBOARDING_KEY      = booleanPreferencesKey("has_seen_post_verify_onboarding")
-        val PERSONAL_BEST_STREAK_KEY     = intPreferencesKey("personal_best_streak")
+        val STREAK_KEY                    = intPreferencesKey("streak")
+        val LAST_STREAK_DATE_KEY          = stringPreferencesKey("last_streak_date")
+        val HAS_ONBOARDED_KEY             = booleanPreferencesKey("has_onboarded")
+        val LAST_TASK_DATE_KEY            = stringPreferencesKey("last_task_date")
+        val NOTIFICATIONS_ENABLED_KEY     = booleanPreferencesKey("notifications_enabled")
+        val NOTIFICATION_HOUR_KEY         = intPreferencesKey("notification_hour")
+        val NOTIFICATION_MINUTE_KEY       = intPreferencesKey("notification_minute")
+        val TOTAL_TASKS_COMPLETED_KEY     = intPreferencesKey("total_tasks_completed")
+        val HAS_SEEN_ONBOARDING_KEY       = booleanPreferencesKey("has_seen_post_verify_onboarding")
+        val PERSONAL_BEST_STREAK_KEY      = intPreferencesKey("personal_best_streak")
+        // ── Event bonus claim tracking ────────────────────────────────────────
+        val LAST_EVENT_CLAIM_DATE_KEY     = stringPreferencesKey("last_event_claim_date")
     }
 
     val userStreak: Flow<Int>            = dataStore.data.map { it[STREAK_KEY] ?: 0 }
@@ -37,6 +44,7 @@ class UserPreferencesRepository(context: Context) {
     val hasSeenOnboarding: Flow<Boolean> =
         dataStore.data.map { it[HAS_SEEN_ONBOARDING_KEY] ?: false }
     val personalBestStreak: Flow<Int>    = dataStore.data.map { it[PERSONAL_BEST_STREAK_KEY] ?: 0 }
+    val lastEventClaimDate: Flow<String> = dataStore.data.map { it[LAST_EVENT_CLAIM_DATE_KEY] ?: "" }
 
     suspend fun updateStreak(streak: Int) {
         dataStore.edit { it[STREAK_KEY] = streak }
@@ -78,5 +86,9 @@ class UserPreferencesRepository(context: Context) {
 
     suspend fun updatePersonalBestStreak(streak: Int) {
         dataStore.edit { it[PERSONAL_BEST_STREAK_KEY] = streak }
+    }
+
+    suspend fun updateLastEventClaimDate(date: String) {
+        dataStore.edit { it[LAST_EVENT_CLAIM_DATE_KEY] = date }
     }
 }

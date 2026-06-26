@@ -1,3 +1,8 @@
+// ============================================================
+// FILE: app/src/main/java/com/example/petquest/data/repository/PetRepository.kt
+// COPY THIS ENTIRE FILE — replace the existing one in Android Studio
+// ============================================================
+
 package com.example.petquest.data.repository
 
 import com.example.petquest.data.local.PetQuestDao
@@ -8,7 +13,7 @@ import java.util.*
 
 class PetRepository(private val dao: PetQuestDao) {
 
-    val allPets: Flow<List<PetEntity>> = dao.getAllPets()
+    val allPets: Flow<List<PetEntity>>             = dao.getAllPets()
     val allAchievements: Flow<List<AchievementEntity>> = dao.getAllAchievements()
 
     private fun todayString(): String =
@@ -17,12 +22,17 @@ class PetRepository(private val dao: PetQuestDao) {
     fun getTodaysTasks(date: String): Flow<List<TaskEntity>> =
         dao.getTodaysTasks(date)
 
-    suspend fun insertPet(pet: PetEntity) = dao.insertPet(pet)
-    suspend fun insertTask(task: TaskEntity) = dao.insertTask(task)
-    suspend fun completeTask(taskId: Int) = dao.completeTask(taskId)
-    suspend fun clearAllTasks() = dao.clearAllTasks()
+    suspend fun insertPet(pet: PetEntity)          = dao.insertPet(pet)
+    suspend fun insertTask(task: TaskEntity)        = dao.insertTask(task)
+    suspend fun completeTask(taskId: Int)           = dao.completeTask(taskId)
+    suspend fun clearAllTasks()                     = dao.clearAllTasks()
     suspend fun verifyPet(petId: Int, photoUri: String) = dao.verifyPet(petId, photoUri)
-    suspend fun unlockAchievement(id: Int) = dao.unlockAchievement(id)
+    suspend fun unlockAchievement(id: Int)          = dao.unlockAchievement(id)
+
+    // Inserts a new achievement row — silently ignored if the title already exists
+    // (the achievements table has a UNIQUE index on title)
+    suspend fun insertAchievementIfAbsent(achievement: AchievementEntity) =
+        dao.insertAchievement(achievement)
 
     suspend fun updatePet(petId: Int, name: String) =
         dao.updatePet(petId, name)
@@ -102,6 +112,8 @@ class PetRepository(private val dao: PetQuestDao) {
             AchievementEntity(title = "Own 10 Pets",    description = "Own 10 or more pets at once"),
             AchievementEntity(title = "Verify 10 Pets", description = "Verify 10 or more pets"),
             AchievementEntity(title = "Master Explorer", description = "Collect 15 different species")
+            // NOTE: Event badges (Sun Keeper, Pumpkin Master, etc.) are NOT seeded here.
+            // They are inserted automatically when the user first claims a seasonal event bonus.
         ).forEach { dao.insertAchievement(it) }
     }
 }

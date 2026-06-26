@@ -1,9 +1,15 @@
+// ============================================================
+// FILE: app/src/main/java/com/example/petquest/viewmodel/PetQuestViewModel.kt
+// COPY THIS ENTIRE FILE — replace the existing one in Android Studio
+// ============================================================
+
 package com.example.petquest.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.*
 import com.example.petquest.data.model.*
 import com.example.petquest.data.repository.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -86,6 +92,15 @@ class PetQuestViewModel(
     val totalTasksCompleted: StateFlow<Int> =
         prefsRepository.totalTasksCompleted
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    // ── Event bonus claim — persists across app restarts via DataStore ──────────
+    val lastEventClaimDate: StateFlow<String> =
+        prefsRepository.lastEventClaimDate
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    val todayEventBonusClaimed: StateFlow<Boolean> = lastEventClaimDate.map { date ->
+        date == todayString()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     private val _levelUpEvent = MutableSharedFlow<LevelUpEvent>()
     val levelUpEvent: SharedFlow<LevelUpEvent> = _levelUpEvent.asSharedFlow()
@@ -215,6 +230,48 @@ class PetQuestViewModel(
                 prefsRepository.markOnboardingSeen()
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "markOnboardingSeen error", e)
+            }
+        }
+    }
+
+    // ─── Event bonus claim ─────────────────────────────────────────────────────
+    // Called from EventsScreen when user taps "Claim Daily Event Bonus"
+    // after completing all tasks. Gives +20 bond pts to all verified pets
+    // and unlocks the event's exclusive Profile badge.
+
+    fun claimEventBonus(badgeTitle: String, badgeDescription: String) {
+        viewModelScope.launch {
+            try {
+                // 1. Add +20 bond points to every verified pet
+                allPets.value.filter { it.isVerified }.forEach { pet ->
+                    val oldLevel  = pet.bondLevel
+                    val newPoints = pet.bondPoints + 20
+                    val newLevel  = (newPoints / 100) + 1
+                    petRepository.addBondPoints(pet.id, 20, pet.bondPoints, pet.bondLevel)
+                    if (newLevel > oldLevel) {
+                        _levelUpEvent.emit(LevelUpEvent(pet.name, oldLevel, newLevel))
+                    }
+                }
+
+                // 2. Insert the badge achievement if it's not in the DB yet,
+                //    then unlock it. insertAchievementIfAbsent is a no-op if
+                //    the title already exists (UNIQUE index → IGNORE conflict).
+                petRepository.insertAchievementIfAbsent(
+                    AchievementEntity(title = badgeTitle, description = badgeDescription)
+                )
+                // Small delay lets Room emit the updated list before we read it
+                delay(200)
+                val target = allAchievements.value.find { it.title == badgeTitle }
+                if (target != null && !target.isUnlocked) {
+                    petRepository.unlockAchievement(target.id)
+                }
+
+                // 3. Persist today's claim date — resets the button tomorrow
+                prefsRepository.updateLastEventClaimDate(todayString())
+
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "claimEventBonus error", e)
             }
         }
     }

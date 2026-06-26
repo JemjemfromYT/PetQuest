@@ -200,7 +200,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                     viewModel         = viewModel,
                     onNavigateToTasks = { tab = 1 }
                 )
-                4 -> EventsScreen()
+                4 -> EventsScreen(viewModel = viewModel)
                 5 -> ProfileScreen(
                     viewModel              = viewModel,
                     onAddPetClick          = { outerNav.navigate("add_more_pet") },

@@ -1,3 +1,8 @@
+// ============================================================
+// FILE: app/src/main/java/com/example/petquest/ui/screens/ProfileScreen.kt
+// COPY THIS ENTIRE FILE — replace the existing one in Android Studio
+// ============================================================
+
 package com.example.petquest.ui.screens
 
 import android.Manifest
@@ -20,6 +25,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.*
@@ -37,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
+import com.example.petquest.data.model.AchievementEntity
 import com.example.petquest.data.model.PetEntity
 import com.example.petquest.data.model.PetType
 import com.example.petquest.ui.VirtueConfig
@@ -58,6 +65,7 @@ fun ProfileScreen(
     val userLevel            by viewModel.userLevel.collectAsState()
     val totalBondPoints      by viewModel.totalBondPoints.collectAsState()
     val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
+    val allAchievements      by viewModel.allAchievements.collectAsState()
 
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val notificationHour     by viewModel.notificationHour.collectAsState()
@@ -78,6 +86,11 @@ fun ProfileScreen(
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
         label         = "species_progress"
     )
+
+    // Event badges — achievements whose title matches a seasonal event badge
+    val eventBadges: List<AchievementEntity> = remember(allAchievements) {
+        allAchievements.filter { it.isUnlocked && it.title in EVENT_BADGE_TITLES }
+    }
 
     var tapCount      by remember { mutableIntStateOf(0) }
     var lastTapMs     by remember { mutableLongStateOf(0L) }
@@ -166,7 +179,6 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            // IMPROVED: gradient header consistent with other screens
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -208,7 +220,6 @@ fun ProfileScreen(
         ) {
 
             // ── Trainer level card ────────────────────────────────────────────
-            // IMPROVED: card uses a warm gradient background instead of flat primaryContainer
             item {
                 Card(
                     modifier  = Modifier.fillMaxWidth(),
@@ -230,7 +241,6 @@ fun ProfileScreen(
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Profile illustration
                             Card(
                                 shape  = MaterialTheme.shapes.medium,
                                 colors = CardDefaults.cardColors(
@@ -253,7 +263,6 @@ fun ProfileScreen(
                                     .weight(1f)
                                     .clickable { onLevelTap() }
                             ) {
-                                // Level + title chip
                                 Row(
                                     verticalAlignment     = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -291,7 +300,6 @@ fun ProfileScreen(
 
                                 Spacer(Modifier.height(10.dp))
 
-                                // XP bar labels
                                 Row(
                                     modifier              = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -311,7 +319,6 @@ fun ProfileScreen(
                                     )
                                 }
                                 Spacer(Modifier.height(5.dp))
-                                // IMPROVED: thicker XP progress bar (8dp) with white track
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -338,7 +345,6 @@ fun ProfileScreen(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Total bond points
                     Card(
                         modifier  = Modifier.weight(1f),
                         elevation = CardDefaults.cardElevation(2.dp),
@@ -362,7 +368,6 @@ fun ProfileScreen(
                             )
                         }
                     }
-                    // Pet count
                     Card(
                         modifier  = Modifier.weight(1f),
                         elevation = CardDefaults.cardElevation(2.dp),
@@ -387,6 +392,11 @@ fun ProfileScreen(
                         }
                     }
                 }
+            }
+
+            // ── Event Badges — pride display of earned seasonal badges ─────────
+            item {
+                EventBadgesSection(eventBadges = eventBadges)
             }
 
             // ── Species collection card ───────────────────────────────────────
@@ -431,7 +441,6 @@ fun ProfileScreen(
                                 }
                             }
                             Spacer(Modifier.height(8.dp))
-                            // IMPROVED: gradient progress bar for species collection
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -519,6 +528,137 @@ fun ProfileScreen(
         }
     }
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Event Badges Section — pride display on Profile
+// ──────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun EventBadgesSection(eventBadges: List<AchievementEntity>) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors    = CardDefaults.cardColors(
+            containerColor = if (eventBadges.isNotEmpty())
+                Color(0xFFFFFDE7)   // warm yellow-tint when badges exist
+            else
+                MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // Section header
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector        = Icons.Default.EmojiEvents,
+                    contentDescription = null,
+                    tint               = if (eventBadges.isNotEmpty()) Color(0xFFF9A825)
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier           = Modifier.size(18.dp)
+                )
+                Text(
+                    "Event Badges",
+                    fontSize   = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = if (eventBadges.isNotEmpty()) Color(0xFF5D4037)
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (eventBadges.isNotEmpty()) {
+                    Spacer(Modifier.weight(1f))
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color(0xFFF9A825).copy(alpha = 0.20f)
+                    ) {
+                        Text(
+                            "${eventBadges.size}",
+                            modifier   = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            fontSize   = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = Color(0xFFF9A825)
+                        )
+                    }
+                }
+            }
+
+            if (eventBadges.isEmpty()) {
+                // Placeholder when none earned yet
+                Text(
+                    "Complete seasonal event challenges to earn exclusive badges that display here.",
+                    fontSize   = 12.sp,
+                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 17.sp
+                )
+            } else {
+                // Badge chips — each one a mini pride card
+                eventBadges.chunked(2).forEach { rowBadges ->
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        rowBadges.forEach { badge ->
+                            val matchingEvent = ALL_SEASONAL_EVENTS.find { it.badgeTitle == badge.title }
+                            EventBadgeChip(
+                                badge        = badge,
+                                eventEmoji   = matchingEvent?.badgeEmoji ?: "🏅",
+                                accentColor  = matchingEvent?.accentColor ?: Color(0xFFF9A825),
+                                modifier     = Modifier.weight(1f)
+                            )
+                        }
+                        if (rowBadges.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EventBadgeChip(
+    badge       : AchievementEntity,
+    eventEmoji  : String,
+    accentColor : Color,
+    modifier    : Modifier = Modifier
+) {
+    Surface(
+        shape    = RoundedCornerShape(12.dp),
+        color    = accentColor.copy(alpha = 0.12f),
+        modifier = modifier
+    ) {
+        Row(
+            modifier          = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(eventEmoji, fontSize = 20.sp)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    badge.title,
+                    fontSize   = 11.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = accentColor,
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis
+                )
+                Text(
+                    "Seasonal",
+                    fontSize = 10.sp,
+                    color    = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Settings Card
+// ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SettingsCard(
@@ -638,7 +778,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // IMPROVED: rarity accent strip is now 5dp (was 4dp) with gradient
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -655,7 +794,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Pet photo
                 Box(
                     modifier         = Modifier
                         .fillMaxWidth()
@@ -700,7 +838,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                     }
                 }
 
-                // Name
                 Text(
                     pet.name,
                     fontSize   = 13.sp,
@@ -710,7 +847,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                     modifier   = Modifier.fillMaxWidth()
                 )
 
-                // Rarity chip + level inline
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
