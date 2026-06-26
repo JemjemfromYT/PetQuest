@@ -1,6 +1,12 @@
 // ============================================================
 // FILE: app/src/main/java/com/example/petquest/ui/screens/ProfileScreen.kt
-// COPY THIS ENTIRE FILE — replace the existing one in Android Studio
+//
+// HOW TO USE:
+//   1. Open ProfileScreen.kt in Android Studio
+//   2. Press Ctrl+A (select all)
+//   3. Press Delete
+//   4. Paste this entire file
+//   5. Build and run
 // ============================================================
 
 package com.example.petquest.ui.screens
@@ -33,6 +39,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -45,6 +52,8 @@ import coil.compose.AsyncImage
 import com.example.petquest.data.model.AchievementEntity
 import com.example.petquest.data.model.PetEntity
 import com.example.petquest.data.model.PetType
+import com.example.petquest.data.model.Rarity
+import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 import com.example.petquest.worker.ReminderWorker
 import java.util.Locale
@@ -85,7 +94,6 @@ fun ProfileScreen(
         label         = "species_progress"
     )
 
-    // Event badges — achievements whose title matches a seasonal event badge
     val eventBadges: List<AchievementEntity> = remember(allAchievements) {
         allAchievements.filter { it.isUnlocked && it.title in EVENT_BADGE_TITLES }
     }
@@ -189,7 +197,7 @@ fun ProfileScreen(
                     .padding(start = 16.dp, end = 4.dp, top = 14.dp, bottom = 14.dp)
             ) {
                 Row(
-                    modifier          = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
@@ -212,7 +220,9 @@ fun ProfileScreen(
         }
     ) { padding ->
         LazyColumn(
-            modifier            = Modifier.fillMaxSize().padding(padding),
+            modifier            = Modifier
+                .fillMaxSize()
+                .padding(padding),
             contentPadding      = PaddingValues(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -240,8 +250,8 @@ fun ProfileScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Card(
-                                shape  = MaterialTheme.shapes.medium,
-                                colors = CardDefaults.cardColors(
+                                shape     = MaterialTheme.shapes.medium,
+                                colors    = CardDefaults.cardColors(
                                     containerColor = Color.White.copy(alpha = 0.25f)
                                 ),
                                 elevation = CardDefaults.cardElevation(0.dp)
@@ -249,7 +259,9 @@ fun ProfileScreen(
                                 Image(
                                     painter            = painterResource(id = R.drawable.profile_banner),
                                     contentDescription = null,
-                                    modifier           = Modifier.size(72.dp).padding(4.dp),
+                                    modifier           = Modifier
+                                        .size(72.dp)
+                                        .padding(4.dp),
                                     contentScale       = ContentScale.Fit
                                 )
                             }
@@ -279,7 +291,10 @@ fun ProfileScreen(
                                         ) {
                                             Text(
                                                 title,
-                                                modifier   = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                                                modifier   = Modifier.padding(
+                                                    horizontal = 7.dp,
+                                                    vertical   = 3.dp
+                                                ),
                                                 fontSize   = 10.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color      = Color.White
@@ -337,7 +352,7 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Trainer stats row — bond points + pets ────────────────────────
+            // ── Trainer stats row — bond points + active pets ─────────────────
             item {
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
@@ -349,7 +364,9 @@ fun ProfileScreen(
                         colors    = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
                     ) {
                         Column(
-                            modifier            = Modifier.fillMaxWidth().padding(14.dp),
+                            modifier            = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -372,7 +389,9 @@ fun ProfileScreen(
                         colors    = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5))
                     ) {
                         Column(
-                            modifier            = Modifier.fillMaxWidth().padding(14.dp),
+                            modifier            = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -392,7 +411,7 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Event Badges — pride display of earned seasonal badges ─────────
+            // ── Event Badges ──────────────────────────────────────────────────
             item {
                 EventBadgesSection(eventBadges = eventBadges)
             }
@@ -431,7 +450,10 @@ fun ProfileScreen(
                                 ) {
                                     Text(
                                         "$speciesCount / $totalSpecies",
-                                        modifier   = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+                                        modifier   = Modifier.padding(
+                                            horizontal = 10.dp,
+                                            vertical   = 3.dp
+                                        ),
                                         fontWeight = FontWeight.ExtraBold,
                                         fontSize   = 12.sp,
                                         color      = MaterialTheme.colorScheme.primary
@@ -444,7 +466,9 @@ fun ProfileScreen(
                                     .fillMaxWidth()
                                     .height(7.dp)
                                     .clip(RoundedCornerShape(3.5.dp))
-                                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                                    .background(
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                                    )
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -475,13 +499,25 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Text("My Pets (${pets.size})", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    FilledTonalIconButton(onClick = onAddPetClick, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Pet", modifier = Modifier.size(18.dp))
+                    Text(
+                        "My Pets (${pets.size})",
+                        fontSize   = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    FilledTonalIconButton(
+                        onClick  = onAddPetClick,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Add Pet",
+                            modifier           = Modifier.size(18.dp)
+                        )
                     }
                 }
             }
 
+            // ── Pet grid ─────────────────────────────────────────────────────
             if (pets.isEmpty()) {
                 item {
                     EmptyStateCard(
@@ -502,7 +538,10 @@ fun ProfileScreen(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 rowPets.forEach { pet ->
-                                    PetCollectionCard(pet = pet, modifier = Modifier.weight(1f))
+                                    PetCollectionCard(
+                                        pet      = pet,
+                                        modifier = Modifier.weight(1f)
+                                    )
                                 }
                                 if (rowPets.size == 1) Spacer(modifier = Modifier.weight(1f))
                             }
@@ -528,7 +567,7 @@ fun ProfileScreen(
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Event Badges Section — pride display on Profile
+// Event Badges Section
 // ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -538,18 +577,17 @@ private fun EventBadgesSection(eventBadges: List<AchievementEntity>) {
         elevation = CardDefaults.cardElevation(2.dp),
         colors    = CardDefaults.cardColors(
             containerColor = if (eventBadges.isNotEmpty())
-                Color(0xFFFFFDE7)   // warm yellow-tint when badges exist
+                Color(0xFFFFFDE7)
             else
                 MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
-            modifier = Modifier
+            modifier            = Modifier
                 .fillMaxWidth()
                 .padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Section header
             Row(
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -586,7 +624,6 @@ private fun EventBadgesSection(eventBadges: List<AchievementEntity>) {
             }
 
             if (eventBadges.isEmpty()) {
-                // Placeholder when none earned yet
                 Text(
                     "Complete seasonal event challenges to earn exclusive badges that display here.",
                     fontSize   = 12.sp,
@@ -594,19 +631,20 @@ private fun EventBadgesSection(eventBadges: List<AchievementEntity>) {
                     lineHeight = 17.sp
                 )
             } else {
-                // Badge chips — each one a mini pride card
                 eventBadges.chunked(2).forEach { rowBadges ->
                     Row(
                         modifier              = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         rowBadges.forEach { badge ->
-                            val matchingEvent = ALL_SEASONAL_EVENTS.find { it.badgeTitle == badge.title }
+                            val matchingEvent = ALL_SEASONAL_EVENTS.find {
+                                it.badgeTitle == badge.title
+                            }
                             EventBadgeChip(
-                                badge        = badge,
-                                eventEmoji   = matchingEvent?.badgeEmoji ?: "🏅",
-                                accentColor  = matchingEvent?.accentColor ?: Color(0xFFF9A825),
-                                modifier     = Modifier.weight(1f)
+                                badge       = badge,
+                                eventEmoji  = matchingEvent?.badgeEmoji ?: "🏅",
+                                accentColor = matchingEvent?.accentColor ?: Color(0xFFF9A825),
+                                modifier    = Modifier.weight(1f)
                             )
                         }
                         if (rowBadges.size == 1) Spacer(Modifier.weight(1f))
@@ -630,8 +668,8 @@ private fun EventBadgeChip(
         modifier = modifier
     ) {
         Row(
-            modifier          = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier              = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(eventEmoji, fontSize = 20.sp)
@@ -660,15 +698,17 @@ private fun EventBadgeChip(
 
 @Composable
 private fun SettingsCard(
-    notificationsEnabled: Boolean,
-    notificationHour: Int,
-    notificationMinute: Int,
-    onToggle: (Boolean) -> Unit,
-    onChangeTime: () -> Unit
+    notificationsEnabled : Boolean,
+    notificationHour     : Int,
+    notificationMinute   : Int,
+    onToggle             : (Boolean) -> Unit,
+    onChangeTime         : () -> Unit
 ) {
     Card(
         modifier  = Modifier.fillMaxWidth(),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        colors    = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -703,7 +743,9 @@ private fun SettingsCard(
                                 MaterialTheme.colorScheme.primary
                             else
                                 MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier           = Modifier.padding(6.dp).size(18.dp)
+                            modifier           = Modifier
+                                .padding(6.dp)
+                                .size(18.dp)
                         )
                     }
                     Column {
@@ -736,7 +778,11 @@ private fun SettingsCard(
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Column {
-                        Text("Reminder Time", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Text(
+                            "Reminder Time",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize   = 13.sp
+                        )
                         Text(
                             formatTime(notificationHour, notificationMinute),
                             fontSize   = 16.sp,
@@ -757,43 +803,105 @@ private fun formatTime(hour: Int, minute: Int): String {
     return String.format(Locale.getDefault(), "%d:%02d %s", h12, minute, amPm)
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Flippable Pet Collection Card
+// Tap → flips to back showing rewards. Tap again → flips back to front.
+// ──────────────────────────────────────────────────────────────────────────────
+
 @Composable
 private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
-    val rarityColor = when (pet.type.rarity.name) {
-        "COMMON"   -> Color(0xFF9E9E9E)
-        "UNCOMMON" -> MaterialTheme.colorScheme.secondary
-        "RARE"     -> MaterialTheme.colorScheme.primary
-        else       -> MaterialTheme.colorScheme.error
+    var flipped by remember { mutableStateOf(false) }
+
+    val rotation by animateFloatAsState(
+        targetValue   = if (flipped) 180f else 0f,
+        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing),
+        label         = "flip_${pet.id}"
+    )
+
+    val rarityColor = when (pet.type.rarity) {
+        Rarity.COMMON   -> Color(0xFF9E9E9E)
+        Rarity.UNCOMMON -> Color(0xFF43A047)
+        Rarity.RARE     -> Color(0xFF1E88E5)
+        Rarity.EPIC     -> Color(0xFF8E24AA)
     }
+
+    Box(
+        modifier = modifier
+            .graphicsLayer { cameraDistance = 14f * density }
+            .clickable { flipped = !flipped }
+    ) {
+        // Show FRONT when rotation is 0..90 degrees
+        if (rotation <= 90f) {
+            PetCardFront(
+                pet         = pet,
+                rarityColor = rarityColor
+            )
+        }
+
+        // Show BACK when rotation is 90..180 degrees
+        // Counter-rotate so the text is not mirrored
+        if (rotation > 90f) {
+            Box(modifier = Modifier.graphicsLayer { rotationY = 180f }) {
+                PetCardBack(
+                    pet         = pet,
+                    rarityColor = rarityColor
+                )
+            }
+        }
+
+        // Apply the flip rotation to the whole card
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .graphicsLayer { rotationY = rotation }
+        )
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Front face of the pet card
+// ──────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun PetCardFront(
+    pet         : PetEntity,
+    rarityColor : Color
+) {
     val hasGoldBorder = pet.bondLevel >= 20
 
     Card(
-        modifier  = modifier,
         elevation = CardDefaults.cardElevation(4.dp),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors    = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        modifier  = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Rarity color strip at top
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(5.dp)
                     .background(
                         Brush.horizontalGradient(
-                            listOf(rarityColor, rarityColor.copy(alpha = 0.55f))
+                            listOf(rarityColor, rarityColor.copy(alpha = 0.45f))
                         )
                     )
             )
 
             Column(
-                modifier            = Modifier.fillMaxWidth().padding(12.dp),
+                modifier            = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
+                // Pet photo or emoji
                 Box(
-                    modifier         = Modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .then(
@@ -831,11 +939,14 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                             imageVector        = Icons.Default.CheckCircle,
                             contentDescription = "Verified",
                             tint               = MaterialTheme.colorScheme.primary,
-                            modifier           = Modifier.padding(3.dp).size(14.dp)
+                            modifier           = Modifier
+                                .padding(3.dp)
+                                .size(14.dp)
                         )
                     }
                 }
 
+                // Pet name
                 Text(
                     pet.name,
                     fontSize   = 13.sp,
@@ -845,6 +956,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                     modifier   = Modifier.fillMaxWidth()
                 )
 
+                // Rarity label + level
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -855,7 +967,9 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                         color = rarityColor.copy(alpha = 0.13f)
                     ) {
                         Text(
-                            pet.type.rarity.name.lowercase().replaceFirstChar { it.uppercase() },
+                            pet.type.rarity.name
+                                .lowercase()
+                                .replaceFirstChar { it.uppercase() },
                             modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             fontSize   = 9.sp,
                             fontWeight = FontWeight.Bold,
@@ -869,7 +983,190 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                         color      = MaterialTheme.colorScheme.primary
                     )
                 }
+
+                // Tap hint
+                Text(
+                    "Tap to see rewards ↩",
+                    fontSize = 9.sp,
+                    color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                )
             }
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Back face of the pet card — shows rewards and bond info
+// ──────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun PetCardBack(
+    pet         : PetEntity,
+    rarityColor : Color
+) {
+    val virtueInfo = VirtueConfig[pet.virtue]
+
+    Card(
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors    = CardDefaults.cardColors(
+            containerColor = rarityColor.copy(alpha = 0.06f)
+        ),
+        modifier  = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier            = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Pet name header
+            Text(
+                pet.name,
+                fontSize   = 13.sp,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
+                color      = MaterialTheme.colorScheme.onSurface
+            )
+
+            HorizontalDivider(color = rarityColor.copy(alpha = 0.25f))
+
+            // Virtue emblem + name
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Image(
+                    painter            = painterResource(virtueInfo.emblemRes),
+                    contentDescription = pet.virtue.name,
+                    modifier           = Modifier.size(28.dp)
+                )
+                Column {
+                    Text(
+                        "Virtue",
+                        fontSize = 8.sp,
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                    Text(
+                        pet.virtue.name
+                            .lowercase()
+                            .replaceFirstChar { it.uppercase() },
+                        fontSize   = 11.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color      = rarityColor
+                    )
+                }
+            }
+
+            // Bond title (e.g. "The Guardian")
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text("⭐", fontSize = 14.sp)
+                Column {
+                    Text(
+                        "Bond Title",
+                        fontSize = 8.sp,
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                    Text(
+                        virtueInfo.title,
+                        fontSize   = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            // Bond points
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text("💛", fontSize = 14.sp)
+                Column {
+                    Text(
+                        "Bond Points",
+                        fontSize = 8.sp,
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                    Text(
+                        "${pet.bondPoints} pts",
+                        fontSize   = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            // Species
+            Row(
+                modifier              = Modifier.fillMaxWidth(),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text("🐾", fontSize = 14.sp)
+                Column {
+                    Text(
+                        "Species",
+                        fontSize = 8.sp,
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                    Text(
+                        pet.type.name
+                            .lowercase()
+                            .replace("_", " ")
+                            .replaceFirstChar { it.uppercase() },
+                        fontSize   = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            // Verified badge — only shown if pet is verified
+            if (pet.isVerified) {
+                Surface(
+                    shape    = RoundedCornerShape(20.dp),
+                    color    = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier              = Modifier.padding(
+                            horizontal = 8.dp,
+                            vertical   = 4.dp
+                        ),
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector        = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint               = MaterialTheme.colorScheme.primary,
+                            modifier           = Modifier.size(12.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            "Verified",
+                            fontSize   = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color      = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            // Tap-back hint
+            Text(
+                "Tap to flip back ↩",
+                fontSize = 9.sp,
+                color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+            )
         }
     }
 }
