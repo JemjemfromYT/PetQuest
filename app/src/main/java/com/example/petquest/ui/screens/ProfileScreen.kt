@@ -486,7 +486,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 Box(
                     modifier         = Modifier
                         .fillMaxWidth()
-                        .height(72.dp)
+                        .aspectRatio(1f)
                         .then(
                             if (hasGoldBorder)
                                 Modifier.border(
