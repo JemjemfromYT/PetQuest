@@ -1,6 +1,9 @@
 // ============================================================
 // FILE: app/src/main/java/com/example/petquest/MainActivity.kt
-// FULL REPLACEMENT — adds "Events" tab between Awards and Profile
+//
+// FIX: white screen on double back-tap
+//   Changed nav.popBackStack() → nav.navigateUp() everywhere.
+//   navigateUp() is safe against double-calls; popBackStack() was not.
 // ============================================================
 
 package com.example.petquest
@@ -73,7 +76,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             AddPetScreen(
-                                onBackClick = { nav.popBackStack() },
+                                onBackClick = { nav.navigateUp() },
                                 onSavePet   = { pet -> vm.addPet(pet) }
                             )
                         }
@@ -86,7 +89,9 @@ class MainActivity : ComponentActivity() {
                             PetDetailScreen(
                                 petId         = id,
                                 viewModel     = vm,
-                                onBackClick   = { nav.popBackStack() },
+                                // navigateUp() is safe against rapid double-taps.
+                                // popBackStack() was firing twice → white screen.
+                                onBackClick   = { nav.navigateUp() },
                                 onVerifyClick = { nav.navigate("pet_verify/$id") }
                             )
                         }
@@ -113,14 +118,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             AddPetScreen(
-                                onBackClick = { nav.popBackStack() },
+                                onBackClick = { nav.navigateUp() },
                                 onSavePet   = { pet -> vm.addPet(pet) }
                             )
                         }
                         composable("admin") {
                             AdminScreen(
                                 viewModel   = vm,
-                                onBackClick = { nav.popBackStack() }
+                                onBackClick = { nav.navigateUp() }
                             )
                         }
                     }
@@ -137,8 +142,6 @@ private data class NavItem(
     val unselectedIcon: androidx.compose.ui.graphics.vector.ImageVector
 )
 
-// 6-tab navigation:
-// Home | Tasks | Collection | Awards | Events | Profile
 private val NAV_ITEMS = listOf(
     NavItem("Home",       Icons.Filled.Home,        Icons.Outlined.Home),
     NavItem("Tasks",      Icons.Filled.CheckCircle, Icons.Outlined.CheckCircle),
@@ -179,7 +182,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                             Text(
                                 item.label,
                                 fontWeight = if (tab == index) FontWeight.Bold else FontWeight.Normal,
-                                fontSize   = 10.sp  // slightly smaller to fit 6 tabs
+                                fontSize   = 10.sp
                             )
                         }
                     )
@@ -193,7 +196,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 1 -> TasksScreen(
                     viewModel           = viewModel,
                     onVerifyPet         = { petId -> outerNav.navigate("pet_verify/$petId") },
-                    onNavigateToProfile = { tab = 5 }   // Profile is now index 5
+                    onNavigateToProfile = { tab = 5 }
                 )
                 2 -> EncyclopediaScreen(viewModel)
                 3 -> AchievementsScreen(

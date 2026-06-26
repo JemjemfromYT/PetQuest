@@ -1,3 +1,20 @@
+// ============================================================
+// FILE: app/src/main/java/com/example/petquest/ui/screens/AchievementsScreen.kt
+//
+// REDESIGN: Awards screen
+//
+// Problem with old version:
+//   Every achievement tile had its own random color (blue, pink, purple, teal…).
+//   There was no visual logic. Looking at "First Steps" you saw 6 different
+//   border colors for 6 cards in the same section — chaotic and amateurish.
+//
+// Fix:
+//   Color belongs to the CATEGORY, not the achievement.
+//   All tiles in "Streak" share the same orange. All in "Tasks" share the same blue.
+//   Users learn the color system once and it becomes intuitive.
+//   Locked tiles are always the same uniform grey — no color at all.
+// ============================================================
+
 package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
@@ -6,7 +23,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
@@ -36,112 +52,89 @@ import com.example.petquest.R
 import com.example.petquest.data.model.AchievementEntity
 import com.example.petquest.viewmodel.PetQuestViewModel
 
-// ── Achievement color map ─────────────────────────────────────────────────────
-// IMPROVED: each achievement has its own distinct color personality.
-// "First Steps" tiles were all identical blue before — now each is unique.
-// Tier progression: bronze (starter) → silver (mid) → gold (high) → plat (elite)
-private fun achievementColor(title: String): Color = when (title) {
-
-    // ── First Steps — each action has its own personality ──────────────────────
-    "First Pet"          -> Color(0xFF1565C0)   // deep blue     — your first companion
-    "First Verification" -> Color(0xFF0288D1)   // sky blue      — you snapped a photo
-    "Pet Lover"          -> Color(0xFFE91E63)   // rose pink     — affection / love
-    "Own 5 Pets"         -> Color(0xFF7B1FA2)   // purple        — growing family
-    "Own 10 Pets"        -> Color(0xFF4A148C)   // deep purple   — full house
-    "Verify 3 Pets"      -> Color(0xFF00695C)   // teal          — committed
-    "Verify 5 Pets"      -> Color(0xFF2E7D32)   // green         — consistent
-    "Verify 10 Pets"     -> Color(0xFF1B5E20)   // dark green    — master verifier
-
-    // ── Streak ─────────────────────────────────────────────────────────────────
-    "3-Day Streak"   -> Color(0xFFD84315)   // deep red-orange (starter warmth)
-    "7-Day Streak"   -> Color(0xFF2E7D32)   // green           (a whole week!)
-    "14-Day Streak"  -> Color(0xFF1565C0)   // blue            (two weeks)
-    "30-Day Streak"  -> Color(0xFFFB8C00)   // amber           (a month!)
-    "60-Day Streak"  -> Color(0xFFE65100)   // deep orange     (two months)
-    "100-Day Streak" -> Color(0xFF7B1FA2)   // purple          (elite)
-
-    // ── Tasks ──────────────────────────────────────────────────────────────────
-    "Complete 10 Tasks"  -> Color(0xFFD84315)
-    "Complete 25 Tasks"  -> Color(0xFFBF360C)
-    "Complete 50 Tasks"  -> Color(0xFF2E7D32)
-    "Complete 100 Tasks" -> Color(0xFFFB8C00)
-    "Complete 250 Tasks" -> Color(0xFFE65100)
-    "Complete 500 Tasks" -> Color(0xFF7B1FA2)
-
-    // ── Bond Points ─────────────────────────────────────────────────────────────
-    "Earn 100 Bond Points"  -> Color(0xFFD84315)
-    "Earn 250 Bond Points"  -> Color(0xFFBF360C)
-    "Earn 500 Bond Points"  -> Color(0xFF2E7D32)
-    "Earn 1000 Bond Points" -> Color(0xFFFB8C00)
-    "Earn 2500 Bond Points" -> Color(0xFFE65100)
-    "Earn 5000 Bond Points" -> Color(0xFF7B1FA2)
-
-    // ── Pet Bond Level ──────────────────────────────────────────────────────────
-    "Bond Master"        -> Color(0xFFD84315)
-    "Bond Veteran"       -> Color(0xFF2E7D32)
-    "Level 10 Companion" -> Color(0xFF1565C0)
-    "Virtue Master"      -> Color(0xFFFB8C00)
-    "Dedicated Caregiver"-> Color(0xFFE65100)
-    "Elite Trainer"      -> Color(0xFF7B1FA2)
-
-    // ── Trainer Level ───────────────────────────────────────────────────────────
-    "Reach Level 10" -> Color(0xFFD84315)
-    "Reach Level 20" -> Color(0xFF2E7D32)
-    "Reach Level 30" -> Color(0xFFFB8C00)
-    "Reach Level 50" -> Color(0xFF7B1FA2)
-
-    // ── Species & Rarity ────────────────────────────────────────────────────────
-    "Species Collector" -> Color(0xFF00695C)
-    "Animal Explorer"   -> Color(0xFF2E7D32)
-    "Master Explorer"   -> Color(0xFFFB8C00)
-    "Rarity Hunter"     -> Color(0xFFE65100)
-    "Epic Tamer"        -> Color(0xFF7B1FA2)
-
-    else -> Color(0xFFFB8C00)
-}
-
-// ── Category definition ───────────────────────────────────────────────────────
-private data class AchievementCategory(
+// ── Category color system ─────────────────────────────────────────────────────
+// ONE color per category. All tiles in a category share it.
+// This is predictable, learnable, and visually clean.
+private data class CategoryDef(
     val label : String,
     val icon  : ImageVector,
+    val color : Color,          // category accent color
     val titles: List<String>
 )
 
 private val CATEGORIES = listOf(
-    AchievementCategory("First Steps", Icons.Default.Pets, listOf(
-        "First Pet", "First Verification", "Pet Lover",
-        "Own 5 Pets", "Own 10 Pets",
-        "Verify 3 Pets", "Verify 5 Pets", "Verify 10 Pets"
-    )),
-    AchievementCategory("Streak", Icons.Default.Whatshot, listOf(
-        "3-Day Streak", "7-Day Streak", "14-Day Streak",
-        "30-Day Streak", "60-Day Streak", "100-Day Streak"
-    )),
-    AchievementCategory("Tasks", Icons.Default.CheckCircle, listOf(
-        "Complete 10 Tasks", "Complete 25 Tasks", "Complete 50 Tasks",
-        "Complete 100 Tasks", "Complete 250 Tasks", "Complete 500 Tasks"
-    )),
-    AchievementCategory("Bond Points", Icons.Default.Star, listOf(
-        "Earn 100 Bond Points", "Earn 250 Bond Points", "Earn 500 Bond Points",
-        "Earn 1000 Bond Points", "Earn 2500 Bond Points", "Earn 5000 Bond Points"
-    )),
-    AchievementCategory("Pet Bond Level", Icons.Default.EmojiEvents, listOf(
-        "Bond Master", "Bond Veteran", "Level 10 Companion",
-        "Virtue Master", "Dedicated Caregiver", "Elite Trainer"
-    )),
-    AchievementCategory("Trainer Level", Icons.Default.Stars, listOf(
-        "Reach Level 10", "Reach Level 20", "Reach Level 30", "Reach Level 50"
-    )),
-    AchievementCategory("Species & Rarity", Icons.Default.Explore, listOf(
-        "Species Collector", "Animal Explorer", "Master Explorer",
-        "Rarity Hunter", "Epic Tamer"
-    ))
+    CategoryDef(
+        label  = "First Steps",
+        icon   = Icons.Default.Pets,
+        color  = Color(0xFF2E7D32),  // green — new beginnings
+        titles = listOf(
+            "First Pet", "First Verification", "Pet Lover",
+            "Own 5 Pets", "Own 10 Pets",
+            "Verify 3 Pets", "Verify 5 Pets", "Verify 10 Pets"
+        )
+    ),
+    CategoryDef(
+        label  = "Streak",
+        icon   = Icons.Default.Whatshot,
+        color  = Color(0xFFE65100),  // deep orange — fire, consistency
+        titles = listOf(
+            "3-Day Streak", "7-Day Streak", "14-Day Streak",
+            "30-Day Streak", "60-Day Streak", "100-Day Streak"
+        )
+    ),
+    CategoryDef(
+        label  = "Tasks",
+        icon   = Icons.Default.CheckCircle,
+        color  = Color(0xFF1565C0),  // blue — productivity
+        titles = listOf(
+            "Complete 10 Tasks", "Complete 25 Tasks", "Complete 50 Tasks",
+            "Complete 100 Tasks", "Complete 250 Tasks", "Complete 500 Tasks"
+        )
+    ),
+    CategoryDef(
+        label  = "Bond Points",
+        icon   = Icons.Default.Star,
+        color  = Color(0xFFF9A825),  // amber/gold — value, achievement
+        titles = listOf(
+            "Earn 100 Bond Points", "Earn 250 Bond Points", "Earn 500 Bond Points",
+            "Earn 1000 Bond Points", "Earn 2500 Bond Points", "Earn 5000 Bond Points"
+        )
+    ),
+    CategoryDef(
+        label  = "Pet Bond Level",
+        icon   = Icons.Default.EmojiEvents,
+        color  = Color(0xFF6A1B9A),  // purple — deep mastery
+        titles = listOf(
+            "Bond Master", "Bond Veteran", "Level 10 Companion",
+            "Virtue Master", "Dedicated Caregiver", "Elite Trainer"
+        )
+    ),
+    CategoryDef(
+        label  = "Trainer Level",
+        icon   = Icons.Default.Stars,
+        color  = Color(0xFFBF360C),  // burnt red — prestige
+        titles = listOf(
+            "Reach Level 10", "Reach Level 20", "Reach Level 30", "Reach Level 50"
+        )
+    ),
+    CategoryDef(
+        label  = "Species & Rarity",
+        icon   = Icons.Default.Explore,
+        color  = Color(0xFF00695C),  // teal — exploration, discovery
+        titles = listOf(
+            "Species Collector", "Animal Explorer", "Master Explorer",
+            "Rarity Hunter", "Epic Tamer"
+        )
+    )
 )
 
-// ── Grid item model ───────────────────────────────────────────────────────────
-private sealed interface GridItem {
-    data class Header(val label: String, val icon: ImageVector) : GridItem
-    data class Tile(val achievement: AchievementEntity, val tileIndex: Int) : GridItem
+// Build a fast lookup: title → CategoryDef
+private val TITLE_TO_CATEGORY: Map<String, CategoryDef> by lazy {
+    buildMap {
+        for (cat in CATEGORIES) {
+            for (title in cat.titles) put(title, cat)
+        }
+    }
 }
 
 // ── Icon map ──────────────────────────────────────────────────────────────────
@@ -168,10 +161,10 @@ private val ICON_MAP: Map<String, ImageVector> = mapOf(
     "Complete 500 Tasks"    to Icons.Default.CheckCircle,
     "Earn 100 Bond Points"  to Icons.Default.Star,
     "Earn 250 Bond Points"  to Icons.Default.Star,
+    "Earn 500 Bond Points"  to Icons.Default.Star,
     "Earn 1000 Bond Points" to Icons.Default.Star,
     "Earn 2500 Bond Points" to Icons.Default.Star,
     "Earn 5000 Bond Points" to Icons.Default.Star,
-    "Earn 500 Bond Points"  to Icons.Default.Star,
     "Bond Master"           to Icons.Default.EmojiEvents,
     "Bond Veteran"          to Icons.Default.EmojiEvents,
     "Level 10 Companion"    to Icons.Default.EmojiEvents,
@@ -189,7 +182,7 @@ private val ICON_MAP: Map<String, ImageVector> = mapOf(
     "Epic Tamer"            to Icons.Default.Stars
 )
 
-// ── Hint text map ─────────────────────────────────────────────────────────────
+// ── Hint text (shown on locked tiles instead of the real title) ───────────────
 private val HINT_MAP: Map<String, String> = mapOf(
     "First Pet"             to "Add your first pet",
     "First Verification"    to "Verify with a photo",
@@ -214,15 +207,15 @@ private val HINT_MAP: Map<String, String> = mapOf(
     "Earn 100 Bond Points"  to "Earn 100 Bond Pts",
     "Earn 250 Bond Points"  to "Earn 250 Bond Pts",
     "Earn 500 Bond Points"  to "Earn 500 Bond Pts",
-    "Earn 1000 Bond Points" to "Earn 1000 Bond Pts",
-    "Earn 2500 Bond Points" to "Earn 2500 Bond Pts",
-    "Earn 5000 Bond Points" to "Earn 5000 Bond Pts",
-    "Bond Master"           to "Reach Bond Level 5",
-    "Bond Veteran"          to "Reach Bond Level 10",
-    "Level 10 Companion"    to "Reach Bond Level 15",
-    "Virtue Master"         to "Reach Bond Level 20",
-    "Dedicated Caregiver"   to "Reach Bond Level 30",
-    "Elite Trainer"         to "Reach Bond Level 50",
+    "Earn 1000 Bond Points" to "Earn 1,000 Bond Pts",
+    "Earn 2500 Bond Points" to "Earn 2,500 Bond Pts",
+    "Earn 5000 Bond Points" to "Earn 5,000 Bond Pts",
+    "Bond Master"           to "Bond Level 5",
+    "Bond Veteran"          to "Bond Level 10",
+    "Level 10 Companion"    to "Bond Level 15",
+    "Virtue Master"         to "Bond Level 20",
+    "Dedicated Caregiver"   to "Bond Level 30",
+    "Elite Trainer"         to "Bond Level 50",
     "Reach Level 10"        to "Trainer Lv.10",
     "Reach Level 20"        to "Trainer Lv.20",
     "Reach Level 30"        to "Trainer Lv.30",
@@ -234,18 +227,23 @@ private val HINT_MAP: Map<String, String> = mapOf(
     "Epic Tamer"            to "Own an Epic pet"
 )
 
+// ── Grid item sealed type ─────────────────────────────────────────────────────
+private sealed interface GridItem {
+    data class Header(val cat: CategoryDef, val unlockedInCat: Int, val totalInCat: Int) : GridItem
+    data class Tile(val achievement: AchievementEntity, val categoryColor: Color, val index: Int) : GridItem
+}
+
 // ── Main screen ───────────────────────────────────────────────────────────────
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AchievementsScreen(
-    viewModel: PetQuestViewModel,
+    viewModel        : PetQuestViewModel,
     onNavigateToTasks: () -> Unit = {}
 ) {
     val achievements by viewModel.allAchievements.collectAsState()
 
     val unlockedCount = achievements.count { it.isUnlocked }
     val totalCount    = achievements.size
-
     val achievementMap = remember(achievements) { achievements.associateBy { it.title } }
 
     val gridItems: List<GridItem> = remember(achievementMap) {
@@ -254,15 +252,26 @@ fun AchievementsScreen(
         for (cat in CATEGORIES) {
             val catItems = cat.titles.mapNotNull { achievementMap[it] }
             if (catItems.isNotEmpty()) {
-                result.add(GridItem.Header(cat.label, cat.icon))
-                catItems.forEach { a -> result.add(GridItem.Tile(a, idx++)) }
+                val unlockedInCat = catItems.count { it.isUnlocked }
+                result.add(GridItem.Header(cat, unlockedInCat, catItems.size))
+                catItems.forEach { a ->
+                    result.add(GridItem.Tile(a, cat.color, idx++))
+                }
             }
         }
+        // Any achievements not in a known category
         val known  = CATEGORIES.flatMap { it.titles }.toSet()
         val extras = achievements.filter { it.title !in known }
         if (extras.isNotEmpty()) {
-            result.add(GridItem.Header("Other", Icons.Default.Star))
-            extras.forEach { a -> result.add(GridItem.Tile(a, idx++)) }
+            val fallbackCat = CategoryDef(
+                label  = "Other",
+                icon   = Icons.Default.Star,
+                color  = Color(0xFFFB8C00),
+                titles = extras.map { it.title }
+            )
+            val unlockedExtras = extras.count { it.isUnlocked }
+            result.add(GridItem.Header(fallbackCat, unlockedExtras, extras.size))
+            extras.forEach { a -> result.add(GridItem.Tile(a, fallbackCat.color, idx++)) }
         }
         result
     }
@@ -319,14 +328,19 @@ fun AchievementsScreen(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement   = Arrangement.spacedBy(10.dp)
         ) {
-            // Overall progress card
+            // ── Overall progress ──────────────────────────────────────────────
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Card(
                     modifier  = Modifier.fillMaxWidth(),
-                    colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    colors    = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        modifier            = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Row(
                             modifier              = Modifier.fillMaxWidth(),
                             verticalAlignment     = Alignment.CenterVertically,
@@ -350,7 +364,9 @@ fun AchievementsScreen(
                                 .fillMaxWidth()
                                 .height(8.dp)
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                                .background(
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                                )
                         ) {
                             Box(
                                 modifier = Modifier
@@ -367,7 +383,7 @@ fun AchievementsScreen(
                 }
             }
 
-            // Category headers + tiles
+            // ── Categories + tiles ────────────────────────────────────────────
             items(
                 count = gridItems.size,
                 span  = { i ->
@@ -378,135 +394,159 @@ fun AchievementsScreen(
                 }
             ) { i ->
                 when (val item = gridItems[i]) {
-                    is GridItem.Header -> CategoryHeader(item.label, item.icon)
-                    is GridItem.Tile   -> AchievementTile(item.achievement, item.tileIndex)
+                    is GridItem.Header -> CategoryHeader(item.cat, item.unlockedInCat, item.totalInCat)
+                    is GridItem.Tile   -> AchievementTile(item.achievement, item.categoryColor, item.index)
                 }
             }
         }
     }
 }
 
-// ── Category section header ───────────────────────────────────────────────────
+// ── Category header ───────────────────────────────────────────────────────────
 @Composable
-private fun CategoryHeader(label: String, icon: ImageVector) {
+private fun CategoryHeader(cat: CategoryDef, unlocked: Int, total: Int) {
     Row(
         modifier          = Modifier
             .fillMaxWidth()
             .padding(top = 12.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Left accent bar in category color
         Box(
             modifier = Modifier
                 .width(4.dp)
                 .height(22.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFFFF8C42), Color(0xFFFFB77A))
-                    )
-                )
+                .background(cat.color)
         )
         Spacer(Modifier.width(10.dp))
+
+        // Category icon pill
         Surface(
             shape = RoundedCornerShape(6.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+            color = cat.color.copy(alpha = 0.12f)
         ) {
             Icon(
-                imageVector        = icon,
+                imageVector        = cat.icon,
                 contentDescription = null,
-                tint               = MaterialTheme.colorScheme.primary,
+                tint               = cat.color,
                 modifier           = Modifier.padding(4.dp).size(14.dp)
             )
         }
         Spacer(Modifier.width(8.dp))
+
         Text(
-            label,
+            cat.label,
             fontSize   = 14.sp,
             fontWeight = FontWeight.ExtraBold,
-            color      = MaterialTheme.colorScheme.onSurface
+            color      = MaterialTheme.colorScheme.onSurface,
+            modifier   = Modifier.weight(1f)
+        )
+
+        // Category progress count
+        Text(
+            "$unlocked/$total",
+            fontSize   = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color      = if (unlocked == total) cat.color
+            else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
 // ── Single achievement tile ───────────────────────────────────────────────────
+// DESIGN RULES:
+//   Unlocked → category color accent strip (6dp) + light category tint bg + colored icon
+//   Locked   → thin grey strip (3dp) + grey bg + grey lock icon — ALL locked tiles look identical
+// NO random per-achievement borders. Color comes only from the category.
 @Composable
-private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
-    val a      = achievement
-    val icon   = ICON_MAP[a.title]  ?: Icons.Default.Star
-    val hint   = HINT_MAP[a.title]  ?: "Keep playing"
-    val tColor = achievementColor(a.title)
+private fun AchievementTile(
+    achievement   : AchievementEntity,
+    categoryColor : Color,
+    tileIndex     : Int
+) {
+    val a    = achievement
+    val icon = ICON_MAP[a.title] ?: Icons.Default.Star
+    val hint = HINT_MAP[a.title] ?: "Keep playing"
 
+    // Stagger fade-in so tiles don't all appear at once
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(a.title) {
-        kotlinx.coroutines.delay(tileIndex * 30L)
+        kotlinx.coroutines.delay(tileIndex * 25L)
         visible = true
     }
     val cardAlpha by animateFloatAsState(
         targetValue   = if (visible) 1f else 0f,
-        animationSpec = tween(durationMillis = 220),
-        label         = "ach_alpha_$tileIndex"
+        animationSpec = tween(durationMillis = 200),
+        label         = "tile_alpha_$tileIndex"
     )
 
-    var unlockAnimStarted by remember { mutableStateOf(false) }
+    // Subtle pop animation when first unlocked
+    var unlockStarted by remember { mutableStateOf(false) }
     LaunchedEffect(a.isUnlocked) {
         if (a.isUnlocked) {
-            unlockAnimStarted = false
+            unlockStarted = false
             kotlinx.coroutines.delay(40)
-            unlockAnimStarted = true
+            unlockStarted = true
         }
     }
     val unlockScale by animateFloatAsState(
-        targetValue   = if (a.isUnlocked && unlockAnimStarted) 1f else if (a.isUnlocked) 0.82f else 1f,
+        targetValue   = if (a.isUnlocked && unlockStarted) 1f else if (a.isUnlocked) 0.85f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness    = Spring.StiffnessMedium
         ),
-        label = "unlock_scale_$tileIndex"
+        label = "tile_scale_$tileIndex"
     )
 
     Card(
         modifier  = Modifier
             .fillMaxWidth()
-            .alpha(if (a.isUnlocked) cardAlpha else cardAlpha * 0.75f)
+            .alpha(if (a.isUnlocked) cardAlpha else cardAlpha * 0.70f)
             .scale(if (a.isUnlocked) unlockScale else 1f),
         shape     = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (a.isUnlocked) 5.dp else 0.dp
+            defaultElevation = if (a.isUnlocked) 4.dp else 0.dp
         ),
         colors    = CardDefaults.cardColors(
             containerColor = if (a.isUnlocked)
-                tColor.copy(alpha = 0.07f)
+                categoryColor.copy(alpha = 0.07f)
             else
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.80f)
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f)
         )
     ) {
         Column(
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top accent strip
+            // Top accent strip — thick + category color when unlocked, thin grey when locked
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(if (a.isUnlocked) 6.dp else 3.dp)
+                    .height(if (a.isUnlocked) 5.dp else 2.dp)
                     .background(
                         if (a.isUnlocked)
-                            Brush.horizontalGradient(listOf(tColor, tColor.copy(alpha = 0.55f)))
+                            Brush.horizontalGradient(
+                                listOf(categoryColor, categoryColor.copy(alpha = 0.50f))
+                            )
                         else
                             Brush.horizontalGradient(
-                                listOf(tColor.copy(alpha = 0.20f), tColor.copy(alpha = 0.08f))
+                                listOf(
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.18f),
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)
+                                )
                             )
                     )
             )
 
             Spacer(Modifier.height(14.dp))
 
-            // Icon badge
+            // Icon area
             Surface(
-                modifier = Modifier.size(60.dp),
+                modifier = Modifier.size(56.dp),
                 shape    = MaterialTheme.shapes.large,
                 color    = if (a.isUnlocked)
-                    tColor.copy(alpha = 0.18f)
+                    categoryColor.copy(alpha = 0.15f)
                 else
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
             ) {
@@ -515,15 +555,15 @@ private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
                         Icon(
                             imageVector        = icon,
                             contentDescription = a.title,
-                            tint               = tColor,
-                            modifier           = Modifier.size(32.dp)
+                            tint               = categoryColor,
+                            modifier           = Modifier.size(28.dp)
                         )
                     } else {
                         Icon(
                             imageVector        = Icons.Default.Lock,
                             contentDescription = "Locked",
-                            tint               = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.30f),
-                            modifier           = Modifier.size(22.dp)
+                            tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
+                            modifier           = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -531,33 +571,35 @@ private fun AchievementTile(achievement: AchievementEntity, tileIndex: Int) {
 
             Spacer(Modifier.height(8.dp))
 
-            // Title (accent color when unlocked, hint text when locked)
+            // Title or hint
             Text(
                 text       = if (a.isUnlocked) a.title else hint,
                 fontWeight = if (a.isUnlocked) FontWeight.Bold else FontWeight.Normal,
                 fontSize   = 11.sp,
                 textAlign  = TextAlign.Center,
                 maxLines   = 2,
-                color      = if (a.isUnlocked) tColor
-                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                color      = if (a.isUnlocked)
+                    categoryColor
+                else
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.40f),
                 modifier   = Modifier.padding(horizontal = 8.dp)
             )
 
             Spacer(Modifier.height(6.dp))
 
-            // "UNLOCKED" micro-badge — only on unlocked tiles
+            // "✓ UNLOCKED" chip — shown only when unlocked
             if (a.isUnlocked) {
                 Surface(
-                    shape = RoundedCornerShape(3.dp),
-                    color = tColor.copy(alpha = 0.13f)
+                    shape = RoundedCornerShape(4.dp),
+                    color = categoryColor.copy(alpha = 0.12f)
                 ) {
                     Text(
-                        "UNLOCKED",
-                        modifier      = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        "✓  UNLOCKED",
+                        modifier      = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                         fontSize      = 8.sp,
                         fontWeight    = FontWeight.ExtraBold,
-                        color         = tColor,
-                        letterSpacing = 0.5.sp
+                        color         = categoryColor,
+                        letterSpacing = 0.4.sp
                     )
                 }
             }
