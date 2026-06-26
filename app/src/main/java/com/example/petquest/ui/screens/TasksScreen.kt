@@ -15,7 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -517,27 +517,16 @@ private fun TaskRow(
 ) {
     val isDone = task.isCompleted
 
-    var checkAnimStarted by remember { mutableStateOf(isDone) }
-    LaunchedEffect(isDone) {
-        if (isDone) {
-            checkAnimStarted = false
-            delay(30)
-            checkAnimStarted = true
-        }
-    }
-    val checkScale by animateFloatAsState(
-        targetValue   = if (isDone && checkAnimStarted) 1f else if (isDone) 0.88f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness    = Spring.StiffnessMedium
-        ),
-        label = "check_scale_${task.id}"
+    val cardAlpha by animateFloatAsState(
+        targetValue   = if (isDone) 0.6f else 1f,
+        animationSpec = tween(durationMillis = 300),
+        label         = "task_alpha_${task.id}"
     )
 
     Card(
         modifier  = Modifier
             .fillMaxWidth()
-            .scale(checkScale),
+            .alpha(cardAlpha),
         shape     = MaterialTheme.shapes.medium,
         colors    = CardDefaults.cardColors(
             containerColor = if (isDone)

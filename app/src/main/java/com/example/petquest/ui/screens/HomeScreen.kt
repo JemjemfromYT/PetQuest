@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.petquest.R
-import com.example.petquest.data.model.PetType
+
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 
@@ -85,12 +85,11 @@ fun trainerTitle(level: Int): String = when {
 // ---------------------------------------------------------------------------
 @Composable
 fun StatCard(
-    modifier: Modifier = Modifier,
     value: String,
     label: String,
+    modifier: Modifier = Modifier,
     iconRes: Int? = null,
-    dimmed: Boolean = false,
-    subValue: String? = null
+    dimmed: Boolean = false
 ) {
     val containerColor = if (dimmed)
         MaterialTheme.colorScheme.surfaceVariant

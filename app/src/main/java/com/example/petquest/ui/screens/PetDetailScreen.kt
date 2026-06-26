@@ -323,21 +323,21 @@ fun PetDetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 StatCard(
-                    Modifier.weight(1f),
-                    "Lv.${pet.bondLevel}",
-                    "Bond Level",
-                    iconRes = R.drawable.ic_level
+                    value    = "Lv.${pet.bondLevel}",
+                    label    = "Bond Level",
+                    modifier = Modifier.weight(1f),
+                    iconRes  = R.drawable.ic_level
                 )
                 StatCard(
-                    Modifier.weight(1f),
-                    pet.type.name.replace("_", " "),
-                    "Type"
+                    value    = pet.type.name.replace("_", " "),
+                    label    = "Type",
+                    modifier = Modifier.weight(1f)
                 )
                 StatCard(
-                    Modifier.weight(1f),
-                    "${pet.bondPoints}",
-                    "Bond Pts",
-                    iconRes = R.drawable.ic_bondpoints
+                    value    = "${pet.bondPoints}",
+                    label    = "Bond Pts",
+                    modifier = Modifier.weight(1f),
+                    iconRes  = R.drawable.ic_bondpoints
                 )
             }
 
