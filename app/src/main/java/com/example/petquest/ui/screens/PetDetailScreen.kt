@@ -772,19 +772,17 @@ private fun VirtueIdentityCard(virtue: Virtue) {
 
     val virtueColor = when (virtue) {
         Virtue.COURAGE    -> Color(0xFFC62828)
-        Virtue.JUSTICE    -> Color(0xFF1565C0)
+        Virtue.DILIGENCE  -> Color(0xFF1565C0)
         Virtue.TEMPERANCE -> Color(0xFF2E7D32)
         Virtue.WISDOM     -> Color(0xFF6A1B9A)
-        Virtue.LOYALTY    -> Color(0xFFE65100)
-        else              -> Color(0xFF37474F)
+        Virtue.COMPASSION -> Color(0xFFE65100)
     }
     val virtueBg = when (virtue) {
         Virtue.COURAGE    -> Color(0xFFFFEBEE)
-        Virtue.JUSTICE    -> Color(0xFFE3F2FD)
+        Virtue.DILIGENCE  -> Color(0xFFE3F2FD)
         Virtue.TEMPERANCE -> Color(0xFFE8F5E9)
         Virtue.WISDOM     -> Color(0xFFF3E5F5)
-        Virtue.LOYALTY    -> Color(0xFFFFF3E0)
-        else              -> Color(0xFFECEFF1)
+        Virtue.COMPASSION -> Color(0xFFFFF3E0)
     }
 
     Card(
@@ -986,14 +984,26 @@ private fun LevelUpDialog(event: LevelUpEvent, onDismiss: () -> Unit) {
                     modifier  = Modifier.alpha(contentAlpha)
                 )
 
-                if (event.milestoneReward != null) {
+                // milestoneReward is computed locally — LevelUpEvent only has petName/oldLevel/newLevel
+                val milestoneReward = when (event.newLevel) {
+                    5    -> "+1 daily task unlocked"
+                    10   -> "Achievement tier unlocks!"
+                    15   -> "Bond Badge earned"
+                    20   -> "Gold border unlocked"
+                    25   -> "Bonded Guardian title"
+                    30   -> "Elite Protector title"
+                    40   -> "Soul Bond Crest"
+                    50   -> "Legendary Bond Status"
+                    else -> null
+                }
+                if (milestoneReward != null) {
                     Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
+                        shape    = MaterialTheme.shapes.medium,
+                        color    = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f),
                         modifier = Modifier.alpha(contentAlpha)
                     ) {
                         Text(
-                            event.milestoneReward,
+                            milestoneReward,
                             fontSize   = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             textAlign  = TextAlign.Center,

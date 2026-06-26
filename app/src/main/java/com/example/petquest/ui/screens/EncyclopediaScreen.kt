@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,12 +57,26 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Collection", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+            // IMPROVED: gradient header — matches every other screen in the app
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color(0xFFFF8C42), Color(0xFFFFB77A))
+                        )
+                    )
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                Text(
+                    "Collection",
+                    fontSize      = 24.sp,
+                    fontWeight    = FontWeight.ExtraBold,
+                    color         = Color.White,
+                    letterSpacing = (-0.5).sp
                 )
-            )
+            }
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -74,16 +90,31 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    LinearProgressIndicator(
-                        progress = { collectionProgress },
-                        modifier = Modifier.fillMaxWidth().height(8.dp)
-                    )
+                    // IMPROVED: gradient progress bar instead of default LinearProgressIndicator
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(collectionProgress)
+                                .fillMaxHeight()
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(Color(0xFFFF8C42), Color(0xFFFFB77A))
+                                    )
+                                )
+                        )
+                    }
                 }
                 Text(
                     "$collectedCount / $totalSpecies",
                     fontWeight = FontWeight.ExtraBold,
                     fontSize   = 14.sp,
-                    color      = MaterialTheme.colorScheme.primary
+                    color      = Color(0xFFFF8C42)
                 )
             }
 
@@ -128,18 +159,28 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
             ScrollableTabRow(
                 selectedTabIndex = rarityTabs.indexOf(selectedRarity),
                 edgePadding      = 16.dp,
-                containerColor   = MaterialTheme.colorScheme.surface
+                containerColor   = MaterialTheme.colorScheme.surface,
+                indicator        = { tabPositions ->
+                    val index = rarityTabs.indexOf(selectedRarity)
+                    if (index in tabPositions.indices) {
+                        TabRowDefaults.SecondaryIndicator(
+                            modifier = Modifier.tabIndicatorOffset(tabPositions[index]),
+                            color    = if (selectedRarity == null) Color(0xFFFF8C42)
+                            else encyclopediaRarityColor(selectedRarity!!)
+                        )
+                    }
+                }
             ) {
                 rarityTabs.forEachIndexed { index, rarity ->
                     val tabColor = if (rarity == null)
-                        MaterialTheme.colorScheme.primary
+                        Color(0xFFFF8C42)
                     else
                         encyclopediaRarityColor(rarity)
                     Tab(
-                        selected     = selectedRarity == rarity,
-                        onClick      = { selectedRarity = rarity },
-                        selectedContentColor   = tabColor,
-                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selected                = selectedRarity == rarity,
+                        onClick                 = { selectedRarity = rarity },
+                        selectedContentColor    = tabColor,
+                        unselectedContentColor  = MaterialTheme.colorScheme.onSurfaceVariant,
                         text = {
                             Text(
                                 tabLabels[index],
@@ -170,6 +211,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
     }
 }
 
+// ── Species card ──────────────────────────────────────────────────────────────
 @Composable
 private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
     val rarityColor = encyclopediaRarityColor(petType.rarity)
@@ -189,8 +231,11 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
     }
     val pulseScale by animateFloatAsState(
         targetValue   = if (collectPulse) 1.06f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
-        label         = "collect_pulse_${petType.name}"
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness    = Spring.StiffnessMedium
+        ),
+        label = "collect_pulse_${petType.name}"
     )
 
     val cardAlpha by animateFloatAsState(
@@ -206,7 +251,11 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
             .then(
                 if (isCollected)
                     Modifier
-                        .border(width = 1.5.dp, color = rarityColor.copy(alpha = 0.5f), shape = MaterialTheme.shapes.medium)
+                        .border(
+                            width = 1.5.dp,
+                            color = rarityColor.copy(alpha = 0.5f),
+                            shape = MaterialTheme.shapes.medium
+                        )
                         .scale(pulseScale)
                 else
                     Modifier
@@ -224,7 +273,7 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Rarity accent strip at top ────────────────────────────────────
+            // Rarity accent strip at top — full color when collected, faint when not
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -236,16 +285,15 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
 
             Spacer(Modifier.height(10.dp))
 
-            // ── Species visual ────────────────────────────────────────────────
+            // Species visual
             Box(
                 modifier         = Modifier.size(72.dp),
                 contentAlignment = Alignment.Center
             ) {
                 if (isCollected) {
-                    // Full emoji
                     Text(petEmoji(petType.name), fontSize = 44.sp)
                 } else {
-                    // Ghost silhouette + question mark
+                    // Ghost silhouette behind "?"
                     Text(
                         petEmoji(petType.name),
                         fontSize = 44.sp,
@@ -258,15 +306,15 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
                         color      = rarityColor.copy(alpha = 0.65f)
                     )
                 }
-                // Collected checkmark badge
+                // Collected checkmark badge (top-right corner)
                 if (isCollected) {
                     Box(
-                        modifier          = Modifier
+                        modifier         = Modifier
                             .align(Alignment.TopEnd)
                             .size(18.dp)
                             .clip(MaterialTheme.shapes.extraSmall)
                             .background(MaterialTheme.colorScheme.surface),
-                        contentAlignment  = Alignment.Center
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector        = Icons.Default.CheckCircle,
@@ -280,7 +328,7 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
 
             Spacer(Modifier.height(6.dp))
 
-            // ── Name ──────────────────────────────────────────────────────────
+            // Name — shown when collected, "???" when not
             Text(
                 text       = if (isCollected) petType.name.replace("_", " ") else "???",
                 fontWeight = FontWeight.Bold,
@@ -295,7 +343,7 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
 
             Spacer(Modifier.height(4.dp))
 
-            // ── Rarity badge ──────────────────────────────────────────────────
+            // Rarity badge
             Surface(
                 shape = MaterialTheme.shapes.extraSmall,
                 color = if (isCollected)
@@ -317,6 +365,7 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
     }
 }
 
+// ── Rarity → colour ───────────────────────────────────────────────────────────
 @Composable
 fun encyclopediaRarityColor(rarity: Rarity): Color = when (rarity) {
     Rarity.COMMON   -> Color(0xFF9E9E9E)
