@@ -215,7 +215,9 @@ fun EventsScreen(viewModel: PetQuestViewModel) {
     val bonusClaimed       by viewModel.todayEventBonusClaimed.collectAsState()
     val allAchievements    by viewModel.allAchievements.collectAsState()
 
-    val allTasksDone = todaysTasks.isNotEmpty() && todaysTasks.all { it.isCompleted }
+    val allTasksDone = todaysTasks
+        .groupBy { it.petId }
+        .any { (_, tasks) -> tasks.isNotEmpty() && tasks.all { it.isCompleted } }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope             = rememberCoroutineScope()
