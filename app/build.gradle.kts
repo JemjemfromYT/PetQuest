@@ -93,5 +93,8 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
+
+    implementation("com.google.guava:guava:32.1.3-android")
+    implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")
 }
     
