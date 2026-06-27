@@ -60,6 +60,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.FlashlightOff
+import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -230,8 +232,14 @@ fun PetVerificationScreen(
     var showOnboarding   by remember { mutableStateOf(false) }
     var capturedPhotoUri by remember { mutableStateOf<Uri?>(null) }
     var capturingPhoto   by remember { mutableStateOf(false) }
+    var torchEnabled     by remember { mutableStateOf(false) }
     // Kept as a box so the lambda inside AndroidView (not a @Composable scope) can write to it
     val controllerBox    = remember { arrayOfNulls<LifecycleCameraController>(1) }
+
+    // Sync torch state to the camera controller whenever it changes
+    LaunchedEffect(torchEnabled) {
+        controllerBox[0]?.enableTorch(torchEnabled)
+    }
 
     val animatedConfidence by animateFloatAsState(
         targetValue   = scanConfidence,
@@ -266,6 +274,7 @@ fun PetVerificationScreen(
         }
         capturingPhoto = true
         scanningActive = false
+        torchEnabled   = false   // switch off torch before the shutter fires
 
         val photoFile = File(
             context.filesDir,
@@ -386,6 +395,29 @@ fun PetVerificationScreen(
                         pulseAlpha   = if (animatedConfidence < 0.75f) pulseAlpha else 1f,
                         scanLineY    = scanLineOffset
                     )
+
+                    // ── Torch toggle button (top-right corner of camera view) ──
+                    IconButton(
+                        onClick  = { torchEnabled = !torchEnabled },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .background(
+                                color = if (torchEnabled) Color(0xFFFFD600) else Color.Black.copy(alpha = 0.45f),
+                                shape = RoundedCornerShape(50)
+                            )
+                            .size(44.dp)
+                    ) {
+                        Icon(
+                            imageVector        = if (torchEnabled) Icons.Default.FlashlightOn
+                            else Icons.Default.FlashlightOff,
+                            contentDescription = if (torchEnabled) "Turn off flashlight"
+                            else "Turn on flashlight",
+                            tint               = if (torchEnabled) Color.Black else Color.White,
+                            modifier           = Modifier.size(24.dp)
+                        )
+                    }
+
                     // Shutter flash / capturing indicator
                     if (capturingPhoto) {
                         Box(

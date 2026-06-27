@@ -87,3 +87,4 @@ dependencies {
     // Recognises ~400+ labels including all common pet types.
     implementation("com.google.mlkit:image-labeling:17.0.9")
 }
+    
