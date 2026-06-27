@@ -1,6 +1,15 @@
 // ============================================================
 // FILE: app/build.gradle.kts  (COMPLETE FILE — replace fully)
-// CHANGE: Added WorkManager dependency (line marked NEW)
+//
+// CHANGES FROM ORIGINAL:
+//   1. Added CameraX dependencies (camera-camera2, camera-lifecycle, camera-view)
+//   2. Added ML Kit image labeling (on-device, works offline)
+//   3. Added ML Kit object detection (for bounding-box animal scan UI)
+//
+// HOW TO APPLY:
+//   Open app/build.gradle.kts in Android Studio
+//   Select All (Ctrl+A), Delete, paste this entire file
+//   Click "Sync Now" in the yellow banner that appears
 // ============================================================
 
 plugins {
@@ -64,6 +73,17 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    // NEW — WorkManager for scheduled daily reminder notifications
+    // WorkManager — scheduled daily reminder notifications
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // ── CameraX — live camera preview for pet scanning ─────────────────────
+    val cameraxVersion = "1.3.4"
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+
+    // ── ML Kit — on-device image labeling (no internet required) ──────────
+    // Bundled model: ships inside the APK (~3 MB). Works offline immediately.
+    // Recognises ~400+ labels including all common pet types.
+    implementation("com.google.mlkit:image-labeling:17.0.9")
 }
