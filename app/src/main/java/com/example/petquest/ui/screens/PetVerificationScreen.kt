@@ -5,34 +5,29 @@
 //   1. Open PetVerificationScreen.kt in Android Studio
 //   2. Ctrl+A → Delete → Paste this entire file → Build
 //
-// ALSO REQUIRED (same as before — no new changes):
-//   - app/build.gradle.kts must include CameraX + ML Kit (see app_build.gradle.kts.txt)
-//   - AndroidManifest.xml must have:
-//       <uses-permission android:name="android.permission.CAMERA" />
+// KEY FIXES in this version:
 //
-// WHAT CHANGED FROM v3 (all compiler errors fixed):
+//   1. ANNOTATION — @AndroidOptIn(ExperimentalGetImage::class) on analyzeFrame()
+//      and composable. Avoids "not repeatable" and "must be marked" errors.
 //
-//   ERROR 1 — "This annotation is not repeatable" (line 218):
-//     CAUSE: Two separate @OptIn(...) stacked on the composable.
-//             Kotlin's @OptIn is not repeatable in older Kotlin versions.
-//     FIX:   @ExperimentalGetImage is a Java-side @RequiresOptIn annotation,
-//             so it needs @androidx.annotation.OptIn (Java OptIn), NOT Kotlin's @OptIn.
-//             Now the composable has one @androidx.annotation.OptIn and one Kotlin @OptIn —
-//             two DIFFERENT annotation types, so no "not repeatable" clash.
+//   2. ARGUMENT ORDER — drawArc uses named params; Box/Column use named params.
 //
-//   ERROR 2 — "opt-in usage must be marked" (line 375):
-//     CAUSE: analyzeFrame() was annotated @ExperimentalGetImage (the REQUIREMENT marker),
-//             which means every caller also needs the annotation — the error propagated.
-//     FIX:   analyzeFrame() is now annotated @androidx.annotation.OptIn(ExperimentalGetImage::class)
-//             which means it OPTS IN internally. Callers are clean.
+//   3. PHOTO CAPTURE (NEW) — When user taps Confirm, the app takes a real
+//      still photo via controller.takePicture(), saves it to filesDir, and
+//      passes the file:// URI to viewModel.verifyPet(). All screens
+//      (HomeScreen, TasksScreen, PetDetailScreen, ProfileScreen) already read
+//      pet.photoUri and load it with AsyncImage — so they will now show the photo.
 // ============================================================
 
 package com.example.petquest.ui.screens
 
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.annotation.OptIn as AndroidOptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
@@ -70,6 +65,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -118,6 +114,7 @@ import com.google.mlkit.vision.label.ImageLabeler
 import com.google.mlkit.vision.label.ImageLabeling
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 import kotlinx.coroutines.delay
+import java.io.File
 import java.util.concurrent.Executors
 
 // ─── ML label sets ────────────────────────────────────────────
@@ -171,10 +168,6 @@ private fun confidenceForType(petType: PetType, labels: List<Pair<String, Float>
 }
 
 // ─── analyzeFrame ─────────────────────────────────────────────
-// FIX: annotated with @AndroidOptIn (androidx.annotation.OptIn) NOT @ExperimentalGetImage.
-// @ExperimentalGetImage as a method annotation marks the method as ALSO experimental,
-// propagating the requirement to all callers. @AndroidOptIn says "I opt in here" —
-// callers are free from the requirement.
 @AndroidOptIn(ExperimentalGetImage::class)
 private fun analyzeFrame(
     imageProxy: ImageProxy,
@@ -207,8 +200,6 @@ private val ONBOARDING_CARDS = listOf(
 )
 
 // ─── Main screen ──────────────────────────────────────────────
-// FIX: @AndroidOptIn and Kotlin's @OptIn are two DIFFERENT annotation types.
-// Stacking them is fine — no "not repeatable" clash.
 @AndroidOptIn(ExperimentalGetImage::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -232,11 +223,15 @@ fun PetVerificationScreen(
         androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
     ) { granted -> hasCameraPermission = granted }
 
-    var scanConfidence by remember { mutableFloatStateOf(0f) }
-    var topLabels      by remember { mutableStateOf<List<Pair<String, Float>>>(emptyList()) }
-    var scanningActive by remember { mutableStateOf(true) }
-    var showSuccess    by remember { mutableStateOf(false) }
-    var showOnboarding by remember { mutableStateOf(false) }
+    var scanConfidence   by remember { mutableFloatStateOf(0f) }
+    var topLabels        by remember { mutableStateOf<List<Pair<String, Float>>>(emptyList()) }
+    var scanningActive   by remember { mutableStateOf(true) }
+    var showSuccess      by remember { mutableStateOf(false) }
+    var showOnboarding   by remember { mutableStateOf(false) }
+    var capturedPhotoUri by remember { mutableStateOf<Uri?>(null) }
+    var capturingPhoto   by remember { mutableStateOf(false) }
+    // Kept as a box so the lambda inside AndroidView (not a @Composable scope) can write to it
+    val controllerBox    = remember { arrayOfNulls<LifecycleCameraController>(1) }
 
     val animatedConfidence by animateFloatAsState(
         targetValue   = scanConfidence,
@@ -261,6 +256,42 @@ fun PetVerificationScreen(
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     DisposableEffect(Unit) { onDispose { labeler.close(); cameraExecutor.shutdown() } }
 
+    // ── Photo capture helper ───────────────────────────────────
+    fun captureAndConfirm() {
+        val ctrl = controllerBox[0] ?: run {
+            // No controller yet — skip photo and proceed anyway
+            scanningActive = false
+            showSuccess = true
+            return
+        }
+        capturingPhoto = true
+        scanningActive = false
+
+        val photoFile = File(
+            context.filesDir,
+            "pet_${petId}_${System.currentTimeMillis()}.jpg"
+        )
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+        ctrl.takePicture(
+            outputOptions,
+            cameraExecutor,
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    // Use the URI returned by CameraX; fall back to a file URI
+                    capturedPhotoUri = output.savedUri ?: Uri.fromFile(photoFile)
+                    capturingPhoto   = false
+                    showSuccess      = true
+                }
+                override fun onError(exc: ImageCaptureException) {
+                    // Photo save failed — still proceed but without a photo URI
+                    capturingPhoto   = false
+                    showSuccess      = true
+                }
+            }
+        )
+    }
+
     if (showSuccess && pet != null) {
         VerificationSuccessDialog(
             petName     = pet.name,
@@ -268,9 +299,16 @@ fun PetVerificationScreen(
             confidence  = scanConfidence,
             onDismiss   = {
                 showSuccess = false
-                viewModel.verifyPet(petId, "ml_verified_${System.currentTimeMillis()}")
-                if (!hasSeenOnboarding) { viewModel.markOnboardingSeen(); showOnboarding = true }
-                else onDone()
+                // Pass the real file URI so HomeScreen/PetDetail/Profile can show the photo
+                val uriString = capturedPhotoUri?.toString()
+                    ?: "ml_verified_${System.currentTimeMillis()}"
+                viewModel.verifyPet(petId, uriString)
+                if (!hasSeenOnboarding) {
+                    viewModel.markOnboardingSeen()
+                    showOnboarding = true
+                } else {
+                    onDone()
+                }
             }
         )
     }
@@ -305,7 +343,7 @@ fun PetVerificationScreen(
                     ?.replace("_", " ")?.lowercase()?.replaceFirstChar { it.uppercase() }
                     ?: "your pet"
 
-                StatusBanner(animatedConfidence, petTypeName, scanningActive)
+                StatusBanner(animatedConfidence, petTypeName, scanningActive, capturingPhoto)
 
                 Box(
                     modifier = Modifier
@@ -324,16 +362,21 @@ fun PetVerificationScreen(
                                             CameraController.IMAGE_CAPTURE
                                 )
                                 cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                                // analyzeFrame is @AndroidOptIn so calling it here is safe
                                 setImageAnalysisAnalyzer(cameraExecutor) { proxy ->
                                     if (!scanningActive) { proxy.close(); return@setImageAnalysisAnalyzer }
                                     analyzeFrame(proxy, labeler) { parsed ->
                                         topLabels     = parsed.take(5)
-                                        pet?.let { p -> scanConfidence = confidenceForType(p.type, parsed) }
+                                        pet?.let { p ->
+                                            scanConfidence = confidenceForType(p.type, parsed)
+                                        }
                                     }
                                 }
                             }
-                            (ctx as androidx.lifecycle.LifecycleOwner).let { controller.bindToLifecycle(it) }
+                            (ctx as androidx.lifecycle.LifecycleOwner).let {
+                                controller.bindToLifecycle(it)
+                            }
+                            // Store controller so captureAndConfirm() can reach it
+                            controllerBox[0]   = controller
                             previewView.controller = controller
                             previewView
                         }
@@ -343,6 +386,15 @@ fun PetVerificationScreen(
                         pulseAlpha   = if (animatedConfidence < 0.75f) pulseAlpha else 1f,
                         scanLineY    = scanLineOffset
                     )
+                    // Shutter flash / capturing indicator
+                    if (capturingPhoto) {
+                        Box(
+                            modifier            = Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.6f)),
+                            contentAlignment    = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
                 }
 
                 if (topLabels.isNotEmpty()) DetectedLabelsRow(topLabels)
@@ -352,8 +404,8 @@ fun PetVerificationScreen(
                 Spacer(Modifier.height(16.dp))
 
                 Button(
-                    onClick  = { scanningActive = false; showSuccess = true },
-                    enabled  = scanConfidence >= 0.75f,
+                    onClick  = { captureAndConfirm() },
+                    enabled  = scanConfidence >= 0.75f && !capturingPhoto,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).height(56.dp),
                     colors   = ButtonDefaults.buttonColors(
                         containerColor         = MaterialTheme.colorScheme.primary,
@@ -361,15 +413,33 @@ fun PetVerificationScreen(
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    if (scanConfidence >= 0.75f) {
-                        Icon(Icons.Default.CheckCircle, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Confirm — ${(scanConfidence * 100).toInt()}% match", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    } else {
-                        Icon(Icons.Default.Search, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Scanning for $petTypeName...", fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    when {
+                        capturingPhoto -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color    = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text("Saving photo...", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                        scanConfidence >= 0.75f -> {
+                            Icon(Icons.Default.CheckCircle, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Confirm — ${(scanConfidence * 100).toInt()}% match",
+                                fontSize = 16.sp, fontWeight = FontWeight.Bold
+                            )
+                        }
+                        else -> {
+                            Icon(Icons.Default.Search, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "Scanning for $petTypeName...",
+                                fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
                 Spacer(Modifier.height(20.dp))
@@ -380,8 +450,9 @@ fun PetVerificationScreen(
 
 // ─── Status banner ────────────────────────────────────────────
 @Composable
-private fun StatusBanner(confidence: Float, petTypeName: String, scanning: Boolean) {
+private fun StatusBanner(confidence: Float, petTypeName: String, scanning: Boolean, capturing: Boolean) {
     val text = when {
+        capturing           -> "📸 Taking photo..."
         !scanning           -> "Verification complete"
         confidence >= 0.75f -> "$petTypeName detected!"
         confidence >= 0.40f -> "Animal detected — move closer..."
@@ -397,9 +468,12 @@ private fun StatusBanner(confidence: Float, petTypeName: String, scanning: Boole
         shape    = RoundedCornerShape(12.dp),
         color    = bg
     ) {
-        Text(text, modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+        Text(
+            text,
+            modifier   = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
             fontWeight = FontWeight.SemiBold, fontSize = 14.sp,
-            textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface)
+            textAlign  = TextAlign.Center, color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -414,24 +488,28 @@ private fun ScanOverlay(scanComplete: Boolean, pulseAlpha: Float, scanLineY: Flo
         val w = size.width; val h = size.height
         val len = w * 0.12f; val sw = 4.dp.toPx(); val ins = 20.dp.toPx()
 
-        drawRect(brush = Brush.radialGradient(
-            listOf(Color.Transparent, Color.Black.copy(0.35f)),
-            Offset(w / 2f, h / 2f), maxOf(w, h) * 0.7f
-        ))
+        drawRect(
+            brush = Brush.radialGradient(
+                listOf(Color.Transparent, Color.Black.copy(0.35f)),
+                Offset(w / 2f, h / 2f), maxOf(w, h) * 0.7f
+            )
+        )
 
         val c = bracketColor.copy(alpha = pulseAlpha)
-        drawBracket(Offset(ins, ins),         len, sw, c, false, false)
-        drawBracket(Offset(w - ins, ins),     len, sw, c, true,  false)
-        drawBracket(Offset(ins, h - ins),     len, sw, c, false, true)
-        drawBracket(Offset(w - ins, h - ins), len, sw, c, true,  true)
+        drawBracket(Offset(ins, ins),         len, sw, c, flipH = false, flipV = false)
+        drawBracket(Offset(w - ins, ins),     len, sw, c, flipH = true,  flipV = false)
+        drawBracket(Offset(ins, h - ins),     len, sw, c, flipH = false, flipV = true)
+        drawBracket(Offset(w - ins, h - ins), len, sw, c, flipH = true,  flipV = true)
 
         if (!scanComplete) {
             val ly = ins + (h - ins * 2) * scanLineY
             drawLine(
-                brush = Brush.horizontalGradient(listOf(
-                    Color.Transparent, primaryColor.copy(0.8f), primaryColor.copy(0.8f), Color.Transparent
-                )),
-                start = Offset(ins, ly), end = Offset(w - ins, ly), strokeWidth = 2.5f.dp.toPx()
+                brush = Brush.horizontalGradient(
+                    listOf(Color.Transparent, primaryColor.copy(0.8f), primaryColor.copy(0.8f), Color.Transparent)
+                ),
+                start       = Offset(ins, ly),
+                end         = Offset(w - ins, ly),
+                strokeWidth = 2.5f.dp.toPx()
             )
         } else {
             val cx = w / 2f; val cy = h / 2f; val r = 36.dp.toPx()
@@ -441,9 +519,11 @@ private fun ScanOverlay(scanComplete: Boolean, pulseAlpha: Float, scanLineY: Flo
     }
 }
 
-private fun DrawScope.drawBracket(anchor: Offset, len: Float, sw: Float, color: Color, fH: Boolean, fV: Boolean) {
-    val dx = if (fH) -len else len
-    val dy = if (fV) -len else len
+private fun DrawScope.drawBracket(
+    anchor: Offset, len: Float, sw: Float, color: Color, flipH: Boolean, flipV: Boolean
+) {
+    val dx = if (flipH) -len else len
+    val dy = if (flipV) -len else len
     drawLine(color, anchor, Offset(anchor.x + dx, anchor.y), sw, StrokeCap.Round)
     drawLine(color, anchor, Offset(anchor.x, anchor.y + dy), sw, StrokeCap.Round)
 }
@@ -461,14 +541,32 @@ private fun ConfidenceRing(confidence: Float, petTypeName: String) {
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
+        Box(
+            modifier         = Modifier.size(72.dp),
+            contentAlignment = Alignment.Center
+        ) {
             Canvas(Modifier.fillMaxSize()) {
                 val s = 6.dp.toPx(); val p = s / 2f
                 val sz = GeomSize(size.width - s, size.height - s)
-                drawArc(Color.LightGray.copy(0.3f), -90f, 360f, false, topLeft = Offset(p, p), size = sz, style = Stroke(s, cap = StrokeCap.Round))
-                drawArc(ringColor, -90f, 360f * confidence, false, topLeft = Offset(p, p), size = sz, style = Stroke(s, cap = StrokeCap.Round))
+                drawArc(
+                    color      = Color.LightGray.copy(0.3f),
+                    startAngle = -90f, sweepAngle = 360f, useCenter = false,
+                    topLeft    = Offset(p, p), size = sz,
+                    style      = Stroke(s, cap = StrokeCap.Round)
+                )
+                drawArc(
+                    color      = ringColor,
+                    startAngle = -90f, sweepAngle = 360f * confidence, useCenter = false,
+                    topLeft    = Offset(p, p), size = sz,
+                    style      = Stroke(s, cap = StrokeCap.Round)
+                )
             }
-            Text("${(confidence * 100).toInt()}%", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = ringColor)
+            Text(
+                "${(confidence * 100).toInt()}%",
+                fontSize   = 14.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color      = ringColor
+            )
         }
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
@@ -481,7 +579,8 @@ private fun ConfidenceRing(confidence: Float, petTypeName: String) {
                     confidence >= 0.40f -> "Getting closer — keep camera steady"
                     else                -> "Hold your phone up to your $petTypeName"
                 },
-                fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontSize = 12.sp,
+                color    = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -495,11 +594,15 @@ private fun DetectedLabelsRow(labels: List<Pair<String, Float>>) {
         horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)
     ) {
         labels.take(4).forEach { (label, conf) ->
-            Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
                 Text(
                     "${label.replaceFirstChar { it.uppercase() }} ${(conf * 100).toInt()}%",
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                    fontSize = 11.sp,
+                    color    = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -510,21 +613,29 @@ private fun DetectedLabelsRow(labels: List<Pair<String, Float>>) {
 @Composable
 private fun PermissionCard(onRequest: () -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier            = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text("📷", fontSize = 64.sp)
         Spacer(Modifier.height(16.dp))
-        Text("Camera Access Needed", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, textAlign = TextAlign.Center)
+        Text(
+            "Camera Access Needed",
+            fontSize   = 22.sp, fontWeight = FontWeight.ExtraBold,
+            textAlign  = TextAlign.Center
+        )
         Spacer(Modifier.height(8.dp))
         Text(
             "PetQuest uses your camera to verify your pet using on-device AI. No photos are uploaded.",
-            fontSize = 14.sp, textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            fontSize  = 14.sp, textAlign = TextAlign.Center,
+            color     = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(24.dp))
-        Button(onClick = onRequest, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(14.dp)) {
+        Button(
+            onClick  = onRequest,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape    = RoundedCornerShape(14.dp)
+        ) {
             Text("Allow Camera", fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
     }
@@ -533,15 +644,21 @@ private fun PermissionCard(onRequest: () -> Unit) {
 // ─── Verification success dialog ──────────────────────────────
 @Composable
 private fun VerificationSuccessDialog(
-    petName: String, petTypeName: String, confidence: Float, onDismiss: () -> Unit
+    petName    : String,
+    petTypeName: String,
+    confidence : Float,
+    onDismiss  : () -> Unit
 ) {
     var started by remember { mutableStateOf(false) }
     val iconScale by animateFloatAsState(
-        if (started) 1f else 0f,
-        spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow), label = "sc"
+        targetValue   = if (started) 1f else 0f,
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow),
+        label         = "sc"
     )
     val alpha by animateFloatAsState(
-        if (started) 1f else 0f, tween(500, delayMillis = 250), label = "al"
+        targetValue   = if (started) 1f else 0f,
+        animationSpec = tween(500, delayMillis = 250),
+        label         = "al"
     )
     LaunchedEffect(Unit) { started = true }
 
@@ -556,37 +673,61 @@ private fun VerificationSuccessDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Box(modifier = Modifier.size(100.dp).scale(iconScale), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier         = Modifier.size(100.dp).scale(iconScale),
+                    contentAlignment = Alignment.Center
+                ) {
                     Canvas(Modifier.fillMaxSize()) {
                         drawCircle(Color(0xFF2E7D32).copy(0.2f))
                         drawCircle(Color(0xFF2E7D32), style = Stroke(4.dp.toPx()))
                     }
                     Text("✓", fontSize = 48.sp, color = Color(0xFF2E7D32))
                 }
-                Text("${(confidence * 100).toInt()}% Match Confirmed",
-                    fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF2E7D32), modifier = Modifier.alpha(alpha))
-                Text("Pet Verified!", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.alpha(alpha))
                 Text(
-                    "$petName the ${petTypeName.replace("_"," ").lowercase().replaceFirstChar{it.uppercase()}} is now fully active!",
-                    fontSize = 15.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.alpha(alpha)
+                    "${(confidence * 100).toInt()}% Match Confirmed",
+                    fontSize   = 13.sp, fontWeight = FontWeight.SemiBold,
+                    color      = Color(0xFF2E7D32), modifier = Modifier.alpha(alpha)
+                )
+                Text(
+                    "Pet Verified!",
+                    fontSize   = 26.sp, fontWeight = FontWeight.ExtraBold,
+                    textAlign  = TextAlign.Center,
+                    color      = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier   = Modifier.alpha(alpha)
+                )
+                Text(
+                    "$petName the ${petTypeName.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }} is now fully active!",
+                    fontSize   = 15.sp, textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.SemiBold,
+                    color      = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier   = Modifier.alpha(alpha)
                 )
                 Surface(
                     modifier = Modifier.fillMaxWidth().alpha(alpha),
                     shape    = MaterialTheme.shapes.medium,
                     color    = MaterialTheme.colorScheme.onSecondaryContainer.copy(0.10f)
                 ) {
-                    Column(Modifier.padding(14.dp), Arrangement.spacedBy(6.dp)) {
-                        Text("Now unlocked:", fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer)
-                        listOf("Task completion","Bond point earning","Streak tracking","Achievement progress").forEach {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        modifier            = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            "Now unlocked:",
+                            fontSize   = 12.sp, fontWeight = FontWeight.Bold,
+                            color      = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        listOf(
+                            "Task completion",
+                            "Bond point earning",
+                            "Streak tracking",
+                            "Achievement progress"
+                        ).forEach { item ->
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
                                 Text("✓", fontSize = 12.sp, color = Color(0xFF2E7D32))
-                                Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                                Text(item, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
                             }
                         }
                     }
@@ -596,7 +737,9 @@ private fun VerificationSuccessDialog(
                     modifier = Modifier.fillMaxWidth().height(52.dp).alpha(alpha),
                     colors   = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.secondary),
                     shape    = RoundedCornerShape(14.dp)
-                ) { Text("Let's Go!", fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+                ) {
+                    Text("Let's Go!", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
@@ -611,11 +754,25 @@ private fun OnboardingOverlay(onFinish: () -> Unit) {
 
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(page) { visible = false; delay(80); visible = true }
-    val alpha by animateFloatAsState(if (visible) 1f else 0f, tween(300), label = "ob_a")
-    val scale by animateFloatAsState(if (visible) 1f else 0.92f, tween(300, easing = FastOutSlowInEasing), label = "ob_s")
+    val alpha by animateFloatAsState(
+        targetValue   = if (visible) 1f else 0f,
+        animationSpec = tween(300),
+        label         = "ob_a"
+    )
+    val scale by animateFloatAsState(
+        targetValue   = if (visible) 1f else 0.92f,
+        animationSpec = tween(300, easing = FastOutSlowInEasing),
+        label         = "ob_s"
+    )
 
-    Dialog(onDismissRequest = {}, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize(), Alignment.Center) {
+    Dialog(
+        onDismissRequest = {},
+        properties       = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier         = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             Card(
                 modifier  = Modifier.fillMaxWidth(0.9f).alpha(alpha).scale(scale),
                 shape     = MaterialTheme.shapes.extraLarge,
@@ -624,35 +781,58 @@ private fun OnboardingOverlay(onFinish: () -> Unit) {
             ) {
                 Column(
                     modifier            = Modifier.fillMaxWidth().padding(32.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         ONBOARDING_CARDS.indices.forEach { i ->
                             Surface(
-                                Modifier.size(width = if (i == page) 20.dp else 8.dp, height = 8.dp),
-                                MaterialTheme.shapes.extraSmall,
-                                if (i == page) MaterialTheme.colorScheme.primary
+                                modifier = Modifier.size(
+                                    width  = if (i == page) 20.dp else 8.dp,
+                                    height = 8.dp
+                                ),
+                                shape = MaterialTheme.shapes.extraSmall,
+                                color = if (i == page) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.onSurface.copy(0.25f)
                             ) {}
                         }
                     }
                     Text(card.emoji, fontSize = 64.sp)
-                    Text(card.title, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold,
-                        textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary)
-                    Text(card.body, fontSize = 14.sp, textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 20.sp)
+                    Text(
+                        card.title,
+                        fontSize   = 22.sp, fontWeight = FontWeight.ExtraBold,
+                        textAlign  = TextAlign.Center,
+                        color      = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        card.body,
+                        fontSize   = 14.sp, textAlign = TextAlign.Center,
+                        color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 20.sp
+                    )
                     Spacer(Modifier.height(4.dp))
                     Button(
                         onClick  = { if (isLast) onFinish() else page++ },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape    = RoundedCornerShape(14.dp)
                     ) {
-                        Text(if (isLast) "Let's Start!" else "Next", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        if (!isLast) { Spacer(Modifier.width(6.dp)); Text("→", fontSize = 16.sp) }
+                        Text(
+                            if (isLast) "Let's Start!" else "Next",
+                            fontSize = 16.sp, fontWeight = FontWeight.Bold
+                        )
+                        if (!isLast) {
+                            Spacer(Modifier.width(6.dp))
+                            Text("→", fontSize = 16.sp)
+                        }
                     }
-                    if (!isLast) TextButton(onClick = onFinish) {
-                        Text("Skip", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (!isLast) {
+                        TextButton(onClick = onFinish) {
+                            Text(
+                                "Skip",
+                                fontSize = 13.sp,
+                                color    = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
