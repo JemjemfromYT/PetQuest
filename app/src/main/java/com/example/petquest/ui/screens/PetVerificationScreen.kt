@@ -1,3 +1,18 @@
+// ============================================================
+// FILE PATH:  app/src/main/java/com/example/petquest/ui/screens/PetVerificationScreen.kt
+//
+// BUGS FIXED:
+//   1. SCROLL BUG — The Column had no scroll modifier. On small phones the
+//      "Confirm Verification" button was pushed off the bottom of the screen
+//      with no way to reach it. Fixed by adding verticalScroll() to the Column
+//      and removing Spacer(weight(1f)) which doesn't work in scrollable columns.
+//
+// HOW TO APPLY:
+//   1. Open PetVerificationScreen.kt in Android Studio
+//   2. Select ALL (Ctrl+A), Delete
+//   3. Paste everything BELOW this comment block
+// ============================================================
+
 package com.example.petquest.ui.screens
 
 import android.content.pm.PackageManager
@@ -7,6 +22,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -33,13 +50,7 @@ import com.example.petquest.R
 import com.example.petquest.viewmodel.PetQuestViewModel
 import java.io.File
 
-// ─── Onboarding card data ──────────────────────────────────────────────────────
-
-private data class OnboardingCard(
-    val emoji: String,
-    val title: String,
-    val body: String
-)
+private data class OnboardingCard(val emoji: String, val title: String, val body: String)
 
 private val ONBOARDING_CARDS = listOf(
     OnboardingCard(
@@ -58,8 +69,6 @@ private val ONBOARDING_CARDS = listOf(
         body  = "The traits you chose when creating your pet formed their Virtue. Each day your pet's Virtue shapes one special task — a reflection of who they are."
     )
 )
-
-// ─── PetVerificationScreen ────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,9 +102,7 @@ fun PetVerificationScreen(
 
     val cameraLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) photoUri = cameraUri
-    }
+    ) { success -> if (success) photoUri = cameraUri }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -103,9 +110,7 @@ fun PetVerificationScreen(
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) cameraLauncher.launch(cameraUri)
-    }
+    ) { granted -> if (granted) cameraLauncher.launch(cameraUri) }
 
     fun launchCamera() {
         val hasPerm = ContextCompat.checkSelfPermission(
@@ -115,8 +120,6 @@ fun PetVerificationScreen(
         else permissionLauncher.launch(android.Manifest.permission.CAMERA)
     }
 
-    // After verification success dialog, route to onboarding (first time only)
-    // or directly to onDone.
     if (showSuccessDialog && pet != null) {
         VerificationSuccessDialog(
             petName     = pet.name,
@@ -133,7 +136,6 @@ fun PetVerificationScreen(
         )
     }
 
-    // First-time onboarding overlay — 3 swipeable cards
     if (showOnboarding) {
         OnboardingOverlay(onFinish = onDone)
     }
@@ -153,10 +155,12 @@ fun PetVerificationScreen(
             )
         }
     ) { padding ->
+        // FIX: verticalScroll so the Confirm button is always reachable on small phones
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -168,7 +172,6 @@ fun PetVerificationScreen(
                 color     = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // What unlocks on verification
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors   = CardDefaults.cardColors(
@@ -203,7 +206,6 @@ fun PetVerificationScreen(
                 }
             }
 
-            // Photo preview card
             Card(
                 modifier  = Modifier
                     .fillMaxWidth()
@@ -257,7 +259,9 @@ fun PetVerificationScreen(
                 Text("Choose from Gallery", fontWeight = FontWeight.SemiBold)
             }
 
-            Spacer(Modifier.weight(1f))
+            // FIX: replaced Spacer(weight(1f)) with fixed spacer — weight doesn't
+            // work inside a verticalScroll column
+            Spacer(Modifier.height(8.dp))
 
             Button(
                 onClick = {
@@ -278,11 +282,11 @@ fun PetVerificationScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
+
+            Spacer(Modifier.height(8.dp))
         }
     }
 }
-
-// ─── First-time Onboarding Overlay ────────────────────────────────────────────
 
 @Composable
 private fun OnboardingOverlay(onFinish: () -> Unit) {
@@ -311,15 +315,9 @@ private fun OnboardingOverlay(onFinish: () -> Unit) {
         onDismissRequest = {},
         properties       = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Box(
-            modifier         = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Card(
-                modifier  = Modifier
-                    .fillMaxWidth(0.9f)
-                    .alpha(alpha)
-                    .scale(scale),
+                modifier  = Modifier.fillMaxWidth(0.9f).alpha(alpha).scale(scale),
                 shape     = MaterialTheme.shapes.extraLarge,
                 colors    = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -327,13 +325,10 @@ private fun OnboardingOverlay(onFinish: () -> Unit) {
                 elevation = CardDefaults.cardElevation(12.dp)
             ) {
                 Column(
-                    modifier            = Modifier
-                        .fillMaxWidth()
-                        .padding(32.dp),
+                    modifier            = Modifier.fillMaxWidth().padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Step indicator dots
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         ONBOARDING_CARDS.indices.forEach { i ->
                             Surface(
@@ -350,10 +345,8 @@ private fun OnboardingOverlay(onFinish: () -> Unit) {
                         }
                     }
 
-                    // Emoji icon
                     Text(card.emoji, fontSize = 64.sp)
 
-                    // Title
                     Text(
                         card.title,
                         fontSize   = 22.sp,
@@ -362,18 +355,16 @@ private fun OnboardingOverlay(onFinish: () -> Unit) {
                         color      = MaterialTheme.colorScheme.primary
                     )
 
-                    // Body
                     Text(
                         card.body,
-                        fontSize  = 14.sp,
-                        textAlign = TextAlign.Center,
-                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize   = 14.sp,
+                        textAlign  = TextAlign.Center,
+                        color      = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 20.sp
                     )
 
                     Spacer(Modifier.height(4.dp))
 
-                    // Navigation button
                     Button(
                         onClick  = { if (isLast) onFinish() else page++ },
                         modifier = Modifier.fillMaxWidth().height(52.dp)
@@ -393,14 +384,9 @@ private fun OnboardingOverlay(onFinish: () -> Unit) {
                         }
                     }
 
-                    // Skip link (not on last card)
                     if (!isLast) {
                         TextButton(onClick = onFinish) {
-                            Text(
-                                "Skip",
-                                fontSize = 13.sp,
-                                color    = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Text("Skip", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -408,8 +394,6 @@ private fun OnboardingOverlay(onFinish: () -> Unit) {
         }
     }
 }
-
-// ─── Verification Success Dialog ───────────────────────────────────────────────
 
 @Composable
 private fun VerificationSuccessDialog(
@@ -421,11 +405,8 @@ private fun VerificationSuccessDialog(
 
     val iconScale by animateFloatAsState(
         targetValue   = if (started) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness    = Spring.StiffnessMediumLow
-        ),
-        label = "verify_scale"
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow),
+        label         = "verify_scale"
     )
     val contentAlpha by animateFloatAsState(
         targetValue   = if (started) 1f else 0f,
@@ -438,24 +419,18 @@ private fun VerificationSuccessDialog(
     Dialog(onDismissRequest = {}) {
         Card(
             shape     = MaterialTheme.shapes.extraLarge,
-            colors    = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer
-            ),
+            colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
             Column(
-                modifier            = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
+                modifier            = Modifier.fillMaxWidth().padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Image(
                     painter            = painterResource(id = R.drawable.verification_success),
                     contentDescription = "Verified",
-                    modifier           = Modifier
-                        .size(100.dp)
-                        .scale(iconScale),
+                    modifier           = Modifier.size(100.dp).scale(iconScale),
                     contentScale       = ContentScale.Fit
                 )
 
@@ -478,11 +453,9 @@ private fun VerificationSuccessDialog(
                 )
 
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .alpha(contentAlpha),
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
+                    modifier = Modifier.fillMaxWidth().alpha(contentAlpha),
+                    shape    = MaterialTheme.shapes.medium,
+                    color    = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.12f)
                 ) {
                     Column(
                         modifier            = Modifier.padding(14.dp),
@@ -494,12 +467,7 @@ private fun VerificationSuccessDialog(
                             fontWeight = FontWeight.Bold,
                             color      = MaterialTheme.colorScheme.onTertiaryContainer
                         )
-                        listOf(
-                            "Task completion",
-                            "Bond point earning",
-                            "Streak tracking",
-                            "Achievement progress"
-                        ).forEach { feature ->
+                        listOf("Task completion", "Bond point earning", "Streak tracking", "Achievement progress").forEach { feature ->
                             Row(
                                 verticalAlignment     = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -510,11 +478,7 @@ private fun VerificationSuccessDialog(
                                     modifier           = Modifier.size(14.dp),
                                     contentScale       = ContentScale.Fit
                                 )
-                                Text(
-                                    feature,
-                                    fontSize = 13.sp,
-                                    color    = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
+                                Text(feature, fontSize = 13.sp, color = MaterialTheme.colorScheme.onTertiaryContainer)
                             }
                         }
                     }
@@ -524,13 +488,8 @@ private fun VerificationSuccessDialog(
 
                 Button(
                     onClick  = onDismiss,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .alpha(contentAlpha),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiary
-                    )
+                    modifier = Modifier.fillMaxWidth().height(52.dp).alpha(contentAlpha),
+                    colors   = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
                 ) {
                     Text("Let's Go!", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }

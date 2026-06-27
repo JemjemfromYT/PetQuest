@@ -1,21 +1,26 @@
 // ============================================================
-// UPDATED FILE: app/src/main/java/com/example/petquest/SoundManager.kt
-// FULL REPLACEMENT
+// FILE PATH:  app/src/main/java/com/example/petquest/SoundManager.kt
 //
-// KEY FIXES vs previous version:
-//  1. Stores applicationContext internally after init — no more context passing at runtime
-//  2. Uses MediaPlayer() + prepare() instead of MediaPlayer.create() — gives error callbacks
-//  3. Sets AudioAttributes with USAGE_MEDIA so Android knows this is music
-//  4. shouldPlayMusic flag — music only starts after user passes onboarding
-//  5. enableAndStartMusic() — call once from MainScreen composable
-//  6. onAppForegrounded() — call from MainActivity.onResume (no context needed)
-//  7. Volume raised to 0.55f (was 0.30f which was too quiet)
+// BUGS FIXED:
+//   1. MUSIC RESET ON BACK — startMusicInternal() was always releasing and
+//      restarting the MediaPlayer. When navigating back from pet_verify, a new
+//      MainScreen is created which called enableAndStartMusic() again, which
+//      restarted the music from the beginning. Fixed by checking isPlaying first.
+//   2. SILENT AUDIO ON API 26+ — Added AudioFocusRequest so Android actually
+//      grants the app permission to play audio (required on modern Android).
+//
+// HOW TO APPLY:
+//   1. Open SoundManager.kt in Android Studio
+//   2. Select ALL (Ctrl+A), Delete
+//   3. Paste everything BELOW this comment block
 // ============================================================
 
 package com.example.petquest
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.SoundPool
 import android.net.Uri
@@ -23,11 +28,13 @@ import android.util.Log
 
 object SoundManager {
 
-    private val TAG = "SoundManager"
+    private const val TAG = "SoundManager"
 
-    private var appContext     : Context?     = null
-    private var mediaPlayer    : MediaPlayer? = null
-    private var soundPool      : SoundPool?   = null
+    private var appContext   : Context?      = null
+    private var audioManager : AudioManager? = null
+    private var mediaPlayer  : MediaPlayer?  = null
+    private var soundPool    : SoundPool?    = null
+    private var focusRequest : AudioFocusRequest? = null
 
     private var idTaskComplete = 0
     private var idStreak       = 0
@@ -40,14 +47,39 @@ object SoundManager {
 
     var sfxEnabled = true
 
-    // True once the user has passed the Welcome / Benefits screens
     private var shouldPlayMusic = false
     private var initialized     = false
+    private var hasFocus        = false
 
-    // ── Call once from PetQuestApplication.onCreate() ─────────────────────
+    // ── Audio focus listener ───────────────────────────────────────────────
+    private val focusChangeListener = AudioManager.OnAudioFocusChangeListener { change ->
+        when (change) {
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                hasFocus = true
+                mediaPlayer?.setVolume(0.55f, 0.55f)
+                if (shouldPlayMusic && musicEnabled) {
+                    if (mediaPlayer == null) startMusicInternal()
+                    else try { mediaPlayer?.start() } catch (e: Exception) { Log.e(TAG, "focus gain resume failed", e) }
+                }
+            }
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                hasFocus = false
+                try { mediaPlayer?.pause() } catch (e: Exception) { /* ignore */ }
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                try { mediaPlayer?.pause() } catch (e: Exception) { /* ignore */ }
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                try { mediaPlayer?.setVolume(0.15f, 0.15f) } catch (e: Exception) { /* ignore */ }
+            }
+        }
+    }
+
+    // ── Init — call once from PetQuestApplication.onCreate() ──────────────
     fun init(context: Context) {
         if (initialized) return
-        appContext = context.applicationContext
+        appContext   = context.applicationContext
+        audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         val sfxAttrs = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
@@ -70,24 +102,26 @@ object SoundManager {
     }
 
     // ── Call from MainScreen's LaunchedEffect(Unit) ────────────────────────
-    // This marks that the user has passed onboarding and music should play.
     fun enableAndStartMusic() {
         shouldPlayMusic = true
-        startMusicInternal()
+        // FIX: if music is already playing, do nothing — prevents restart on back-nav
+        if (mediaPlayer?.isPlaying == true) {
+            Log.d(TAG, "enableAndStartMusic: already playing, skipping restart")
+            return
+        }
+        requestFocusAndPlay()
     }
 
     // ── Call from MainActivity.onResume() ─────────────────────────────────
     fun onAppForegrounded() {
         if (!shouldPlayMusic || !musicEnabled) return
-        if (mediaPlayer == null) {
-            startMusicInternal()           // wasn't started yet — start now
-        } else {
-            try { mediaPlayer?.start() } catch (e: Exception) { Log.e(TAG, "resume failed", e) }
-        }
+        if (mediaPlayer?.isPlaying == true) return  // already going
+        requestFocusAndPlay()
     }
 
     fun pauseMusic() {
         try { mediaPlayer?.pause() } catch (e: Exception) { Log.e(TAG, "pause failed", e) }
+        abandonFocus()
     }
 
     // ── Sound effects ──────────────────────────────────────────────────────
@@ -97,21 +131,66 @@ object SoundManager {
     fun playTap()          = play(idTap,          0.65f)
     fun playPetHappy()     = play(idPetHappy,     0.85f)
 
-    // ── Lifecycle — call from MainActivity.onDestroy() ────────────────────
+    // ── Call from MainActivity.onDestroy() ────────────────────────────────
     fun release() {
         mediaPlayer?.release(); mediaPlayer = null
         soundPool?.release();   soundPool   = null
+        abandonFocus()
         shouldPlayMusic = false
         initialized     = false
+        hasFocus        = false
         Log.d(TAG, "SoundManager released")
     }
 
     // ── Private ────────────────────────────────────────────────────────────
+
+    private fun requestFocusAndPlay() {
+        val am = audioManager ?: return
+
+        val attrs = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+            .build()
+
+        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            .setAudioAttributes(attrs)
+            .setAcceptsDelayedFocusGain(true)
+            .setOnAudioFocusChangeListener(focusChangeListener)
+            .build()
+        focusRequest = request
+
+        val result = am.requestAudioFocus(request)
+        Log.d(TAG, "Audio focus request result: $result")
+
+        when (result) {
+            AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
+                hasFocus = true
+                startMusicInternal()
+            }
+            AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
+                Log.d(TAG, "Audio focus delayed — will play when granted")
+            }
+            else -> {
+                Log.w(TAG, "Audio focus denied (result=$result)")
+            }
+        }
+    }
+
+    private fun abandonFocus() {
+        focusRequest?.let { audioManager?.abandonAudioFocusRequest(it) }
+        hasFocus = false
+    }
+
     private fun startMusicInternal() {
         val ctx = appContext ?: return
+        if (!shouldPlayMusic || !musicEnabled) return
+
+        // FIX: don't restart if already playing
+        if (mediaPlayer?.isPlaying == true) return
+
         val res = ctx.resources.getIdentifier("bg_music", "raw", ctx.packageName)
         if (res == 0) {
-            Log.w(TAG, "bg_music not found in res/raw — skipping music")
+            Log.w(TAG, "bg_music not found in res/raw — skipping")
             return
         }
         try {
@@ -127,11 +206,11 @@ object SoundManager {
                 isLooping = true
                 setVolume(0.55f, 0.55f)
                 setOnErrorListener { _, what, extra ->
-                    Log.e(TAG, "MediaPlayer error: what=$what extra=$extra — music will not play")
+                    Log.e(TAG, "MediaPlayer error: what=$what extra=$extra")
                     mediaPlayer = null
                     false
                 }
-                prepare()          // synchronous — fine for local raw resources
+                prepare()
                 start()
             }
             Log.d(TAG, "Background music started OK")
@@ -149,6 +228,8 @@ object SoundManager {
 
     private fun play(id: Int, vol: Float) {
         if (!sfxEnabled || id == 0) return
-        try { soundPool?.play(id, vol, vol, 1, 0, 1f) } catch (e: Exception) { Log.e(TAG, "play failed", e) }
+        try { soundPool?.play(id, vol, vol, 1, 0, 1f) } catch (e: Exception) {
+            Log.e(TAG, "play failed", e)
+        }
     }
 }
