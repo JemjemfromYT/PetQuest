@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Celebration
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -280,6 +281,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     val doneTasks    = tasks.count { it.isCompleted }
     val streakActive = doneTasks > 0 || tasks.isEmpty()
     val allDone      = tasks.isNotEmpty() && doneTasks == tasks.size
+    val isDark       = isSystemInDarkTheme()
 
     val todayProgress by animateFloatAsState(
         targetValue   = if (tasks.isEmpty()) 0f else doneTasks / tasks.size.toFloat(),
@@ -407,24 +409,24 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             value          = "$streak",
                             label          = "Streak",
                             dimmed         = !streakActive,
-                            containerColor = Color(0xFFFFF3E0),
-                            valueColor     = Color(0xFFBF360C),
+                            containerColor = if (isDark) Color(0xFF3E2723) else Color(0xFFFFF3E0),
+                            valueColor     = if (isDark) Color(0xFFFF8C42) else Color(0xFFBF360C),
                             modifier       = Modifier.weight(1f)
                         )
                         HomeStatCard(
                             iconRes        = R.drawable.ic_bondpoints,
                             value          = "$totalBondPoints",
                             label          = "Bond Pts",
-                            containerColor = Color(0xFFE8F5E9),
-                            valueColor     = Color(0xFF1B5E20),
+                            containerColor = if (isDark) Color(0xFF1A3324) else Color(0xFFE8F5E9),
+                            valueColor     = if (isDark) Color(0xFF81C784) else Color(0xFF1B5E20),
                             modifier       = Modifier.weight(1f)
                         )
                         HomeStatCard(
                             iconRes        = R.drawable.ic_level,
                             value          = "Lv.$userLevel",
                             label          = "Level",
-                            containerColor = Color(0xFFF3E5F5),
-                            valueColor     = Color(0xFF4A148C),
+                            containerColor = if (isDark) Color(0xFF2D1B69) else Color(0xFFF3E5F5),
+                            valueColor     = if (isDark) Color(0xFFCE93D8) else Color(0xFF4A148C),
                             modifier       = Modifier.weight(1f)
                         )
                     }
@@ -435,7 +437,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             modifier  = Modifier.fillMaxWidth(),
                             colors    = CardDefaults.cardColors(
                                 containerColor = if (allDone)
-                                    Color(0xFFE8F5E9)
+                                    if (isDark) Color(0xFF1A3324) else Color(0xFFE8F5E9)
                                 else
                                     MaterialTheme.colorScheme.surfaceVariant
                             ),
@@ -452,12 +454,12 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         if (allDone) "All done today! 🎉" else "Today's Tasks",
                                         fontSize   = 13.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color      = if (allDone) Color(0xFF1B5E20)
+                                        color      = if (allDone) (if (isDark) Color(0xFF81C784) else Color(0xFF1B5E20))
                                         else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     Surface(
                                         shape = RoundedCornerShape(20.dp),
-                                        color = if (allDone) Color(0xFF1B5E20).copy(alpha = 0.12f)
+                                        color = if (allDone) (if (isDark) Color(0xFF81C784) else Color(0xFF1B5E20)).copy(alpha = 0.12f)
                                         else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                                     ) {
                                         Text(
@@ -465,7 +467,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                             modifier   = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                             fontSize   = 12.sp,
                                             fontWeight = FontWeight.ExtraBold,
-                                            color      = if (allDone) Color(0xFF1B5E20)
+                                            color      = if (allDone) (if (isDark) Color(0xFF81C784) else Color(0xFF1B5E20))
                                             else MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }

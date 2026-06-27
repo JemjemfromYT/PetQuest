@@ -2,12 +2,12 @@
 // FILE PATH:  app/src/main/java/com/example/petquest/SoundManager.kt
 //
 // BUGS FIXED:
-//   1. MUSIC RESET ON BACK — startMusicInternal() was always releasing and
-//      restarting the MediaPlayer. When navigating back from pet_verify, a new
-//      MainScreen is created which called enableAndStartMusic() again, which
-//      restarted the music from the beginning. Fixed by checking isPlaying first.
-//   2. SILENT AUDIO ON API 26+ — Added AudioFocusRequest so Android actually
-//      grants the app permission to play audio (required on modern Android).
+//   1. API 26 BUILD ERROR — AudioFocusRequest.Builder requires API 26 but
+//      minSdk is 24. Fixed by version-checking at runtime: API 26+ uses the
+//      modern AudioFocusRequest; API 24-25 uses the deprecated (but functional)
+//      requestAudioFocus(listener, streamType, durationHint).
+//   2. MUSIC RESTARTS ON BACK — Added isPlaying check so music doesn't restart
+//      when MainScreen is re-created after navigating back from pet_verify.
 //
 // HOW TO APPLY:
 //   1. Open SoundManager.kt in Android Studio
@@ -19,11 +19,11 @@ package com.example.petquest
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.SoundPool
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 
 object SoundManager {
@@ -34,7 +34,9 @@ object SoundManager {
     private var audioManager : AudioManager? = null
     private var mediaPlayer  : MediaPlayer?  = null
     private var soundPool    : SoundPool?    = null
-    private var focusRequest : AudioFocusRequest? = null
+
+    // Stored as Any? because AudioFocusRequest class itself requires API 26
+    private var focusRequest : Any? = null
 
     private var idTaskComplete = 0
     private var idStreak       = 0
@@ -49,29 +51,23 @@ object SoundManager {
 
     private var shouldPlayMusic = false
     private var initialized     = false
-    private var hasFocus        = false
 
-    // ── Audio focus listener ───────────────────────────────────────────────
+    // ── Audio focus listener (works on all API levels) ─────────────────────
     private val focusChangeListener = AudioManager.OnAudioFocusChangeListener { change ->
         when (change) {
             AudioManager.AUDIOFOCUS_GAIN -> {
-                hasFocus = true
                 mediaPlayer?.setVolume(0.55f, 0.55f)
                 if (shouldPlayMusic && musicEnabled) {
                     if (mediaPlayer == null) startMusicInternal()
-                    else try { mediaPlayer?.start() } catch (e: Exception) { Log.e(TAG, "focus gain resume failed", e) }
+                    else try { mediaPlayer?.start() } catch (_: Exception) {}
                 }
             }
-            AudioManager.AUDIOFOCUS_LOSS -> {
-                hasFocus = false
-                try { mediaPlayer?.pause() } catch (e: Exception) { /* ignore */ }
-            }
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                try { mediaPlayer?.pause() } catch (e: Exception) { /* ignore */ }
-            }
-            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                try { mediaPlayer?.setVolume(0.15f, 0.15f) } catch (e: Exception) { /* ignore */ }
-            }
+            AudioManager.AUDIOFOCUS_LOSS ->
+                try { mediaPlayer?.pause() } catch (_: Exception) {}
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ->
+                try { mediaPlayer?.pause() } catch (_: Exception) {}
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK ->
+                try { mediaPlayer?.setVolume(0.15f, 0.15f) } catch (_: Exception) {}
         }
     }
 
@@ -104,9 +100,9 @@ object SoundManager {
     // ── Call from MainScreen's LaunchedEffect(Unit) ────────────────────────
     fun enableAndStartMusic() {
         shouldPlayMusic = true
-        // FIX: if music is already playing, do nothing — prevents restart on back-nav
+        // Don't restart if already playing (happens when navigating back to MainScreen)
         if (mediaPlayer?.isPlaying == true) {
-            Log.d(TAG, "enableAndStartMusic: already playing, skipping restart")
+            Log.d(TAG, "enableAndStartMusic: already playing, skipping")
             return
         }
         requestFocusAndPlay()
@@ -115,7 +111,7 @@ object SoundManager {
     // ── Call from MainActivity.onResume() ─────────────────────────────────
     fun onAppForegrounded() {
         if (!shouldPlayMusic || !musicEnabled) return
-        if (mediaPlayer?.isPlaying == true) return  // already going
+        if (mediaPlayer?.isPlaying == true) return
         requestFocusAndPlay()
     }
 
@@ -138,7 +134,6 @@ object SoundManager {
         abandonFocus()
         shouldPlayMusic = false
         initialized     = false
-        hasFocus        = false
         Log.d(TAG, "SoundManager released")
     }
 
@@ -147,50 +142,62 @@ object SoundManager {
     private fun requestFocusAndPlay() {
         val am = audioManager ?: return
 
-        val attrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_MEDIA)
-            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-            .build()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // API 26+ — modern AudioFocusRequest
+            val attrs = android.media.AudioAttributes.Builder()
+                .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
 
-        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-            .setAudioAttributes(attrs)
-            .setAcceptsDelayedFocusGain(true)
-            .setOnAudioFocusChangeListener(focusChangeListener)
-            .build()
-        focusRequest = request
+            val request = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(attrs)
+                .setAcceptsDelayedFocusGain(true)
+                .setOnAudioFocusChangeListener(focusChangeListener)
+                .build()
 
-        val result = am.requestAudioFocus(request)
-        Log.d(TAG, "Audio focus request result: $result")
+            focusRequest = request
+            val result = am.requestAudioFocus(request)
+            Log.d(TAG, "Audio focus request result (API 26+): $result")
 
-        when (result) {
-            AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
-                hasFocus = true
+            when (result) {
+                AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> startMusicInternal()
+                AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> Log.d(TAG, "Focus delayed — will start when granted")
+                else -> Log.w(TAG, "Focus denied ($result)")
+            }
+        } else {
+            // API 24–25 — deprecated but works fine
+            @Suppress("DEPRECATION")
+            val result = am.requestAudioFocus(
+                focusChangeListener,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN
+            )
+            Log.d(TAG, "Audio focus request result (legacy): $result")
+            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 startMusicInternal()
-            }
-            AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
-                Log.d(TAG, "Audio focus delayed — will play when granted")
-            }
-            else -> {
-                Log.w(TAG, "Audio focus denied (result=$result)")
             }
         }
     }
 
     private fun abandonFocus() {
-        focusRequest?.let { audioManager?.abandonAudioFocusRequest(it) }
-        hasFocus = false
+        val am = audioManager ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            (focusRequest as? android.media.AudioFocusRequest)?.let { am.abandonAudioFocusRequest(it) }
+        } else {
+            @Suppress("DEPRECATION")
+            am.abandonAudioFocus(focusChangeListener)
+        }
+        focusRequest = null
     }
 
     private fun startMusicInternal() {
         val ctx = appContext ?: return
         if (!shouldPlayMusic || !musicEnabled) return
-
-        // FIX: don't restart if already playing
         if (mediaPlayer?.isPlaying == true) return
 
         val res = ctx.resources.getIdentifier("bg_music", "raw", ctx.packageName)
         if (res == 0) {
-            Log.w(TAG, "bg_music not found in res/raw — skipping")
+            Log.w(TAG, "bg_music not found in res/raw")
             return
         }
         try {
