@@ -13,7 +13,16 @@ class PetQuestApplication : Application() {
 
     lateinit var petRepository            : PetRepository
     lateinit var userPreferencesRepository: UserPreferencesRepository
-    val firebaseRepository = FirebaseRepository()
+
+    // ── KEY FIX ──────────────────────────────────────────────────────────────
+    // "by lazy" means FirebaseRepository() is NOT constructed here in the
+    // class constructor. It is constructed the first time .firebaseRepository
+    // is accessed — which happens inside Composables, well after onCreate()
+    // has run and Firebase has auto-initialized via google-services.
+    //
+    // Without "lazy", Firebase.auth is called before Firebase exists → crash.
+    // ─────────────────────────────────────────────────────────────────────────
+    val firebaseRepository by lazy { FirebaseRepository() }
 
     override fun onCreate() {
         super.onCreate()
