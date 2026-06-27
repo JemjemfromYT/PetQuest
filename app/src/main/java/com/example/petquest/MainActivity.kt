@@ -1,46 +1,18 @@
 // ============================================================
-// INSTRUCTIONS — minimal changes to your existing MainActivity.kt
-// ============================================================
+// FILE PATH:  app/src/main/java/com/example/petquest/MainActivity.kt
 //
-// If you already applied the full MainActivity.txt from before, just
-// verify these 3 things are in your file. If you did NOT apply it,
-// add only these targeted additions to YOUR existing MainActivity.kt:
+// PROBLEM FIXED:
+//   The old file had actual Kotlin code (override functions + LaunchedEffect)
+//   placed BEFORE the `package` declaration on line 46.
+//   The Kotlin compiler sees top-level declarations before a package as errors:
+//     "Function declaration must have a name"
+//     "Expecting a top level declaration"
+//   Removing those misplaced lines fixes the build.
 //
-// ── CHANGE 1: Add these 3 lifecycle overrides to MainActivity class ────────
-// (paste them right after your existing onCreate() function)
-
-override fun onResume() {
-    super.onResume()
-    SoundManager.onAppForegrounded()   // resumes music if it was started
-}
-
-override fun onPause() {
-    super.onPause()
-    SoundManager.pauseMusic()          // pauses music when app goes to background
-}
-
-override fun onDestroy() {
-    super.onDestroy()
-    SoundManager.release()             // cleans up when app is killed
-}
-
-// ── CHANGE 2: Find your MainScreen composable and add this LaunchedEffect ─
-// (inside the MainScreen function, near the top, BEFORE the Scaffold block)
-
-val context = LocalContext.current
-
-// Start background music the first time MainScreen appears
-LaunchedEffect(Unit) {
-    SoundManager.enableAndStartMusic()
-}
-
-// ── Required imports to add at the top of MainActivity.kt ─────────────────
-// import com.example.petquest.SoundManager   (if not already there)
-// import androidx.compose.runtime.LaunchedEffect
-// import androidx.compose.ui.platform.LocalContext
-
-// ============================================================
-// FULL MainActivity.kt replacement (if you prefer replacing the whole file)
+// HOW TO APPLY:
+//   1. In Android Studio, open MainActivity.kt
+//   2. Select ALL (Ctrl+A), delete
+//   3. Paste everything BELOW this comment block
 // ============================================================
 
 package com.example.petquest
@@ -206,12 +178,10 @@ private val NAV_ITEMS = listOf(
 fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     var tab by remember { mutableIntStateOf(0) }
 
-    // Start background music the first time MainScreen is displayed
     LaunchedEffect(Unit) {
         SoundManager.enableAndStartMusic()
     }
 
-    // Level-up sound + dialog
     var levelUpEvent by remember { mutableStateOf<LevelUpEvent?>(null) }
     LaunchedEffect(viewModel) {
         viewModel.levelUpEvent.collect { event ->
@@ -223,7 +193,6 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
         LevelUpDialog(event = event, onDismiss = { levelUpEvent = null })
     }
 
-    // Tutorial overlay
     val hasSeenTutorial by viewModel.hasSeenTutorial.collectAsState()
     val showTutorial = !hasSeenTutorial
 

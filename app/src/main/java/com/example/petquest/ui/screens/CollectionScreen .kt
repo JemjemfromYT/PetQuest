@@ -1,3 +1,19 @@
+// ============================================================
+// FILE PATH:  app/src/main/java/com/example/petquest/ui/screens/CollectionScreen.kt
+//
+// PROBLEMS FIXED:
+//   1. The old file was named "CollectionScreen .kt" (with a SPACE before .kt).
+//      Android build tools can't reliably handle spaces in source file names.
+//   2. The composable inside was named "EncyclopediaScreen" but MainActivity.kt
+//      calls "CollectionScreen" — causing an "Unresolved reference" compile error.
+//
+// HOW TO APPLY:
+//   Step 1 — In Android Studio's Project panel (left side), RIGHT-CLICK on
+//             "CollectionScreen .kt" (the one with the space) → Refactor → Rename
+//             → type "CollectionScreen" (no space) → click Refactor.
+//   Step 2 — Select ALL (Ctrl+A), delete, paste everything BELOW this comment block.
+// ============================================================
+
 package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
@@ -29,7 +45,7 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
+fun CollectionScreen(viewModel: PetQuestViewModel) {
     val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
     val collectionPercentage by viewModel.collectionPercentage.collectAsState()
     val rarityStats          by viewModel.rarityCollectionStats.collectAsState()
@@ -57,7 +73,6 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
 
     Scaffold(
         topBar = {
-            // IMPROVED: gradient header — matches every other screen in the app
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -90,7 +105,6 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    // IMPROVED: gradient progress bar instead of default LinearProgressIndicator
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -127,9 +141,9 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Rarity.entries.forEach { rarity ->
-                    val stat       = rarityStats[rarity] ?: (0 to 0)
+                    val stat        = rarityStats[rarity] ?: (0 to 0)
                     val rarityColor = encyclopediaRarityColor(rarity)
-                    val isComplete = stat.first == stat.second && stat.second > 0
+                    val isComplete  = stat.first == stat.second && stat.second > 0
                     Surface(
                         modifier = Modifier.weight(1f),
                         shape    = MaterialTheme.shapes.small,
@@ -155,7 +169,7 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                 }
             }
 
-            // ── Rarity filter tabs — color-coded ─────────────────────────────
+            // ── Rarity filter tabs ────────────────────────────────────────────
             ScrollableTabRow(
                 selectedTabIndex = rarityTabs.indexOf(selectedRarity),
                 edgePadding      = 16.dp,
@@ -167,10 +181,10 @@ fun EncyclopediaScreen(viewModel: PetQuestViewModel) {
                     else
                         encyclopediaRarityColor(rarity)
                     Tab(
-                        selected                = selectedRarity == rarity,
-                        onClick                 = { selectedRarity = rarity },
-                        selectedContentColor    = tabColor,
-                        unselectedContentColor  = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selected               = selectedRarity == rarity,
+                        onClick                = { selectedRarity = rarity },
+                        selectedContentColor   = tabColor,
+                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         text = {
                             Text(
                                 tabLabels[index],
@@ -263,7 +277,7 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Rarity accent strip at top — full color when collected, faint when not
+            // Rarity accent strip at top
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -283,7 +297,6 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
                 if (isCollected) {
                     Text(petEmoji(petType.name), fontSize = 44.sp)
                 } else {
-                    // Ghost silhouette behind "?"
                     Text(
                         petEmoji(petType.name),
                         fontSize = 44.sp,
@@ -296,7 +309,6 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
                         color      = rarityColor.copy(alpha = 0.65f)
                     )
                 }
-                // Collected checkmark badge (top-right corner)
                 if (isCollected) {
                     Box(
                         modifier         = Modifier
@@ -318,7 +330,6 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
 
             Spacer(Modifier.height(6.dp))
 
-            // Name — shown when collected, "???" when not
             Text(
                 text       = if (isCollected) petType.name.replace("_", " ") else "???",
                 fontWeight = FontWeight.Bold,
@@ -333,7 +344,6 @@ private fun SpeciesCard(petType: PetType, isCollected: Boolean) {
 
             Spacer(Modifier.height(4.dp))
 
-            // Rarity badge
             Surface(
                 shape = MaterialTheme.shapes.extraSmall,
                 color = if (isCollected)
