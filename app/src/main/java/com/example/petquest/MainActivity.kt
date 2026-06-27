@@ -1,11 +1,46 @@
 // ============================================================
-// FILE: app/src/main/java/com/example/petquest/MainActivity.kt
-// FULL REPLACEMENT
-// Changes vs previous version:
-//   - onResume  → SoundManager.resumeMusic()
-//   - onPause   → SoundManager.pauseMusic()
-//   - onDestroy → SoundManager.release()
-//   - MainScreen: LaunchedEffect starts bg music when user hits main screen
+// INSTRUCTIONS — minimal changes to your existing MainActivity.kt
+// ============================================================
+//
+// If you already applied the full MainActivity.txt from before, just
+// verify these 3 things are in your file. If you did NOT apply it,
+// add only these targeted additions to YOUR existing MainActivity.kt:
+//
+// ── CHANGE 1: Add these 3 lifecycle overrides to MainActivity class ────────
+// (paste them right after your existing onCreate() function)
+
+override fun onResume() {
+    super.onResume()
+    SoundManager.onAppForegrounded()   // resumes music if it was started
+}
+
+override fun onPause() {
+    super.onPause()
+    SoundManager.pauseMusic()          // pauses music when app goes to background
+}
+
+override fun onDestroy() {
+    super.onDestroy()
+    SoundManager.release()             // cleans up when app is killed
+}
+
+// ── CHANGE 2: Find your MainScreen composable and add this LaunchedEffect ─
+// (inside the MainScreen function, near the top, BEFORE the Scaffold block)
+
+val context = LocalContext.current
+
+// Start background music the first time MainScreen appears
+LaunchedEffect(Unit) {
+    SoundManager.enableAndStartMusic()
+}
+
+// ── Required imports to add at the top of MainActivity.kt ─────────────────
+// import com.example.petquest.SoundManager   (if not already there)
+// import androidx.compose.runtime.LaunchedEffect
+// import androidx.compose.ui.platform.LocalContext
+
+// ============================================================
+// FULL MainActivity.kt replacement (if you prefer replacing the whole file)
 // ============================================================
 
 package com.example.petquest
@@ -135,10 +170,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Pause music when app goes to background, resume when it returns
     override fun onResume() {
         super.onResume()
-        SoundManager.resumeMusic()
+        SoundManager.onAppForegrounded()
     }
 
     override fun onPause() {
@@ -152,7 +186,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// ── Bottom nav items ──────────────────────────────────────────────────────────
+// ── Bottom nav items ───────────────────────────────────────────────────────
 private data class NavItem(
     val label         : String,
     val selectedIcon  : androidx.compose.ui.graphics.vector.ImageVector,
@@ -172,18 +206,16 @@ private val NAV_ITEMS = listOf(
 fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     var tab by remember { mutableIntStateOf(0) }
 
-    val context = LocalContext.current
-
     // Start background music the first time MainScreen is displayed
     LaunchedEffect(Unit) {
-        SoundManager.startMusic(context)
+        SoundManager.enableAndStartMusic()
     }
 
-    // Level-up dialog
+    // Level-up sound + dialog
     var levelUpEvent by remember { mutableStateOf<LevelUpEvent?>(null) }
     LaunchedEffect(viewModel) {
         viewModel.levelUpEvent.collect { event ->
-            SoundManager.playLevelUp()        // 🔊 level-up sound
+            SoundManager.playLevelUp()
             levelUpEvent = event
         }
     }
@@ -191,7 +223,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
         LevelUpDialog(event = event, onDismiss = { levelUpEvent = null })
     }
 
-    // Tutorial state
+    // Tutorial overlay
     val hasSeenTutorial by viewModel.hasSeenTutorial.collectAsState()
     val showTutorial = !hasSeenTutorial
 
@@ -203,7 +235,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                         selected = tab == index,
                         onClick  = {
                             if (!showTutorial) {
-                                SoundManager.playTap()    // 🔊 tap sound on nav
+                                SoundManager.playTap()
                                 tab = index
                             }
                         },
@@ -233,7 +265,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                     onVerifyPet         = { petId -> outerNav.navigate("pet_verify/$petId") },
                     onNavigateToProfile = { tab = 5 }
                 )
-                2 -> EncyclopediaScreen(viewModel)
+                2 -> CollectionScreen(viewModel)
                 3 -> AwardsScreen(
                     viewModel         = viewModel,
                     onNavigateToTasks = { tab = 1 }
