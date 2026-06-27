@@ -1,7 +1,11 @@
 // ============================================================
 // FILE: app/src/main/java/com/example/petquest/MainActivity.kt
-// FULL REPLACEMENT — integrates the Whisker cat tutorial overlay
-// into MainScreen. Only change from original is inside MainScreen().
+// FULL REPLACEMENT
+// Changes vs previous version:
+//   - onResume  → SoundManager.resumeMusic()
+//   - onPause   → SoundManager.pauseMusic()
+//   - onDestroy → SoundManager.release()
+//   - MainScreen: LaunchedEffect starts bg music when user hits main screen
 // ============================================================
 
 package com.example.petquest
@@ -28,6 +32,7 @@ import com.example.petquest.ui.theme.PetQuestTheme
 import com.example.petquest.viewmodel.*
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -79,7 +84,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("main") {
-                            // ── Tutorial is shown here, inside MainScreen ────
                             MainScreen(vm, nav)
                         }
                         composable("pet_detail/{petId}") { back ->
@@ -130,9 +134,25 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    // Pause music when app goes to background, resume when it returns
+    override fun onResume() {
+        super.onResume()
+        SoundManager.resumeMusic()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        SoundManager.pauseMusic()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        SoundManager.release()
+    }
 }
 
-// ── Bottom nav item data ───────────────────────────────────────────────────────
+// ── Bottom nav items ──────────────────────────────────────────────────────────
 private data class NavItem(
     val label         : String,
     val selectedIcon  : androidx.compose.ui.graphics.vector.ImageVector,
@@ -152,10 +172,18 @@ private val NAV_ITEMS = listOf(
 fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     var tab by remember { mutableIntStateOf(0) }
 
-    // ── Level-up dialog (unchanged from original) ────────────────────────────
+    val context = LocalContext.current
+
+    // Start background music the first time MainScreen is displayed
+    LaunchedEffect(Unit) {
+        SoundManager.startMusic(context)
+    }
+
+    // Level-up dialog
     var levelUpEvent by remember { mutableStateOf<LevelUpEvent?>(null) }
     LaunchedEffect(viewModel) {
         viewModel.levelUpEvent.collect { event ->
+            SoundManager.playLevelUp()        // 🔊 level-up sound
             levelUpEvent = event
         }
     }
@@ -163,10 +191,8 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
         LevelUpDialog(event = event, onDismiss = { levelUpEvent = null })
     }
 
-    // ── Tutorial state ───────────────────────────────────────────────────────
+    // Tutorial state
     val hasSeenTutorial by viewModel.hasSeenTutorial.collectAsState()
-    // We only show the tutorial once hasSeenTutorial is loaded (not null scenario
-    // — it defaults to false from DataStore so it's always a valid Boolean).
     val showTutorial = !hasSeenTutorial
 
     Scaffold(
@@ -176,9 +202,10 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                     NavigationBarItem(
                         selected = tab == index,
                         onClick  = {
-                            // Block nav taps while tutorial is active so the
-                            // tutorial controls the highlighted tab
-                            if (!showTutorial) tab = index
+                            if (!showTutorial) {
+                                SoundManager.playTap()    // 🔊 tap sound on nav
+                                tab = index
+                            }
                         },
                         icon = {
                             Icon(
@@ -199,7 +226,6 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
         }
     ) { padding ->
         Box(Modifier.padding(padding)) {
-            // ── Main content ─────────────────────────────────────────────────
             when (tab) {
                 0 -> HomeScreen(viewModel, outerNav)
                 1 -> TasksScreen(
@@ -221,8 +247,6 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 )
             }
 
-            // ── Whisker tutorial overlay — sits on top of everything ─────────
-            // Only shown once: the first time the user ever opens main screen.
             if (showTutorial) {
                 TutorialOverlay(
                     onDismiss      = { viewModel.markTutorialSeen() },
