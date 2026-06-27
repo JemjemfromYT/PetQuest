@@ -58,7 +58,7 @@ private val CatNose     = Color(0xFFFF8FAB)
 private val CatMouth    = Color(0xFF7A4E2D)
 private val CatWhisker  = Color(0xFFC8A882)
 private val CatBelly    = Color(0xFFFFF6E8)
-private val CatTail     = Color(0xFFDDB97A)
+
 
 // ── Tutorial steps ────────────────────────────────────────────────────────────
 data class TutorialStep(
@@ -262,17 +262,17 @@ private fun WhiskerCat(isTalking: Boolean, modifier: Modifier = Modifier) {
     Canvas(
         modifier = modifier.graphicsLayer { translationY = bobY }
     ) {
-        val W = size.width
-        val H = size.height
+        val w = size.width
+        val h = size.height
 
         // ── Tail ──────────────────────────────────────────────────────────────
-        drawCatTail(W, H, tailSwing)
+        drawCatTail(w, h, tailSwing)
 
         // ── Body (small peeking above card rim) ───────────────────────────────
-        val bodyW = W * 0.50f
-        val bodyH = H * 0.22f
-        val bodyL = (W - bodyW) / 2f
-        val bodyT = H * 0.76f
+        val bodyW = w * 0.50f
+        val bodyH = h * 0.22f
+        val bodyL = (w - bodyW) / 2f
+        val bodyT = h * 0.76f
         drawRoundRect(
             color        = CatFur,
             topLeft      = Offset(bodyL, bodyT),
@@ -286,9 +286,9 @@ private fun WhiskerCat(isTalking: Boolean, modifier: Modifier = Modifier) {
         )
 
         // ── Head ─────────────────────────────────────────────────────────────
-        val hcx = W * 0.50f
-        val hcy = H * 0.40f
-        val hr  = W * 0.34f          // big chibi head radius
+        val hcx = w * 0.50f
+        val hcy = h * 0.40f
+        val hr  = w * 0.34f          // big chibi head radius
 
         // soft drop shadow
         drawCircle(Color(0x22000000), hr + 6f, Offset(hcx, hcy + 6f))
@@ -332,14 +332,14 @@ private fun WhiskerCat(isTalking: Boolean, modifier: Modifier = Modifier) {
 
 // ── Canvas drawing functions ─────────────────────────────────────────────────
 
-private fun DrawScope.drawCatTail(W: Float, H: Float, deg: Float) {
+private fun DrawScope.drawCatTail(w: Float, h: Float, deg: Float) {
     val rad = (deg * PI / 180.0).toFloat()
     val path = Path().apply {
-        moveTo(W * 0.70f, H * 0.82f)
+        moveTo(w * 0.70f, h * 0.82f)
         cubicTo(
-            W * 0.92f + cos(rad) * W * 0.18f, H * 0.62f + sin(rad) * H * 0.06f,
-            W * 0.88f + cos(rad) * W * 0.12f, H * 0.40f,
-            W * 0.82f + cos(rad) * W * 0.14f, H * 0.28f
+            w * 0.92f + cos(rad) * w * 0.18f, h * 0.62f + sin(rad) * h * 0.06f,
+            w * 0.88f + cos(rad) * w * 0.12f, h * 0.40f,
+            w * 0.82f + cos(rad) * w * 0.14f, h * 0.28f
         )
     }
     drawPath(path, CatFurShade, style = Stroke(22f, cap = StrokeCap.Round))
