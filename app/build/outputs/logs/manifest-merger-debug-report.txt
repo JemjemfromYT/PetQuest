@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:2:1-44:12
-INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:2:1-44:12
-INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:2:1-44:12
-INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:2:1-44:12
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:2:1-44:12
+INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:2:1-44:12
+INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:2:1-44:12
+INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:2:1-44:12
 MERGED from [androidx.navigation:navigation-common:2.7.7] C:\Users\almar\.gradle\caches\9.2.1\transforms\f4ecd75cb7f74e2f5c0c597849c330c0\workspace\transformed\navigation-common-2.7.7\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-runtime:2.7.7] C:\Users\almar\.gradle\caches\9.2.1\transforms\84dbe8f73c10d52ed3485ee652375693\workspace\transformed\navigation-runtime-2.7.7\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-common-ktx:2.7.7] C:\Users\almar\.gradle\caches\9.2.1\transforms\26bc0ef38c7d8571e5c5bb386cf92c3c\workspace\transformed\navigation-common-ktx-2.7.7\AndroidManifest.xml:2:1-7:12
@@ -99,34 +99,34 @@ MERGED from [androidx.print:print:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\tra
 MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\fd108041957d36069ef08d2da7445060\workspace\transformed\interpolator-1.0.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.exifinterface:exifinterface:1.3.7] C:\Users\almar\.gradle\caches\9.2.1\transforms\a4f607128b96543f29c1fd969f575368\workspace\transformed\exifinterface-1.3.7\AndroidManifest.xml:17:1-24:12
 	package
-		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml
 	android:versionName
-		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml
 	android:versionCode
-		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml
 	xmlns:android
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:2:11-69
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:2:11-69
 uses-permission#android.permission.CAMERA
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:5:5-65
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:5:5-65
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:5:22-62
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:5:22-62
 uses-permission#android.permission.READ_MEDIA_IMAGES
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:6:5-76
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:6:5-76
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:6:22-73
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:6:22-73
 uses-permission#android.permission.READ_EXTERNAL_STORAGE
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:7:5-8:38
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:7:5-8:38
 	android:maxSdkVersion
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:8:9-35
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:8:9-35
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:7:22-77
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:7:22-77
 uses-permission#android.permission.POST_NOTIFICATIONS
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:11:5-77
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:11:5-77
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:11:22-74
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:11:22-74
 application
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:13:5-43:19
-INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:13:5-43:19
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:13:5-43:19
+INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:13:5-43:19
 MERGED from [androidx.room:room-runtime:2.6.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\dedff761e70b6a59af5a88b3e196f3c1\workspace\transformed\room-runtime-2.6.1\AndroidManifest.xml:23:5-29:19
 MERGED from [androidx.room:room-runtime:2.6.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\dedff761e70b6a59af5a88b3e196f3c1\workspace\transformed\room-runtime-2.6.1\AndroidManifest.xml:23:5-29:19
 MERGED from [androidx.work:work-runtime:2.9.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\dda4fe67b9d55e62bb69f23de41425d0\workspace\transformed\work-runtime-2.9.0\AndroidManifest.xml:28:5-143:19
@@ -152,63 +152,63 @@ MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.g
 MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\89b7528d890dcfe08229f0214bb85969\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
 MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\89b7528d890dcfe08229f0214bb85969\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
 	android:extractNativeLibs
-		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e314942d6a613a2f7cf1d4706d5ef33\workspace\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:19:9-35
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:19:9-35
 	android:label
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:17:9-41
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:17:9-41
 	android:roundIcon
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:18:9-54
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:18:9-54
 	android:icon
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:16:9-43
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:16:9-43
 	android:allowBackup
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:15:9-35
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:15:9-35
 	android:theme
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:20:9-46
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:20:9-46
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:14:9-44
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:14:9-44
 activity#com.example.petquest.MainActivity
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:22:9-31:20
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:22:9-31:20
 	android:screenOrientation
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:25:13-49
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:25:13-49
 	android:windowSoftInputMode
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:26:13-55
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:26:13-55
 	android:exported
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:24:13-36
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:24:13-36
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:23:13-41
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:23:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:27:13-30:29
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:27:13-30:29
 action#android.intent.action.MAIN
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:28:17-69
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:28:17-69
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:28:25-66
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:28:25-66
 category#android.intent.category.LAUNCHER
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:29:17-77
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:29:17-77
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:29:27-74
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:29:27-74
 provider#androidx.core.content.FileProvider
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:33:9-41:20
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:33:9-41:20
 	android:grantUriPermissions
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:37:13-47
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:37:13-47
 	android:authorities
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:35:13-68
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:35:13-68
 	android:exported
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:36:13-37
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:36:13-37
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:34:13-62
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:34:13-62
 meta-data#android.support.FILE_PROVIDER_PATHS
-ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:38:13-40:54
+ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:38:13-40:54
 	android:resource
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:40:17-51
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:40:17-51
 	android:name
-		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml:39:17-67
+		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:39:17-67
 uses-sdk
-INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml
-INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml
+INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml
+INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml
 MERGED from [androidx.navigation:navigation-common:2.7.7] C:\Users\almar\.gradle\caches\9.2.1\transforms\f4ecd75cb7f74e2f5c0c597849c330c0\workspace\transformed\navigation-common-2.7.7\AndroidManifest.xml:20:5-44
 MERGED from [androidx.navigation:navigation-common:2.7.7] C:\Users\almar\.gradle\caches\9.2.1\transforms\f4ecd75cb7f74e2f5c0c597849c330c0\workspace\transformed\navigation-common-2.7.7\AndroidManifest.xml:20:5-44
 MERGED from [androidx.navigation:navigation-runtime:2.7.7] C:\Users\almar\.gradle\caches\9.2.1\transforms\84dbe8f73c10d52ed3485ee652375693\workspace\transformed\navigation-runtime-2.7.7\AndroidManifest.xml:20:5-44
@@ -398,9 +398,9 @@ MERGED from [androidx.interpolator:interpolator:1.0.0] C:\Users\almar\.gradle\ca
 MERGED from [androidx.exifinterface:exifinterface:1.3.7] C:\Users\almar\.gradle\caches\9.2.1\transforms\a4f607128b96543f29c1fd969f575368\workspace\transformed\exifinterface-1.3.7\AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.exifinterface:exifinterface:1.3.7] C:\Users\almar\.gradle\caches\9.2.1\transforms\a4f607128b96543f29c1fd969f575368\workspace\transformed\exifinterface-1.3.7\AndroidManifest.xml:20:5-22:41
 	android:targetSdkVersion
-		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml
 service#androidx.room.MultiInstanceInvalidationService
 ADDED from [androidx.room:room-runtime:2.6.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\dedff761e70b6a59af5a88b3e196f3c1\workspace\transformed\room-runtime-2.6.1\AndroidManifest.xml:24:9-28:63
 	android:exported

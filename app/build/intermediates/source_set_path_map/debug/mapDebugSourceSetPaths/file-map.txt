@@ -71,10 +71,10 @@ com.example.petquest.app-lifecycle-service-2.8.3-69 C:\Users\almar\.gradle\cache
 com.example.petquest.app-sqlite-2.4.0-70 C:\Users\almar\.gradle\caches\9.2.1\transforms\f3b1d322954b7e22c00f69e38c270150\workspace\transformed\sqlite-2.4.0\res
 com.example.petquest.app-navigation-common-2.7.7-71 C:\Users\almar\.gradle\caches\9.2.1\transforms\f4ecd75cb7f74e2f5c0c597849c330c0\workspace\transformed\navigation-common-2.7.7\res
 com.example.petquest.app-graphics-path-1.0.1-72 C:\Users\almar\.gradle\caches\9.2.1\transforms\f7968f298f6b4c3cb25c1e57c72ba3df\workspace\transformed\graphics-path-1.0.1\res
-com.example.petquest.app-pngs-73 C:\Users\almar\AndroidStudioProjects\PetQuest\app\build\generated\res\pngs\debug
-com.example.petquest.app-resValues-74 C:\Users\almar\AndroidStudioProjects\PetQuest\app\build\generated\res\resValues\debug
-com.example.petquest.app-packageDebugResources-75 C:\Users\almar\AndroidStudioProjects\PetQuest\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
-com.example.petquest.app-packageDebugResources-76 C:\Users\almar\AndroidStudioProjects\PetQuest\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
-com.example.petquest.app-debug-77 C:\Users\almar\AndroidStudioProjects\PetQuest\app\build\intermediates\merged_res\debug\mergeDebugResources
-com.example.petquest.app-debug-78 C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\debug\res
-com.example.petquest.app-main-79 C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\res
+com.example.petquest.app-pngs-73 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\build\generated\res\pngs\debug
+com.example.petquest.app-resValues-74 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\build\generated\res\resValues\debug
+com.example.petquest.app-packageDebugResources-75 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.example.petquest.app-packageDebugResources-76 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.example.petquest.app-debug-77 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.example.petquest.app-debug-78 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\debug\res
+com.example.petquest.app-main-79 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\res
