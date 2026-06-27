@@ -1,21 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ============================================================
-FILE PATH:  app/src/main/AndroidManifest.xml
-
-PROBLEM FIXED:
-  Android 12+ (API 31+) logs "attributionTag not declared in manifest"
-  every time the app touches audio, camera, or microphone AppOps without
-  a matching <attribution> entry in the manifest. This floods logcat and
-  makes it impossible to see useful debug output.
-
-HOW TO APPLY:
-  1. Open app/src/main/AndroidManifest.xml in Android Studio
-  2. Select ALL (Ctrl+A), Delete
-  3. Paste everything below this comment block
-     (start from the <?xml line — yes, include it)
-============================================================ -->
-
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.CAMERA" />
@@ -32,11 +15,6 @@ HOW TO APPLY:
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PetQuest">
-
-        <!-- Declares attribution tags so Android 12+ stops logging AppOps warnings -->
-        <attribution android:tag="audio"  android:label="Audio Playback" />
-        <attribution android:tag="camera" android:label="Camera" />
-        <attribution android:tag="media"  android:label="Media Access" />
 
         <activity
             android:name=".MainActivity"
