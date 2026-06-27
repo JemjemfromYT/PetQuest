@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.petquest.app-mergeDebugResources-82:/values-hdpi-v4/values-hdpi-v4.xml",
+            "outputFile": "com.example.petquest.app-mergeDebugResources-88:/values-hdpi-v4/values-hdpi-v4.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\1ef5797f67d63d840a2d473575600619\\workspace\\transformed\\appcompat-1.6.1\\res\\values-hdpi-v4\\values-hdpi-v4.xml",
+                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\581dd2d5c80b6b85f90a1ebb8067cd0b\\workspace\\transformed\\appcompat-1.6.1\\res\\values-hdpi-v4\\values-hdpi-v4.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

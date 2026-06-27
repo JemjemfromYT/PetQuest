@@ -168,11 +168,9 @@ private fun ProfileCard(profile: PublicProfile) {
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Pets, null, modifier = Modifier.size(48.dp),
-                    tint = Color.White)
+                Icon(Icons.Default.Pets, null, modifier = Modifier.size(48.dp), tint = Color.White)
             }
-            Surface(shape = CircleShape, color = Color(0xFF6650A4),
-                modifier = Modifier.size(32.dp)) {
+            Surface(shape = CircleShape, color = Color(0xFF6650A4), modifier = Modifier.size(32.dp)) {
                 Box(contentAlignment = Alignment.Center) {
                     Text("${profile.level}", fontSize = 13.sp,
                         fontWeight = FontWeight.ExtraBold, color = Color.White)

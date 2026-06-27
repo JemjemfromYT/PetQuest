@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.petquest.app-mergeDebugResources-82:/values-large-v4/values-large-v4.xml",
+            "outputFile": "com.example.petquest.app-mergeDebugResources-88:/values-large-v4/values-large-v4.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\ca6441b2167f2f1941fae93a7fcc3888\\workspace\\transformed\\material-1.12.0\\res\\values-large-v4\\values-large-v4.xml",
+                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\85a33f2f6903dcdcf3ec0dbd7fb1fe31\\workspace\\transformed\\material-1.12.0\\res\\values-large-v4\\values-large-v4.xml",
                     "from": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",
@@ -21,7 +21,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\1ef5797f67d63d840a2d473575600619\\workspace\\transformed\\appcompat-1.6.1\\res\\values-large-v4\\values-large-v4.xml",
+                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\581dd2d5c80b6b85f90a1ebb8067cd0b\\workspace\\transformed\\appcompat-1.6.1\\res\\values-large-v4\\values-large-v4.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10",
                         "startColumns": "4,4,4,4,4,4,4,4,4",

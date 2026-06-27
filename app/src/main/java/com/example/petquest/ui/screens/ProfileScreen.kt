@@ -1,18 +1,10 @@
-// ============================================================
-// FILE: app/src/main/java/com/example/petquest/ui/screens/ProfileScreen.kt
-//
-// HOW TO USE:
-//   1. Open ProfileScreen.kt in Android Studio
-//   2. Press Ctrl+A  →  Delete
-//   3. Paste this entire file
-//   4. Build and run
-// ============================================================
-
 package com.example.petquest.ui.screens
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Spring
@@ -35,6 +27,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -58,15 +51,19 @@ import com.example.petquest.data.model.PetEntity
 import com.example.petquest.data.model.PetType
 import com.example.petquest.data.model.Rarity
 import com.example.petquest.data.model.Virtue
+import com.example.petquest.data.repository.FirebaseRepository
+import com.example.petquest.data.repository.PublicProfile
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 import com.example.petquest.worker.ReminderWorker
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     viewModel: PetQuestViewModel,
+    firebaseRepository: FirebaseRepository,
     onAddPetClick: () -> Unit,
     onAdminClick: () -> Unit,
     onNavigateToCollection: () -> Unit = {}
@@ -81,6 +78,7 @@ fun ProfileScreen(
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
     val notificationHour     by viewModel.notificationHour.collectAsState()
     val notificationMinute   by viewModel.notificationMinute.collectAsState()
+    val userStreak           by viewModel.userStreak.collectAsState()
 
     val speciesCount = collectedSpecies.size
     val totalSpecies = PetType.entries.size
@@ -105,6 +103,9 @@ fun ProfileScreen(
     var tapCount      by remember { mutableIntStateOf(0) }
     var lastTapMs     by remember { mutableLongStateOf(0L) }
     var showAdminHint by remember { mutableStateOf(false) }
+
+    val scope            = rememberCoroutineScope()
+    var isSharingProfile by remember { mutableStateOf(false) }
 
     fun onLevelTap() {
         val now = System.currentTimeMillis()
@@ -152,6 +153,43 @@ fun ProfileScreen(
         } else {
             viewModel.setNotificationsEnabled(false)
             ReminderWorker.cancel(context)
+        }
+    }
+
+    // Share profile: pushes live stats to Firebase then shares a uid link
+    val shareProfile: () -> Unit = {
+        scope.launch {
+            isSharingProfile = true
+            try {
+                val profile = PublicProfile(
+                    trainerName  = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
+                    level        = userLevel,
+                    streak       = userStreak,
+                    bondPoints   = totalBondPoints,
+                    petCount     = pets.size,
+                    speciesCount = speciesCount
+                )
+                firebaseRepository.pushProfile(profile)
+                val uid = firebaseRepository.getMyUid() ?: return@launch
+                val shareText = buildString {
+                    append("🐾 Check out my PetQuest profile!\n\n")
+                    append("Trainer: ${profile.trainerName}\n")
+                    append("Level: ${profile.level}  |  Streak: ${profile.streak} days\n")
+                    append("Bond Points: ${profile.bondPoints}\n")
+                    append("Pets: ${profile.petCount}  |  Species: ${profile.speciesCount} discovered\n\n")
+                    append("Tap to see my live profile:\n")
+                    append("petquest://share?uid=$uid")
+                }
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, shareText)
+                }
+                context.startActivity(Intent.createChooser(intent, "Share your PetQuest profile"))
+            } catch (e: Exception) {
+                Toast.makeText(context, "Couldn't share — check your connection.", Toast.LENGTH_SHORT).show()
+            } finally {
+                isSharingProfile = false
+            }
         }
     }
 
@@ -209,12 +247,29 @@ fun ProfileScreen(
                         color         = Color.White,
                         letterSpacing = (-0.5).sp
                     )
-                    IconButton(onClick = onAdminClick) {
-                        Icon(
-                            Icons.Default.Build,
-                            contentDescription = "Admin",
-                            tint = Color.White.copy(alpha = 0.85f)
-                        )
+                    Row {
+                        if (isSharingProfile) {
+                            CircularProgressIndicator(
+                                modifier    = Modifier.size(24.dp),
+                                color       = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            IconButton(onClick = shareProfile) {
+                                Icon(
+                                    Icons.Default.Share,
+                                    contentDescription = "Share Profile",
+                                    tint = Color.White.copy(alpha = 0.85f)
+                                )
+                            }
+                        }
+                        IconButton(onClick = onAdminClick) {
+                            Icon(
+                                Icons.Default.Build,
+                                contentDescription = "Admin",
+                                tint = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
                     }
                 }
             }
@@ -500,8 +555,6 @@ fun ProfileScreen(
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         pets.chunked(2).forEach { rowPets ->
-                            // IntrinsicSize.Max makes both cards in a row share
-                            // the same height regardless of which face is showing.
                             Row(
                                 modifier              = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -738,23 +791,12 @@ private fun formatTime(hour: Int, minute: Int): String {
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Flippable Pet Collection Card
-//
-// HOW IT WORKS:
-//   Both faces are always composed and stacked in the same Box.
-//   The outer Box rotates from 0° → 180° using a spring animation (bouncy,
-//   physical feel — like a real card).
-//   • Front face: visible at 0°–90°, hidden after 90°
-//   • Back face: pre-rotated 180° (so text isn't mirrored), visible after 90°
-//   Because both are always present there is NO snap at the midpoint —
-//   the rotation is perfectly continuous.
 // ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
     var flipped by remember { mutableStateOf(false) }
 
-    // Spring gives the card a physical "weight" feel — it overshoots slightly
-    // and settles, just like a real card would.
     val rotation by animateFloatAsState(
         targetValue   = if (flipped) 180f else 0f,
         animationSpec = spring(
@@ -779,9 +821,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
             }
             .clickable { flipped = !flipped }
     ) {
-        // ── Back face ─────────────────────────────────────────────────────────
-        // Always composed. Counter-rotated 180° so content reads left-to-right.
-        // alpha = 0 while front is showing, 1 after midpoint.
         Box(
             modifier = Modifier.graphicsLayer {
                 rotationY = 180f
@@ -791,8 +830,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
             PetCardBack(pet = pet, rarityColor = rarityColor)
         }
 
-        // ── Front face ────────────────────────────────────────────────────────
-        // Always composed. alpha = 1 until midpoint, 0 after.
         Box(
             modifier = Modifier.graphicsLayer {
                 alpha = if (rotation <= 90f) 1f else 0f
@@ -804,7 +841,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Front face — pet photo/emoji, name, rarity, level
+// Front face
 // ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -820,7 +857,6 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Rarity color strip
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -835,7 +871,6 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Pet photo or emoji
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -915,15 +950,13 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Back face — VISUAL card: full-bleed virtue gradient, giant Bond Title hero
-// text, large watermark emblem, virtue badge top-left, verified top-right.
+// Back face
 // ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
     val virtueInfo = VirtueConfig[pet.virtue]
 
-    // Each virtue has its own dramatic gradient palette
     val (gradStart, gradMid, gradEnd) = when (pet.virtue) {
         Virtue.COURAGE    -> Triple(Color(0xFF7B0000), Color(0xFFBF360C), Color(0xFFE53935))
         Virtue.WISDOM     -> Triple(Color(0xFF1A237E), Color(0xFF283593), Color(0xFF5C6BC0))
@@ -944,10 +977,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                     Brush.verticalGradient(listOf(gradStart, gradMid, gradEnd))
                 )
         ) {
-
-            // ── Giant watermark emblem ────────────────────────────────────────
-            // Centered behind everything, semi-transparent — gives the card
-            // depth without competing with the title text.
             Image(
                 painter            = painterResource(virtueInfo.emblemRes),
                 contentDescription = null,
@@ -958,7 +987,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 contentScale       = ContentScale.Fit
             )
 
-            // ── Virtue emblem badge — top-left (icon only, no text) ──────────
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -976,7 +1004,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 )
             }
 
-            // ── Bond Title — every pet always has one, level-based progression ──
             val earnedTitle: String = when {
                 pet.bondLevel >= 50 -> "Eternal Companion"
                 pet.bondLevel >= 40 -> "Soul Bonded"
@@ -989,7 +1016,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 else                -> "New Companion"
             }
 
-            // ── Bond Title — two-line hero text, always present ───────────────
             val words = earnedTitle.split(" ")
             Column(
                 modifier            = Modifier
@@ -1000,7 +1026,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 verticalArrangement = Arrangement.Center
             ) {
                 if (words.size >= 2) {
-                    // e.g. "New" — small, light, letter-spaced
                     Text(
                         text          = words.first(),
                         fontSize      = 13.sp,
@@ -1009,7 +1034,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                         textAlign     = TextAlign.Center,
                         letterSpacing = 4.sp
                     )
-                    // e.g. "COMPANION" — big, black, always one line
                     Text(
                         text          = words.drop(1).joinToString(" ").uppercase(),
                         fontSize      = 21.sp,
@@ -1034,7 +1058,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                     )
                 }
             }
-
         }
     }
 }
