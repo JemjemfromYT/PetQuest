@@ -1,22 +1,20 @@
 // ============================================================
 // FILE PATH:  app/src/main/java/com/example/petquest/MainActivity.kt
 //
-// PROBLEM FIXED:
-//   The old file had actual Kotlin code (override functions + LaunchedEffect)
-//   placed BEFORE the `package` declaration on line 46.
-//   The Kotlin compiler sees top-level declarations before a package as errors:
-//     "Function declaration must have a name"
-//     "Expecting a top level declaration"
-//   Removing those misplaced lines fixes the build.
+// WHAT'S NEW:
+//   Loads saved sound settings (from Settings dialog) on startup so
+//   music/SFX toggles are remembered after the app is closed and reopened.
+//   Two lines added at the top of onCreate() — everything else unchanged.
 //
 // HOW TO APPLY:
-//   1. In Android Studio, open MainActivity.kt
-//   2. Select ALL (Ctrl+A), delete
+//   1. Open MainActivity.kt in Android Studio
+//   2. Select ALL (Ctrl+A) → Delete
 //   3. Paste everything BELOW this comment block
 // ============================================================
 
 package com.example.petquest
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -42,6 +40,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // ── Load saved sound settings so toggles survive app restarts ──────
+        val prefs = getSharedPreferences("petquest_settings", Context.MODE_PRIVATE)
+        SoundManager.musicEnabled = prefs.getBoolean("music_enabled", true)
+        SoundManager.sfxEnabled   = prefs.getBoolean("sfx_enabled",   true)
+
         setContent {
             PetQuestTheme {
                 Surface(
