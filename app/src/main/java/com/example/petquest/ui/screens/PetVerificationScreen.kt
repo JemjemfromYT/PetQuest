@@ -465,8 +465,8 @@ private fun ConfidenceRing(confidence: Float, petTypeName: String) {
             Canvas(Modifier.fillMaxSize()) {
                 val s = 6.dp.toPx(); val p = s / 2f
                 val sz = GeomSize(size.width - s, size.height - s)
-                drawArc(Color.LightGray.copy(0.3f), -90f, 360f, false, Stroke(s, cap = StrokeCap.Round), Offset(p, p), sz)
-                drawArc(ringColor, -90f, 360f * confidence, false, Stroke(s, cap = StrokeCap.Round), Offset(p, p), sz)
+                drawArc(Color.LightGray.copy(0.3f), -90f, 360f, false, topLeft = Offset(p, p), size = sz, style = Stroke(s, cap = StrokeCap.Round))
+                drawArc(ringColor, -90f, 360f * confidence, false, topLeft = Offset(p, p), size = sz, style = Stroke(s, cap = StrokeCap.Round))
             }
             Text("${(confidence * 100).toInt()}%", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = ringColor)
         }
@@ -556,7 +556,7 @@ private fun VerificationSuccessDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Box(Alignment.Center, Modifier.size(100.dp).scale(iconScale)) {
+                Box(modifier = Modifier.size(100.dp).scale(iconScale), contentAlignment = Alignment.Center) {
                     Canvas(Modifier.fillMaxSize()) {
                         drawCircle(Color(0xFF2E7D32).copy(0.2f))
                         drawCircle(Color(0xFF2E7D32), style = Stroke(4.dp.toPx()))
@@ -623,9 +623,9 @@ private fun OnboardingOverlay(onFinish: () -> Unit) {
                 elevation = CardDefaults.cardElevation(12.dp)
             ) {
                 Column(
-                    Modifier.fillMaxWidth().padding(32.dp),
-                    Alignment.CenterHorizontally,
-                    Arrangement.spacedBy(16.dp)
+                    modifier            = Modifier.fillMaxWidth().padding(32.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         ONBOARDING_CARDS.indices.forEach { i ->
