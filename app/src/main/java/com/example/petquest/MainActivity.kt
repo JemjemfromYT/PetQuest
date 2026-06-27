@@ -1,20 +1,8 @@
-// ============================================================
-// FILE PATH:  app/src/main/java/com/example/petquest/MainActivity.kt
-//
-// WHAT'S NEW:
-//   Loads saved sound settings (from Settings dialog) on startup so
-//   music/SFX toggles are remembered after the app is closed and reopened.
-//   Two lines added at the top of onCreate() — everything else unchanged.
-//
-// HOW TO APPLY:
-//   1. Open MainActivity.kt in Android Studio
-//   2. Select ALL (Ctrl+A) → Delete
-//   3. Paste everything BELOW this comment block
-// ============================================================
-
 package com.example.petquest
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -38,13 +26,16 @@ import com.example.petquest.viewmodel.*
 
 class MainActivity : ComponentActivity() {
 
+    private var deepLinkUid by mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ── Load saved sound settings so toggles survive app restarts ──────
         val prefs = getSharedPreferences("petquest_settings", Context.MODE_PRIVATE)
         SoundManager.musicEnabled = prefs.getBoolean("music_enabled", true)
         SoundManager.sfxEnabled   = prefs.getBoolean("sfx_enabled",   true)
+
+        handleIncomingIntent(intent)
 
         setContent {
             PetQuestTheme {
@@ -73,6 +64,13 @@ class MainActivity : ComponentActivity() {
                     val nav       = rememberNavController()
 
                     val pendingVerifyId by vm.pendingVerificationPetId.collectAsState()
+
+                    LaunchedEffect(deepLinkUid) {
+                        deepLinkUid?.let { uid ->
+                            nav.navigate("shared_profile/$uid")
+                            deepLinkUid = null
+                        }
+                    }
 
                     NavHost(nav, startDestination = startDest) {
                         composable("welcome") {
@@ -140,9 +138,31 @@ class MainActivity : ComponentActivity() {
                                 onBackClick = { nav.navigateUp() }
                             )
                         }
+                        composable("shared_profile/{uid}") { back ->
+                            val uid = back.arguments?.getString("uid") ?: ""
+                            val app2 = LocalContext.current.applicationContext as PetQuestApplication
+                            SharedProfileScreen(
+                                uid                = uid,
+                                firebaseRepository = app2.firebaseRepository,
+                                onBackClick        = { nav.navigateUp() }
+                            )
+                        }
                     }
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIncomingIntent(intent)
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (uri.scheme == "petquest" && uri.host == "share") {
+            val uid = uri.getQueryParameter("uid")
+            if (!uid.isNullOrBlank()) deepLinkUid = uid
         }
     }
 
@@ -162,7 +182,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// ── Bottom nav items ───────────────────────────────────────────────────────
 private data class NavItem(
     val label         : String,
     val selectedIcon  : androidx.compose.ui.graphics.vector.ImageVector,
@@ -182,9 +201,7 @@ private val NAV_ITEMS = listOf(
 fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     var tab by remember { mutableIntStateOf(0) }
 
-    LaunchedEffect(Unit) {
-        SoundManager.enableAndStartMusic()
-    }
+    LaunchedEffect(Unit) { SoundManager.enableAndStartMusic() }
 
     var levelUpEvent by remember { mutableStateOf<LevelUpEvent?>(null) }
     LaunchedEffect(viewModel) {
@@ -246,6 +263,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 4 -> EventsScreen(viewModel = viewModel)
                 5 -> ProfileScreen(
                     viewModel              = viewModel,
+                    firebaseRepository     = (LocalContext.current.applicationContext as PetQuestApplication).firebaseRepository,
                     onAddPetClick          = { outerNav.navigate("add_more_pet") },
                     onAdminClick           = { outerNav.navigate("admin") },
                     onNavigateToCollection = { tab = 2 }
