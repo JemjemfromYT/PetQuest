@@ -958,8 +958,8 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 contentScale       = ContentScale.Fit
             )
 
-            // ── Virtue badge — top-left ───────────────────────────────────────
-            Row(
+            // ── Virtue emblem badge — top-left (icon only, no text) ──────────
+            Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(9.dp)
@@ -967,42 +967,30 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                         color = Color.White.copy(alpha = 0.18f),
                         shape = RoundedCornerShape(20.dp)
                     )
-                    .padding(horizontal = 7.dp, vertical = 4.dp),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(7.dp)
             ) {
                 Image(
                     painter            = painterResource(virtueInfo.emblemRes),
-                    contentDescription = null,
-                    modifier           = Modifier.size(13.dp)
-                )
-                Text(
-                    pet.virtue.name.lowercase().replaceFirstChar { it.uppercase() },
-                    fontSize   = 9.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color      = Color.White,
-                    letterSpacing = 0.5.sp
+                    contentDescription = pet.virtue.name,
+                    modifier           = Modifier.size(16.dp)
                 )
             }
 
-            // ── Verified stamp — top-right (gold checkmark) ───────────────────
-            if (pet.isVerified) {
-                Icon(
-                    imageVector        = Icons.Default.CheckCircle,
-                    contentDescription = "Verified",
-                    tint               = Color(0xFFFFE082),
-                    modifier           = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(10.dp)
-                        .size(18.dp)
-                )
+            // ── Bond Title — every pet always has one, level-based progression ──
+            val earnedTitle: String = when {
+                pet.bondLevel >= 50 -> "Eternal Companion"
+                pet.bondLevel >= 40 -> "Soul Bonded"
+                pet.bondLevel >= 30 -> "Elite Protector"
+                pet.bondLevel >= 25 -> "Bonded Guardian"
+                pet.bondLevel >= 20 -> "Master Companion"
+                pet.bondLevel >= 15 -> "Lifelong Partner"
+                pet.bondLevel >= 10 -> "Loyal Friend"
+                pet.bondLevel >= 5  -> "Trusted Companion"
+                else                -> "New Companion"
             }
 
-            // ── Bond Title — hero text, center of card ────────────────────────
-            // Split "The Guardian" → "The" on one line (light/small) +
-            // "GUARDIAN" on the next line (black/huge). This creates a natural
-            // editorial hierarchy that fills the card with personality.
-            val words = virtueInfo.title.split(" ")
+            // ── Bond Title — two-line hero text, always present ───────────────
+            val words = earnedTitle.split(" ")
             Column(
                 modifier            = Modifier
                     .align(Alignment.Center)
@@ -1012,7 +1000,7 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 verticalArrangement = Arrangement.Center
             ) {
                 if (words.size >= 2) {
-                    // e.g. "The"
+                    // e.g. "New" — small, light, letter-spaced
                     Text(
                         text          = words.first(),
                         fontSize      = 13.sp,
@@ -1021,48 +1009,32 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                         textAlign     = TextAlign.Center,
                         letterSpacing = 4.sp
                     )
-                    // e.g. "GUARDIAN"
+                    // e.g. "COMPANION" — big, black, always one line
                     Text(
                         text          = words.drop(1).joinToString(" ").uppercase(),
-                        fontSize      = 28.sp,
+                        fontSize      = 21.sp,
                         fontWeight    = FontWeight.Black,
                         color         = Color.White,
                         textAlign     = TextAlign.Center,
                         letterSpacing = (-0.5).sp,
-                        lineHeight    = 30.sp,
-                        maxLines      = 2,
+                        lineHeight    = 23.sp,
+                        maxLines      = 1,
                         overflow      = TextOverflow.Ellipsis
                     )
                 } else {
-                    // Single-word title fallback
                     Text(
-                        text          = virtueInfo.title.uppercase(),
-                        fontSize      = 28.sp,
+                        text          = earnedTitle.uppercase(),
+                        fontSize      = 21.sp,
                         fontWeight    = FontWeight.Black,
                         color         = Color.White,
                         textAlign     = TextAlign.Center,
-                        letterSpacing = (-0.5).sp
+                        letterSpacing = (-0.5).sp,
+                        maxLines      = 1,
+                        overflow      = TextOverflow.Ellipsis
                     )
                 }
             }
 
-            // ── Pet name — bottom center pill ─────────────────────────────────
-            Text(
-                text     = pet.name,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 10.dp)
-                    .background(
-                        color = Color.Black.copy(alpha = 0.22f),
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                fontSize      = 10.sp,
-                fontWeight    = FontWeight.SemiBold,
-                color         = Color.White,
-                maxLines      = 1,
-                overflow      = TextOverflow.Ellipsis
-            )
         }
     }
 }
