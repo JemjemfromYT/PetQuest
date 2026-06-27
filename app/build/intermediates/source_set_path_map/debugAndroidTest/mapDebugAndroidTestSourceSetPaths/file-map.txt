@@ -31,7 +31,7 @@ com.example.petquest.test.app-lifecycle-process-2.8.3-29 C:\Users\almar\.gradle\
 com.example.petquest.test.app-runtime-release-30 C:\Users\almar\.gradle\caches\9.2.1\transforms\ccc8f5aee2e1e239e20b40933729d33c\workspace\transformed\runtime-release\res
 com.example.petquest.test.app-emoji2-1.3.0-31 C:\Users\almar\.gradle\caches\9.2.1\transforms\db19941a2f07a36d3292506b10d0de11\workspace\transformed\emoji2-1.3.0\res
 com.example.petquest.test.app-graphics-path-1.0.1-32 C:\Users\almar\.gradle\caches\9.2.1\transforms\f7968f298f6b4c3cb25c1e57c72ba3df\workspace\transformed\graphics-path-1.0.1\res
-com.example.petquest.test.app-androidTest-33 C:\Users\almar\AndroidStudioProjects\PetQuest\app\build\generated\res\resValues\androidTest\debug
-com.example.petquest.test.app-mergeDebugAndroidTestResources-34 C:\Users\almar\AndroidStudioProjects\PetQuest\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
-com.example.petquest.test.app-mergeDebugAndroidTestResources-35 C:\Users\almar\AndroidStudioProjects\PetQuest\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
-com.example.petquest.test.app-debugAndroidTest-36 C:\Users\almar\AndroidStudioProjects\PetQuest\app\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources
+com.example.petquest.test.app-androidTest-33 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\build\generated\res\resValues\androidTest\debug
+com.example.petquest.test.app-mergeDebugAndroidTestResources-34 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.example.petquest.test.app-mergeDebugAndroidTestResources-35 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.example.petquest.test.app-debugAndroidTest-36 C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources
