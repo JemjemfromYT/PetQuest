@@ -17,6 +17,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.ksp)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -86,5 +87,11 @@ dependencies {
     // Bundled model: ships inside the APK (~3 MB). Works offline immediately.
     // Recognises ~400+ labels including all common pet types.
     implementation("com.google.mlkit:image-labeling:17.0.9")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
 }
     
