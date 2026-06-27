@@ -31,6 +31,12 @@ font nunito_regular
 font nunito_semibold
 mipmap ic_launcher
 mipmap ic_launcher_round
+raw bg_music
+raw sfx_level_up
+raw sfx_pet_happy
+raw sfx_streak
+raw sfx_tap
+raw sfx_task_complete
 string app_name
 style Theme.PetQuest
 xml backup_rules

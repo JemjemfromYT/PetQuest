@@ -3723,6 +3723,12 @@ layout support_simple_spinner_dropdown_item
 mipmap ic_launcher
 mipmap ic_launcher_round
 plurals mtrl_badge_content_description
+raw bg_music
+raw sfx_level_up
+raw sfx_pet_happy
+raw sfx_streak
+raw sfx_tap
+raw sfx_task_complete
 string abc_action_bar_home_description
 string abc_action_bar_up_description
 string abc_action_menu_overflow_description
