@@ -46,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,6 +57,7 @@ import com.example.petquest.data.model.AchievementEntity
 import com.example.petquest.data.model.PetEntity
 import com.example.petquest.data.model.PetType
 import com.example.petquest.data.model.Rarity
+import com.example.petquest.data.model.Virtue
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 import com.example.petquest.worker.ReminderWorker
@@ -913,119 +915,154 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Back face — virtue, bond title, verified
-// fillMaxHeight() makes the card stretch to match the front face height.
-// Content is centered vertically so it doesn't cluster at the top.
+// Back face — VISUAL card: full-bleed virtue gradient, giant Bond Title hero
+// text, large watermark emblem, virtue badge top-left, verified top-right.
 // ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
     val virtueInfo = VirtueConfig[pet.virtue]
 
+    // Each virtue has its own dramatic gradient palette
+    val (gradStart, gradMid, gradEnd) = when (pet.virtue) {
+        Virtue.COURAGE    -> Triple(Color(0xFF7B0000), Color(0xFFBF360C), Color(0xFFE53935))
+        Virtue.WISDOM     -> Triple(Color(0xFF1A237E), Color(0xFF283593), Color(0xFF5C6BC0))
+        Virtue.DILIGENCE  -> Triple(Color(0xFF4E2800), Color(0xFF8D4B00), Color(0xFFEF6C00))
+        Virtue.TEMPERANCE -> Triple(Color(0xFF004D40), Color(0xFF00695C), Color(0xFF26A69A))
+        Virtue.COMPASSION -> Triple(Color(0xFF880E4F), Color(0xFFC2185B), Color(0xFFEC407A))
+    }
+
     Card(
         elevation = CardDefaults.cardElevation(4.dp),
-        colors    = CardDefaults.cardColors(containerColor = rarityColor.copy(alpha = 0.06f)),
-        modifier  = Modifier.fillMaxWidth().fillMaxHeight()
+        modifier  = Modifier.fillMaxWidth().fillMaxHeight(),
+        shape     = MaterialTheme.shapes.medium
     ) {
-        Column(
-            modifier            = Modifier
+        Box(
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .background(
+                    Brush.verticalGradient(listOf(gradStart, gradMid, gradEnd))
+                )
         ) {
-            Text(
-                pet.name,
-                fontSize   = 13.sp,
-                fontWeight = FontWeight.ExtraBold,
-                maxLines   = 1,
-                overflow   = TextOverflow.Ellipsis,
-                color      = MaterialTheme.colorScheme.onSurface
+
+            // ── Giant watermark emblem ────────────────────────────────────────
+            // Centered behind everything, semi-transparent — gives the card
+            // depth without competing with the title text.
+            Image(
+                painter            = painterResource(virtueInfo.emblemRes),
+                contentDescription = null,
+                modifier           = Modifier
+                    .size(140.dp)
+                    .align(Alignment.Center)
+                    .graphicsLayer { alpha = 0.13f },
+                contentScale       = ContentScale.Fit
             )
 
-            Spacer(Modifier.height(8.dp))
-            HorizontalDivider(color = rarityColor.copy(alpha = 0.25f))
-            Spacer(Modifier.height(12.dp))
-
-            // Virtue
+            // ── Virtue badge — top-left ───────────────────────────────────────
             Row(
-                modifier              = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(9.dp)
+                    .background(
+                        color = Color.White.copy(alpha = 0.18f),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .padding(horizontal = 7.dp, vertical = 4.dp),
                 verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Image(
                     painter            = painterResource(virtueInfo.emblemRes),
-                    contentDescription = pet.virtue.name,
-                    modifier           = Modifier.size(28.dp)
+                    contentDescription = null,
+                    modifier           = Modifier.size(13.dp)
                 )
-                Column {
-                    Text(
-                        "Virtue",
-                        fontSize = 8.sp,
-                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                    Text(
-                        pet.virtue.name.lowercase().replaceFirstChar { it.uppercase() },
-                        fontSize   = 11.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = rarityColor
-                    )
-                }
+                Text(
+                    pet.virtue.name.lowercase().replaceFirstChar { it.uppercase() },
+                    fontSize   = 9.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = Color.White,
+                    letterSpacing = 0.5.sp
+                )
             }
 
-            Spacer(Modifier.height(10.dp))
-
-            // Bond title
-            Row(
-                modifier              = Modifier.fillMaxWidth(),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text("⭐", fontSize = 14.sp)
-                Column {
-                    Text(
-                        "Bond Title",
-                        fontSize = 8.sp,
-                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                    Text(
-                        virtueInfo.title,
-                        fontSize   = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            // Verified badge (only shown if pet is verified)
+            // ── Verified stamp — top-right (gold checkmark) ───────────────────
             if (pet.isVerified) {
-                Spacer(Modifier.height(12.dp))
-                Surface(
-                    shape    = RoundedCornerShape(20.dp),
-                    color    = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier              = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint     = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            "Verified",
-                            fontSize   = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                Icon(
+                    imageVector        = Icons.Default.CheckCircle,
+                    contentDescription = "Verified",
+                    tint               = Color(0xFFFFE082),
+                    modifier           = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(10.dp)
+                        .size(18.dp)
+                )
+            }
+
+            // ── Bond Title — hero text, center of card ────────────────────────
+            // Split "The Guardian" → "The" on one line (light/small) +
+            // "GUARDIAN" on the next line (black/huge). This creates a natural
+            // editorial hierarchy that fills the card with personality.
+            val words = virtueInfo.title.split(" ")
+            Column(
+                modifier            = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                if (words.size >= 2) {
+                    // e.g. "The"
+                    Text(
+                        text          = words.first(),
+                        fontSize      = 13.sp,
+                        fontWeight    = FontWeight.Light,
+                        color         = Color.White.copy(alpha = 0.75f),
+                        textAlign     = TextAlign.Center,
+                        letterSpacing = 4.sp
+                    )
+                    // e.g. "GUARDIAN"
+                    Text(
+                        text          = words.drop(1).joinToString(" ").uppercase(),
+                        fontSize      = 28.sp,
+                        fontWeight    = FontWeight.Black,
+                        color         = Color.White,
+                        textAlign     = TextAlign.Center,
+                        letterSpacing = (-0.5).sp,
+                        lineHeight    = 30.sp,
+                        maxLines      = 2,
+                        overflow      = TextOverflow.Ellipsis
+                    )
+                } else {
+                    // Single-word title fallback
+                    Text(
+                        text          = virtueInfo.title.uppercase(),
+                        fontSize      = 28.sp,
+                        fontWeight    = FontWeight.Black,
+                        color         = Color.White,
+                        textAlign     = TextAlign.Center,
+                        letterSpacing = (-0.5).sp
+                    )
                 }
             }
+
+            // ── Pet name — bottom center pill ─────────────────────────────────
+            Text(
+                text     = pet.name,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 10.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.22f),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                fontSize      = 10.sp,
+                fontWeight    = FontWeight.SemiBold,
+                color         = Color.White,
+                maxLines      = 1,
+                overflow      = TextOverflow.Ellipsis
+            )
         }
     }
 }
