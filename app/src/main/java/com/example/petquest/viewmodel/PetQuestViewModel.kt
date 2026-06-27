@@ -1,6 +1,6 @@
 // ============================================================
 // FILE: app/src/main/java/com/example/petquest/viewmodel/PetQuestViewModel.kt
-// COPY THIS ENTIRE FILE — replace the existing one in Android Studio
+// FULL REPLACEMENT — adds hasSeenTutorial + markTutorialSeen()
 // ============================================================
 
 package com.example.petquest.viewmodel
@@ -51,6 +51,11 @@ class PetQuestViewModel(
     val hasSeenOnboarding: StateFlow<Boolean> =
         prefsRepository.hasSeenOnboarding.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    // ── NEW: Whisker cat tutorial ──────────────────────────────────────────────
+    val hasSeenTutorial: StateFlow<Boolean> =
+        prefsRepository.hasSeenTutorial
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val totalBondPoints: StateFlow<Int> = allPets.map { pets ->
         pets.sumOf { it.bondPoints }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
@@ -93,7 +98,6 @@ class PetQuestViewModel(
         prefsRepository.totalTasksCompleted
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
-    // ── Event bonus claim — persists across app restarts via DataStore ──────────
     val lastEventClaimDate: StateFlow<String> =
         prefsRepository.lastEventClaimDate
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -234,15 +238,22 @@ class PetQuestViewModel(
         }
     }
 
+    // ── NEW: dismiss the Whisker cat tutorial forever ─────────────────────────
+    fun markTutorialSeen() {
+        viewModelScope.launch {
+            try {
+                prefsRepository.markTutorialSeen()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "markTutorialSeen error", e)
+            }
+        }
+    }
+
     // ─── Event bonus claim ─────────────────────────────────────────────────────
-    // Called from EventsScreen when user taps "Claim Daily Event Bonus"
-    // after completing all tasks. Gives +20 bond pts to all verified pets
-    // and unlocks the event's exclusive Profile badge.
 
     fun claimEventBonus(badgeTitle: String, badgeDescription: String) {
         viewModelScope.launch {
             try {
-                // 1. Add +20 bond points to every verified pet
                 allPets.value.filter { it.isVerified }.forEach { pet ->
                     val oldLevel  = pet.bondLevel
                     val newPoints = pet.bondPoints + 20
@@ -253,22 +264,16 @@ class PetQuestViewModel(
                     }
                 }
 
-                // 2. Insert the badge achievement if it's not in the DB yet,
-                //    then unlock it. insertAchievementIfAbsent is a no-op if
-                //    the title already exists (UNIQUE index → IGNORE conflict).
                 petRepository.insertAchievementIfAbsent(
                     AchievementEntity(title = badgeTitle, description = badgeDescription)
                 )
-                // Small delay lets Room emit the updated list before we read it
                 delay(200)
                 val target = allAchievements.value.find { it.title == badgeTitle }
                 if (target != null && !target.isUnlocked) {
                     petRepository.unlockAchievement(target.id)
                 }
 
-                // 3. Persist today's claim date — resets the button tomorrow
                 prefsRepository.updateLastEventClaimDate(todayString())
-
                 checkAndUnlockAchievements()
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "claimEventBonus error", e)
@@ -375,10 +380,8 @@ class PetQuestViewModel(
         val streak        = prefsRepository.userStreak.first()
         val totalPoints   = totalBondPoints.value
         val totalTasks    = prefsRepository.totalTasksCompleted.first()
+        val trainerLevel  = userLevel.value
 
-        val trainerLevel = userLevel.value
-
-        // ── First steps ───────────────────────────────────────────────────────
         if (pets.isNotEmpty())                             unlock("First Pet")
         if (verifiedCount >= 1)                            unlock("First Verification")
         if (pets.size >= 3)                                unlock("Pet Lover")
@@ -388,7 +391,6 @@ class PetQuestViewModel(
         if (verifiedCount >= 5)                            unlock("Verify 5 Pets")
         if (verifiedCount >= 10)                           unlock("Verify 10 Pets")
 
-        // ── Streak milestones ─────────────────────────────────────────────────
         if (streak >= 3)                                   unlock("3-Day Streak")
         if (streak >= 7)                                   unlock("7-Day Streak")
         if (streak >= 14)                                  unlock("14-Day Streak")
@@ -396,7 +398,6 @@ class PetQuestViewModel(
         if (streak >= 60)                                  unlock("60-Day Streak")
         if (streak >= 100)                                 unlock("100-Day Streak")
 
-        // ── Task milestones ───────────────────────────────────────────────────
         if (totalTasks >= 10)                              unlock("Complete 10 Tasks")
         if (totalTasks >= 25)                              unlock("Complete 25 Tasks")
         if (totalTasks >= 50)                              unlock("Complete 50 Tasks")
@@ -404,7 +405,6 @@ class PetQuestViewModel(
         if (totalTasks >= 250)                             unlock("Complete 250 Tasks")
         if (totalTasks >= 500)                             unlock("Complete 500 Tasks")
 
-        // ── Bond point milestones ─────────────────────────────────────────────
         if (totalPoints >= 100)                            unlock("Earn 100 Bond Points")
         if (totalPoints >= 250)                            unlock("Earn 250 Bond Points")
         if (totalPoints >= 500)                            unlock("Earn 500 Bond Points")
@@ -412,7 +412,6 @@ class PetQuestViewModel(
         if (totalPoints >= 2500)                           unlock("Earn 2500 Bond Points")
         if (totalPoints >= 5000)                           unlock("Earn 5000 Bond Points")
 
-        // ── Pet bond level milestones (per-pet) ───────────────────────────────
         if (pets.any { it.bondLevel >= 5 })                unlock("Bond Master")
         if (pets.any { it.bondLevel >= 10 })               unlock("Bond Veteran")
         if (pets.any { it.bondLevel >= 15 })               unlock("Level 10 Companion")
@@ -420,13 +419,11 @@ class PetQuestViewModel(
         if (pets.any { it.bondLevel >= 30 })               unlock("Dedicated Caregiver")
         if (pets.any { it.bondLevel >= 50 })               unlock("Elite Trainer")
 
-        // ── Trainer level milestones (player-wide) ────────────────────────────
         if (trainerLevel >= 10)                            unlock("Reach Level 10")
         if (trainerLevel >= 20)                            unlock("Reach Level 20")
         if (trainerLevel >= 30)                            unlock("Reach Level 30")
         if (trainerLevel >= 50)                            unlock("Reach Level 50")
 
-        // ── Species & rarity milestones ───────────────────────────────────────
         if (distinctTypes.size >= 5)                       unlock("Species Collector")
         if (distinctTypes.size >= 10)                      unlock("Animal Explorer")
         if (distinctTypes.size >= 15)                      unlock("Master Explorer")
@@ -441,9 +438,9 @@ class PetQuestViewModel(
             try {
                 val pet       = allPets.value.find { it.id == petId } ?: return@launch
                 val oldLevel  = pet.bondLevel
+                petRepository.addBondPoints(petId, points, pet.bondPoints, pet.bondLevel)
                 val newPoints = pet.bondPoints + points
                 val newLevel  = (newPoints / 100) + 1
-                petRepository.addBondPoints(petId, points, pet.bondPoints, pet.bondLevel)
                 if (newLevel > oldLevel) {
                     _levelUpEvent.emit(LevelUpEvent(pet.name, oldLevel, newLevel))
                 }

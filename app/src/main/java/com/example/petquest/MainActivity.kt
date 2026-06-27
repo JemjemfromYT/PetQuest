@@ -1,9 +1,7 @@
 // ============================================================
 // FILE: app/src/main/java/com/example/petquest/MainActivity.kt
-//
-// FIX: white screen on double back-tap
-//   Changed nav.popBackStack() → nav.navigateUp() everywhere.
-//   navigateUp() is safe against double-calls; popBackStack() was not.
+// FULL REPLACEMENT — integrates the Whisker cat tutorial overlay
+// into MainScreen. Only change from original is inside MainScreen().
 // ============================================================
 
 package com.example.petquest
@@ -81,6 +79,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("main") {
+                            // ── Tutorial is shown here, inside MainScreen ────
                             MainScreen(vm, nav)
                         }
                         composable("pet_detail/{petId}") { back ->
@@ -89,8 +88,6 @@ class MainActivity : ComponentActivity() {
                             PetDetailScreen(
                                 petId         = id,
                                 viewModel     = vm,
-                                // navigateUp() is safe against rapid double-taps.
-                                // popBackStack() was firing twice → white screen.
                                 onBackClick   = { nav.navigateUp() },
                                 onVerifyClick = { nav.navigate("pet_verify/$id") }
                             )
@@ -155,6 +152,7 @@ private val NAV_ITEMS = listOf(
 fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
     var tab by remember { mutableIntStateOf(0) }
 
+    // ── Level-up dialog (unchanged from original) ────────────────────────────
     var levelUpEvent by remember { mutableStateOf<LevelUpEvent?>(null) }
     LaunchedEffect(viewModel) {
         viewModel.levelUpEvent.collect { event ->
@@ -165,13 +163,23 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
         LevelUpDialog(event = event, onDismiss = { levelUpEvent = null })
     }
 
+    // ── Tutorial state ───────────────────────────────────────────────────────
+    val hasSeenTutorial by viewModel.hasSeenTutorial.collectAsState()
+    // We only show the tutorial once hasSeenTutorial is loaded (not null scenario
+    // — it defaults to false from DataStore so it's always a valid Boolean).
+    val showTutorial = !hasSeenTutorial
+
     Scaffold(
         bottomBar = {
             NavigationBar {
                 NAV_ITEMS.forEachIndexed { index, item ->
                     NavigationBarItem(
                         selected = tab == index,
-                        onClick  = { tab = index },
+                        onClick  = {
+                            // Block nav taps while tutorial is active so the
+                            // tutorial controls the highlighted tab
+                            if (!showTutorial) tab = index
+                        },
                         icon = {
                             Icon(
                                 imageVector        = if (tab == index) item.selectedIcon else item.unselectedIcon,
@@ -191,6 +199,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
         }
     ) { padding ->
         Box(Modifier.padding(padding)) {
+            // ── Main content ─────────────────────────────────────────────────
             when (tab) {
                 0 -> HomeScreen(viewModel, outerNav)
                 1 -> TasksScreen(
@@ -209,6 +218,15 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                     onAddPetClick          = { outerNav.navigate("add_more_pet") },
                     onAdminClick           = { outerNav.navigate("admin") },
                     onNavigateToCollection = { tab = 2 }
+                )
+            }
+
+            // ── Whisker tutorial overlay — sits on top of everything ─────────
+            // Only shown once: the first time the user ever opens main screen.
+            if (showTutorial) {
+                TutorialOverlay(
+                    onDismiss      = { viewModel.markTutorialSeen() },
+                    onTabHighlight = { highlightedTab -> tab = highlightedTab }
                 )
             }
         }

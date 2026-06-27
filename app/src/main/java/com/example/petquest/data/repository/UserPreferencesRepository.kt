@@ -1,6 +1,6 @@
 // ============================================================
 // FILE: app/src/main/java/com/example/petquest/data/repository/UserPreferencesRepository.kt
-// COPY THIS ENTIRE FILE — replace the existing one in Android Studio
+// FULL REPLACEMENT — adds HAS_SEEN_TUTORIAL_KEY for the Whisker cat guide
 // ============================================================
 
 package com.example.petquest.data.repository
@@ -28,8 +28,9 @@ class UserPreferencesRepository(context: Context) {
         val TOTAL_TASKS_COMPLETED_KEY     = intPreferencesKey("total_tasks_completed")
         val HAS_SEEN_ONBOARDING_KEY       = booleanPreferencesKey("has_seen_post_verify_onboarding")
         val PERSONAL_BEST_STREAK_KEY      = intPreferencesKey("personal_best_streak")
-        // ── Event bonus claim tracking ────────────────────────────────────────
         val LAST_EVENT_CLAIM_DATE_KEY     = stringPreferencesKey("last_event_claim_date")
+        // ── NEW: Whisker cat tutorial flag ────────────────────────────────────
+        val HAS_SEEN_TUTORIAL_KEY         = booleanPreferencesKey("has_seen_whisker_tutorial")
     }
 
     val userStreak: Flow<Int>            = dataStore.data.map { it[STREAK_KEY] ?: 0 }
@@ -45,6 +46,9 @@ class UserPreferencesRepository(context: Context) {
         dataStore.data.map { it[HAS_SEEN_ONBOARDING_KEY] ?: false }
     val personalBestStreak: Flow<Int>    = dataStore.data.map { it[PERSONAL_BEST_STREAK_KEY] ?: 0 }
     val lastEventClaimDate: Flow<String> = dataStore.data.map { it[LAST_EVENT_CLAIM_DATE_KEY] ?: "" }
+    // ── NEW ──────────────────────────────────────────────────────────────────
+    val hasSeenTutorial: Flow<Boolean>   =
+        dataStore.data.map { it[HAS_SEEN_TUTORIAL_KEY] ?: false }
 
     suspend fun updateStreak(streak: Int) {
         dataStore.edit { it[STREAK_KEY] = streak }
@@ -90,5 +94,10 @@ class UserPreferencesRepository(context: Context) {
 
     suspend fun updateLastEventClaimDate(date: String) {
         dataStore.edit { it[LAST_EVENT_CLAIM_DATE_KEY] = date }
+    }
+
+    // ── NEW ──────────────────────────────────────────────────────────────────
+    suspend fun markTutorialSeen() {
+        dataStore.edit { it[HAS_SEEN_TUTORIAL_KEY] = true }
     }
 }
