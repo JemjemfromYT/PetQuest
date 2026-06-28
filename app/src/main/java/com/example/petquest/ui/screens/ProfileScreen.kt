@@ -226,9 +226,6 @@ fun ProfileScreen(
     }
 
     // ── Share profile ─────────────────────────────────────────────────────────
-    // FIX: The link is ALWAYS at the end of the message so every messaging app
-    // (WhatsApp, Messenger, Telegram) makes it clickable. Firebase photo upload
-    // runs first (best-effort) but a failure never blocks the share from going out.
     val shareProfile: () -> Unit = {
         if (!isSharingProfile) {
             scope.launch {
@@ -236,13 +233,16 @@ fun ProfileScreen(
                 try {
                     val profile = buildCurrentProfile()
 
+                    // STEP 1: Sign in FIRST to lock in the uid.
+                    // This is separate from photo upload — even if the upload
+                    // fails or times out, the uid is already known and the link
+                    // will always point to the correct profile page.
                     var uid: String? = null
-                    try {
-                        firebaseRepository.pushProfile(profile)
-                        uid = firebaseRepository.getMyUid()
-                    } catch (_: Exception) {
-                        // Firebase unavailable — share will use the generic link
-                    }
+                    try { uid = firebaseRepository.ensureSignedIn() } catch (_: Exception) {}
+
+                    // STEP 2: Upload photos and save profile to Firestore (best-effort).
+                    // We do NOT let a failure here block the share intent.
+                    try { firebaseRepository.pushProfile(profile) } catch (_: Exception) {}
 
                     val shareLink = if (uid != null) {
                         "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"

@@ -1,7 +1,6 @@
 package com.example.petquest.ui.screens
 
 import android.content.Context
-import android.content.Intent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,7 +23,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
@@ -48,16 +46,9 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.petquest.R
 import com.example.petquest.SoundManager
-import com.example.petquest.data.repository.FirebaseRepository
-import com.example.petquest.data.repository.PetSummary
-import com.example.petquest.data.repository.PublicProfile
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
-import kotlinx.coroutines.launch
 
-// ---------------------------------------------------------------------------
-// petEmoji — species identity placeholder when no photo exists
-// ---------------------------------------------------------------------------
 fun petEmoji(typeName: String): String = when (typeName.uppercase()) {
     "DOG"        -> "🐶"
     "CAT"        -> "🐱"
@@ -100,10 +91,6 @@ fun trainerTitle(level: Int): String = when {
     else        -> ""
 }
 
-// ---------------------------------------------------------------------------
-// StatCard — shared helper used by PetDetailScreen too
-// Overload A: resource-icon version (original)
-// ---------------------------------------------------------------------------
 @Composable
 fun StatCard(
     value          : String,
@@ -115,19 +102,18 @@ fun StatCard(
     accentContent  : Color?   = null
 ) {
     val containerColor = when {
-        dimmed              -> MaterialTheme.colorScheme.surfaceVariant
+        dimmed               -> MaterialTheme.colorScheme.surfaceVariant
         accentContainer != null -> accentContainer
-        else                -> MaterialTheme.colorScheme.secondaryContainer
+        else                 -> MaterialTheme.colorScheme.secondaryContainer
     }
     val contentColor = when {
         dimmed              -> MaterialTheme.colorScheme.onSurfaceVariant
         accentContent != null -> accentContent
         else                -> MaterialTheme.colorScheme.onSecondaryContainer
     }
-
     Card(
-        modifier = modifier,
-        colors   = CardDefaults.cardColors(containerColor = containerColor),
+        modifier  = modifier,
+        colors    = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
@@ -150,10 +136,9 @@ fun StatCard(
     }
 }
 
-// Overload B: ImageVector-icon version (used by PetDetailScreen)
 @Composable
 fun StatCard(
-    modifier : Modifier    = Modifier,
+    modifier : Modifier     = Modifier,
     icon     : ImageVector? = null,
     value    : String,
     label    : String,
@@ -179,24 +164,13 @@ fun StatCard(
                 )
                 Spacer(Modifier.height(2.dp))
             }
-            Text(
-                value,
-                fontWeight = FontWeight.Bold,
-                fontSize   = 16.sp,
-                color      = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                label,
-                fontSize = 10.sp,
-                color    = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface)
+            Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
-// ---------------------------------------------------------------------------
-// EmptyStateCard — shared helper
-// ---------------------------------------------------------------------------
 @Composable
 fun EmptyStateCard(
     imageRes    : Int,
@@ -236,9 +210,6 @@ fun EmptyStateCard(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Rarity color helper
-// ---------------------------------------------------------------------------
 @Composable
 fun rarityAccentColor(rarityName: String): Color = when (rarityName) {
     "COMMON"   -> Color(0xFF9E9E9E)
@@ -247,9 +218,6 @@ fun rarityAccentColor(rarityName: String): Color = when (rarityName) {
     else       -> MaterialTheme.colorScheme.error
 }
 
-// ---------------------------------------------------------------------------
-// HomeStatCard — internal helper (used only in this file)
-// ---------------------------------------------------------------------------
 @Composable
 private fun HomeStatCard(
     iconRes        : Int,
@@ -285,18 +253,11 @@ private fun HomeStatCard(
                 fontSize   = 17.sp,
                 color      = if (dimmed) valueColor.copy(alpha = 0.40f) else valueColor
             )
-            Text(
-                label,
-                fontSize = 10.sp,
-                color    = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
-// ---------------------------------------------------------------------------
-// EventBadge — tiny overlay shown on pet cards during an active event
-// ---------------------------------------------------------------------------
 @Composable
 fun EventBadge(event: SeasonalEvent) {
     Surface(
@@ -311,9 +272,6 @@ fun EventBadge(event: SeasonalEvent) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// SettingsDialog — background music + SFX toggles
-// ---------------------------------------------------------------------------
 @Composable
 private fun SettingsDialog(
     onDismiss : () -> Unit,
@@ -333,69 +291,56 @@ private fun SettingsDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // Background music row
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(
-                            imageVector        = if (musicOn) Icons.Default.MusicNote else Icons.Default.MusicOff,
+                            if (musicOn) Icons.Default.MusicNote else Icons.Default.MusicOff,
                             contentDescription = null,
-                            tint               = if (musicOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier           = Modifier.size(20.dp)
+                            tint = if (musicOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Column {
-                            Text("Background Music", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                            Text(if (musicOn) "On" else "Off", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                        Text("Background Music", fontSize = 14.sp)
                     }
                     Switch(
-                        checked          = musicOn,
-                        onCheckedChange  = { checked ->
-                            musicOn = checked
-                            prefs.edit().putBoolean("music_enabled", checked).apply()
-                            SoundManager.musicEnabled = checked
+                        checked         = musicOn,
+                        onCheckedChange = { enabled ->
+                            musicOn = enabled
+                            prefs.edit().putBoolean("music_enabled", enabled).apply()
+                            SoundManager.musicEnabled = enabled
+                            if (enabled) SoundManager.onAppForegrounded() else SoundManager.pauseMusic()
                         }
                     )
                 }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                // Sound effects row
+                HorizontalDivider()
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(
-                            imageVector        = if (sfxOn) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                            if (sfxOn) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
                             contentDescription = null,
-                            tint               = if (sfxOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier           = Modifier.size(20.dp)
+                            tint = if (sfxOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Column {
-                            Text("Sound Effects", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                            Text(if (sfxOn) "On" else "Off", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                        Text("Sound Effects", fontSize = 14.sp)
                     }
                     Switch(
                         checked         = sfxOn,
-                        onCheckedChange = { checked ->
-                            sfxOn = checked
-                            prefs.edit().putBoolean("sfx_enabled", checked).apply()
-                            SoundManager.sfxEnabled = checked
+                        onCheckedChange = { enabled ->
+                            sfxOn = enabled
+                            prefs.edit().putBoolean("sfx_enabled", enabled).apply()
+                            SoundManager.sfxEnabled = enabled
                         }
                     )
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Done", fontWeight = FontWeight.Bold)
-            }
+            TextButton(onClick = onDismiss) { Text("Done") }
         }
     )
 }
@@ -413,15 +358,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     val totalBondPoints  by viewModel.totalBondPoints.collectAsState()
     val userLevel        by viewModel.userLevel.collectAsState()
     val collectedSpecies by viewModel.collectedSpecies.collectAsState()
-    // FIX: collect achievements so they are included in every profile push
-    val allAchievements  by viewModel.allAchievements.collectAsState()
 
-    // Firebase helper — stateless, safe to create here
-    val firebaseRepository = remember { FirebaseRepository() }
-    val scope              = rememberCoroutineScope()
-    var isSharingProfile   by remember { mutableStateOf(false) }
-
-    // ── Check for active seasonal event ──────────────────────────────────────
     val today       = remember { todaySimpleDate() }
     val activeEvent = remember { getActiveEvent(today) }
 
@@ -430,7 +367,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     val allDone     = tasks.isNotEmpty() && doneTasks == tasks.size
     val isDark      = isSystemInDarkTheme()
 
-    // ── 3-dot menu state ──────────────────────────────────────────────────────
     var showMenu     by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
 
@@ -440,11 +376,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
         label         = "today_progress"
     )
 
-    // ── Header gradient ───────────────────────────────────────────────────────
     val headerStart = activeEvent?.gradientStart ?: Color(0xFFFF8C42)
     val headerEnd   = activeEvent?.gradientEnd   ?: Color(0xFFFFB77A)
 
-    // ── Settings dialog ───────────────────────────────────────────────────────
     if (showSettings) {
         SettingsDialog(onDismiss = { showSettings = false }, context = context)
     }
@@ -472,7 +406,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Event badge (if active event)
                         if (activeEvent != null) {
                             Surface(
                                 shape = RoundedCornerShape(20.dp),
@@ -495,7 +428,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             Spacer(Modifier.width(4.dp))
                         }
 
-                        // ── 3-dot menu button ─────────────────────────────────
+                        // 3-dot menu — Settings ONLY (Share Profile is on Profile tab)
                         Box {
                             IconButton(onClick = { showMenu = true }) {
                                 Icon(
@@ -506,13 +439,15 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             }
 
                             DropdownMenu(
-                                expanded          = showMenu,
-                                onDismissRequest  = { showMenu = false }
+                                expanded         = showMenu,
+                                onDismissRequest = { showMenu = false }
                             ) {
-                                // Settings
                                 DropdownMenuItem(
                                     text = {
-                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        Row(
+                                            verticalAlignment     = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
                                             Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(18.dp))
                                             Text("Settings", fontSize = 14.sp)
                                         }
@@ -520,121 +455,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     onClick = {
                                         showMenu     = false
                                         showSettings = true
-                                    }
-                                )
-
-                                HorizontalDivider()
-
-                                // Share Profile
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                            if (isSharingProfile) {
-                                                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                                            } else {
-                                                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
-                                            }
-                                            Text("Share Profile", fontSize = 14.sp)
-                                        }
-                                    },
-                                    onClick = {
-                                        // FIX: set flag BEFORE scope.launch so the guard works immediately
-                                        // on double-tap — prevents two identical messages being sent
-                                        if (isSharingProfile) return@DropdownMenuItem
-                                        showMenu = false
-                                        isSharingProfile = true   // ← must be BEFORE scope.launch
-                                        scope.launch {
-                                            try {
-                                                val petCount    = pets.size
-                                                val petSummaries = pets.take(6).map { pet ->
-                                                    PetSummary(
-                                                        name       = pet.name,
-                                                        species    = pet.type.name,
-                                                        rarity     = pet.type.rarity.name,
-                                                        bondLevel  = pet.bondLevel,
-                                                        isVerified = pet.isVerified,
-                                                        // FIX: include verified photo so Trainer Profile shows real image
-                                                        photoUri   = pet.photoUri?.toString(),
-                                                        // FIX: include virtue so Trainer Profile flip card shows correct color
-                                                        virtue     = pet.virtue.name
-                                                    )
-                                                }
-                                                val profile = PublicProfile(
-                                                    trainerName         = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
-                                                    level               = userLevel,
-                                                    streak              = streak,
-                                                    bondPoints          = totalBondPoints,
-                                                    petCount            = petCount,
-                                                    speciesCount        = collectedSpecies.size,
-                                                    pets                = petSummaries,
-                                                    // FIX: push all unlocked achievement titles
-                                                    unlockedBadgeTitles = allAchievements
-                                                        .filter { it.isUnlocked }
-                                                        .map    { it.title }
-                                                )
-                                                firebaseRepository.pushProfile(profile)
-                                                val uid = firebaseRepository.getMyUid()
-
-                                                val shareLink = if (uid != null)
-                                                    "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"
-                                                else ""
-
-                                                val title     = trainerTitle(userLevel)
-                                                val titleLine = if (title.isNotEmpty()) "$title • " else ""
-
-                                                // FIX: link appears ONCE at the very end as a clean URL line
-                                                // so messaging apps show it as a preview card, not inline twice
-                                                val shareText = buildString {
-                                                    appendLine("🐾 Check out my PetQuest profile!")
-                                                    appendLine()
-                                                    appendLine("${titleLine}Level $userLevel Trainer")
-                                                    if (streak > 0) appendLine("🔥 $streak day streak")
-                                                    appendLine("💚 $totalBondPoints Bond Points")
-                                                    appendLine("🐾 $petCount ${if (petCount == 1) "pet" else "pets"}")
-                                                    appendLine()
-                                                    appendLine("Join me on PetQuest and become a legendary pet trainer!")
-                                                    if (shareLink.isNotEmpty()) {
-                                                        appendLine()
-                                                        append(shareLink)
-                                                    }
-                                                }
-
-                                                val sendIntent = Intent().apply {
-                                                    action = Intent.ACTION_SEND
-                                                    putExtra(Intent.EXTRA_TEXT,  shareText)
-                                                    putExtra(Intent.EXTRA_TITLE, "${profile.trainerName}'s PetQuest Profile")
-                                                    type = "text/plain"
-                                                }
-                                                context.startActivity(
-                                                    Intent.createChooser(sendIntent, "Share your PetQuest profile")
-                                                )
-                                            } catch (e: Exception) {
-                                                // Fallback: share without link if Firebase is unavailable
-                                                val petCount  = pets.size
-                                                val title     = trainerTitle(userLevel)
-                                                val titleLine = if (title.isNotEmpty()) "$title • " else ""
-                                                val fallback  = buildString {
-                                                    appendLine("🐾 Check out my PetQuest profile!")
-                                                    appendLine()
-                                                    appendLine("${titleLine}Level $userLevel Trainer")
-                                                    if (streak > 0) appendLine("🔥 $streak day streak")
-                                                    appendLine("💚 $totalBondPoints Bond Points")
-                                                    appendLine("🐾 $petCount ${if (petCount == 1) "pet" else "pets"}")
-                                                    appendLine()
-                                                    append("Join me on PetQuest and become a legendary pet trainer!")
-                                                }
-                                                val sendIntent = Intent().apply {
-                                                    action = Intent.ACTION_SEND
-                                                    putExtra(Intent.EXTRA_TEXT, fallback)
-                                                    type = "text/plain"
-                                                }
-                                                context.startActivity(
-                                                    Intent.createChooser(sendIntent, "Share your PetQuest profile")
-                                                )
-                                            } finally {
-                                                isSharingProfile = false
-                                            }
-                                        }
                                     }
                                 )
                             }
@@ -649,7 +469,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
             contentPadding      = PaddingValues(vertical = 16.dp)
         ) {
-            // ── Active Event Quick Banner ──────────────────────────────────────
             if (activeEvent != null) {
                 item {
                     Card(
@@ -697,7 +516,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 }
             }
 
-            // ── Top statistics row ─────────────────────────────────────────────
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
@@ -731,7 +549,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                         )
                     }
 
-                    // Today's tasks progress
                     if (tasks.isNotEmpty()) {
                         Card(
                             modifier  = Modifier.fillMaxWidth(),
@@ -802,7 +619,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                 }
             }
 
-            // ── Empty state ────────────────────────────────────────────────────
             if (pets.isEmpty()) {
                 item {
                     EmptyStateCard(
@@ -814,7 +630,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     )
                 }
             } else {
-                // ── Pet cards ──────────────────────────────────────────────────
                 itemsIndexed(pets) { index, pet ->
                     val virtueInfo    = VirtueConfig[pet.virtue]
                     val isVerified    = pet.isVerified
@@ -870,7 +685,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             modifier          = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Accent strip
                             Box(
                                 modifier = Modifier
                                     .width(5.dp)
@@ -878,7 +692,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     .background(if (isVerified) accentColor else accentColor.copy(alpha = 0.35f))
                             )
 
-                            // Pet photo
                             Box(
                                 modifier = Modifier
                                     .padding(12.dp)
@@ -917,7 +730,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                             tint = Color.White, modifier = Modifier.size(22.dp))
                                     }
                                 }
-                                // EventBadge overlay
                                 if (activeEvent != null && isVerified) {
                                     Box(modifier = Modifier.align(Alignment.TopEnd).padding(2.dp)) {
                                         EventBadge(activeEvent)
@@ -925,12 +737,10 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 }
                             }
 
-                            // Info column
                             Column(
                                 modifier            = Modifier.weight(1f).padding(top = 10.dp, end = 12.dp, bottom = 10.dp),
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                // Name + verified checkmark
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                                     Text(
                                         pet.name,
@@ -946,7 +756,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     }
                                 }
 
-                                // Rarity chip + level
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Surface(shape = RoundedCornerShape(6.dp), color = accentColor.copy(alpha = 0.15f)) {
                                         Text(
@@ -962,7 +771,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         color = MaterialTheme.colorScheme.onBackground)
                                 }
 
-                                // Bond progress bar
                                 if (isVerified) {
                                     Box(
                                         modifier = Modifier.fillMaxWidth().height(6.dp)
@@ -977,7 +785,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     Text("Needs a photo", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
 
-                                // Virtue label
                                 if (virtueInfo != null) {
                                     Row(
                                         modifier              = Modifier.fillMaxWidth(),
