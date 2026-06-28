@@ -11,25 +11,24 @@
     <script type="module">
         // ============================================================
         // PASTE YOUR FIREBASE CONFIG HERE
-        // (copy it from your old share.html)
+        // (open google-services.json in Android Studio, copy the values)
         // ============================================================
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { initializeApp }              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
-          apiKey: "YOUR_API_KEY",
-          authDomain: "YOUR_AUTH_DOMAIN",
-          databaseURL: "YOUR_DATABASE_URL",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_STORAGE_BUCKET",
+          apiKey:            "YOUR_API_KEY",
+          authDomain:        "YOUR_AUTH_DOMAIN",
+          projectId:         "YOUR_PROJECT_ID",
+          storageBucket:     "YOUR_STORAGE_BUCKET",
           messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-          appId: "YOUR_APP_ID"
+          appId:             "YOUR_APP_ID"
         };
 
         const app = initializeApp(firebaseConfig);
-        const db  = getDatabase(app);
+        const db  = getFirestore(app);
 
-        // Local PNG icon paths (icons/ folder sits next to share.html)
+        // ── Icons (local PNGs in icons/ folder) ──────────────────────
         const IC = {
           paw:      "icons/paw.png",
           star:     "icons/star.png",
@@ -53,7 +52,7 @@
           return `<img src="${IC[key] || IC.paw}" width="${s}" height="${s}" alt="" />`;
         }
 
-        // ─── ACHIEVEMENT DEFINITIONS ─────────────────────────────────
+        // ── Achievement definitions ───────────────────────────────────
         const ACHIEVEMENT_CATEGORIES = [
           {
             name: "First Steps", color: "#4CAF50",
@@ -124,7 +123,7 @@
           },
         ];
 
-        // ─── HELPERS ─────────────────────────────────────────────────
+        // ── Helpers ───────────────────────────────────────────────────
         function getLevelTitle(level) {
           if (level >= 50) return "Legendary Trainer";
           if (level >= 30) return "Master Trainer";
@@ -134,122 +133,134 @@
           if (level >= 3)  return "Rising Trainer";
           return "Beginner Trainer";
         }
+
         function rarityColor(virtue) {
-          return ({ WISDOM:"#9C27B0",COURAGE:"#F44336",KINDNESS:"#E91E63",
-                    LOYALTY:"#2196F3",CURIOSITY:"#FF9800",JOY:"#FFEB3B" }
-          )[(virtue||"").toUpperCase()] || "#4CAF50";
-        }
-        function rarityLabel(rarity) {
-          return ({ COMMON:{label:"Common",color:"#9E9E9E"},
-                    UNCOMMON:{label:"Uncommon",color:"#4CAF50"},
-                    RARE:{label:"Rare",color:"#2196F3"},
-                    EPIC:{label:"Epic",color:"#9C27B0"},
-                    LEGENDARY:{label:"Legendary",color:"#FF9800"} }
-          )[(rarity||"").toUpperCase()] || {label:rarity||"Common",color:"#9E9E9E"};
-        }
-        function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
-
-        // ─── LOADER ──────────────────────────────────────────────────
-        function withTimeout(promise, ms) {
-          return Promise.race([
-            promise,
-            new Promise((_, rej) => setTimeout(() => rej(new Error("__timeout__")), ms))
-          ]);
+          return ({
+            WISDOM: "#9C27B0", COURAGE: "#F44336", KINDNESS: "#E91E63",
+            LOYALTY: "#2196F3", CURIOSITY: "#FF9800", JOY: "#FFEB3B",
+          })[(virtue || "").toUpperCase()] || "#4CAF50";
         }
 
+        function rarityInfo(rarity) {
+          return ({
+            COMMON:    { label: "Common",    color: "#9E9E9E" },
+            UNCOMMON:  { label: "Uncommon",  color: "#4CAF50" },
+            RARE:      { label: "Rare",      color: "#2196F3" },
+            EPIC:      { label: "Epic",      color: "#9C27B0" },
+            LEGENDARY: { label: "Legendary", color: "#FF9800" },
+          })[(rarity || "").toUpperCase()] || { label: rarity || "Common", color: "#9E9E9E" };
+        }
+
+        function esc(s) {
+          return String(s)
+            .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+            .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+        }
+
+        function setStatus(msg) {
+          const el = document.getElementById("load-status");
+          if (el) el.textContent = msg;
+        }
+
+        function showErr(msg) {
+          document.getElementById("loading").style.display = "none";
+          const el = document.getElementById("error");
+          el.style.display = "flex";
+          document.getElementById("errmsg").innerHTML = msg.replace(/\n/g, "<br/>");
+        }
+
+        // ── Main loader ───────────────────────────────────────────────
         window.addEventListener("DOMContentLoaded", async () => {
           const uid = new URLSearchParams(location.search).get("uid");
           if (!uid) {
-            showErr("No trainer ID found in this link.\nAsk the trainer to share their profile again from the app.");
+            showErr("No trainer ID in this link.\nAsk the trainer to share again from the app.");
             return;
           }
 
-          // Try every path the app might write to
-          const paths = [
-            `shared_profiles/${uid}`,
-            `users/${uid}/profile`,
-            `users/${uid}`,
-            `profiles/${uid}`,
-          ];
+          setStatus("Connecting…");
 
-          let data = null;
+          try {
+            // App writes to Firestore: collection "profiles", document = uid
+            setStatus("Fetching profile…");
 
-          for (const path of paths) {
-            try {
-              const snap = await withTimeout(get(ref(db, path)), 8000);
-              if (snap && snap.exists()) { data = snap.val(); break; }
-            } catch (e) {
-              if (e.message === "__timeout__") {
-                showErr(
-                  "Connection timed out.\n\n" +
-                  "This usually means the Firebase config in share.html is wrong " +
-                  "(check databaseURL), or your internet is offline."
-                );
-                return;
-              }
-              // Permission denied or other — try next path
-              console.warn("path", path, e.message);
+            const timeout = new Promise((_, rej) =>
+              setTimeout(() => rej(new Error("__timeout__")), 10000)
+            );
+            const docRef  = doc(db, "profiles", uid);
+            const snap    = await Promise.race([getDoc(docRef), timeout]);
+
+            if (!snap.exists()) {
+              showErr(
+                "Profile not found.\n\nUID: " + uid + "\n\n" +
+                "This usually means:\n" +
+                "• App data was cleared — the old link no longer works\n" +
+                "• The Share button was tapped before data finished saving\n\n" +
+                "Fix: Open PetQuest → tap Share Profile again to get a fresh link."
+              );
+              return;
+            }
+
+            render(snap.data());
+
+          } catch (e) {
+            if (e.message === "__timeout__") {
+              showErr(
+                "Connection timed out.\n\n" +
+                "Check that the Firebase projectId in share.html matches\n" +
+                "your google-services.json file."
+              );
+            } else {
+              console.error(e);
+              showErr("Error loading profile: " + e.message);
             }
           }
-
-          if (!data) {
-            showErr(
-              "Profile not found for this link.\n\n" +
-              "This happens when:\n" +
-              "• App data was cleared (creates a new ID — old links stop working)\n" +
-              "• Profile was never shared from the app after the clear\n\n" +
-              "Fix: Open PetQuest → Share Profile again to get a fresh link."
-            );
-            return;
-          }
-
-          render(data);
         });
 
-        // ─── RENDER ──────────────────────────────────────────────────
+        // ── Render ────────────────────────────────────────────────────
+        // Field names from FirebaseRepository.kt / PublicProfile data class:
+        //   trainerName, level, streak, bondPoints, petCount,
+        //   speciesCount, pets (array of PetSummary), unlockedBadgeTitles
+        // PetSummary: name, species, rarity, bondLevel, isVerified, photoUri, virtue
         function render(d) {
           document.getElementById("loading").style.display = "none";
           const root = document.getElementById("profile");
           root.style.display = "block";
 
-          const name         = d.name           || "Trainer";
-          const level        = d.level          || 1;
-          const streak       = d.streak         || d.dayStreak        || 0;
-          const bond         = d.bondPoints      || d.totalBondPoints  || 0;
-          const pets         = Array.isArray(d.pets) ? d.pets : [];
-          const petsCount    = pets.length || d.petsCount || d.activePets || 0;
-          const species      = d.speciesCount   || d.speciesCollected || 0;
-          const totalSp      = d.totalSpecies   || 29;
-          const xpCur        = d.xpCurrent      || d.xp              || 0;
-          const xpNext       = d.xpToNext       || level * 100;
+          const name         = d.trainerName        || "Trainer";
+          const level        = d.level              || 1;
+          const streak       = d.streak             || 0;
+          const bond         = d.bondPoints         || 0;
+          const petsCount    = d.petCount           || 0;
+          const species      = d.speciesCount       || 0;
+          const totalSp      = 29;
+          const xpCur        = d.xpCurrent          || 0;
+          const xpNext       = level * 100;
           const unlocked     = new Set(d.unlockedBadgeTitles || []);
-          const photo        = d.profilePhotoUrl || d.photoUri        || null;
+          const pets         = Array.isArray(d.pets) ? d.pets : [];
           const eventBadges  = Array.isArray(d.eventBadges) ? d.eventBadges : [];
+          const photo        = d.profilePhotoUrl    || null;
 
           document.title = `${name}'s PetQuest Profile`;
-          document.querySelector('[property="og:title"]').content = `${name} — PetQuest Trainer`;
+          document.querySelector('[property="og:title"]').content    = `${name} — PetQuest Trainer`;
           document.querySelector('[property="og:description"]').content =
             `Level ${level} • ${unlocked.size} achievements • ${petsCount} pet${petsCount!==1?"s":""}`;
 
           const xpPct = Math.min(100,(xpCur/Math.max(xpNext,1))*100).toFixed(1);
-          const spPct = Math.min(100,(species/Math.max(totalSp,1))*100).toFixed(1);
+          const spPct = Math.min(100,(species/totalSp)*100).toFixed(1);
 
           root.innerHTML = `
 
             <div class="header">
-              <div class="hbrand">
-                ${ic("paw",22)}
-                <span class="htitle">PETQUEST</span>
-              </div>
+              <div class="hbrand">${ic("paw",22)}<span class="htitle">PETQUEST</span></div>
               <div class="lvlbadge">Lv. ${level}</div>
             </div>
 
-            <div class="avatar-section">
+            <div class="avsec">
               <div class="avwrap">
                 ${photo
                   ? `<img class="avimg" src="${esc(photo)}" alt="${esc(name)}" />`
                   : `<div class="avph">${ic("paw",44)}</div>`}
-                <div class="pct-badge">${petsCount}</div>
+                <div class="pctbadge">${petsCount}</div>
               </div>
               <h1 class="tname">${esc(name)}</h1>
               <p class="tsub">${esc(getLevelTitle(level))}</p>
@@ -257,34 +268,18 @@
 
             <div class="lvlcard">
               <div class="lvlcard-icon">${ic("paw",30)}</div>
-              <div class="lvlcard-info">
+              <div class="lvlcard-body">
                 <div class="lvlcard-num">Level ${level}</div>
                 <div class="lvlcard-sub"><span>XP to next level</span><span>${xpCur} / ${xpNext}</span></div>
                 <div class="xpbg"><div class="xpfill" style="width:${xpPct}%"></div></div>
               </div>
             </div>
 
-            <div class="stats-grid">
-              <div class="scard sc-streak">
-                ${ic("flame",34)}
-                <div class="sval" style="color:#FF7043">${streak}</div>
-                <div class="slbl">DAY STREAK</div>
-              </div>
-              <div class="scard sc-bond">
-                ${ic("heart",34)}
-                <div class="sval" style="color:#E91E63">${bond}</div>
-                <div class="slbl">BOND POINTS</div>
-              </div>
-              <div class="scard sc-level">
-                ${ic("star",34)}
-                <div class="sval" style="color:#FFC107">${level}</div>
-                <div class="slbl">LEVEL</div>
-              </div>
-              <div class="scard sc-pets">
-                ${ic("paw",34)}
-                <div class="sval" style="color:#4CAF50">${petsCount}</div>
-                <div class="slbl">PETS</div>
-              </div>
+            <div class="stats">
+              <div class="scard sbg-streak">${ic("flame",34)}<div class="sval" style="color:#FF7043">${streak}</div><div class="slbl">DAY STREAK</div></div>
+              <div class="scard sbg-bond">${ic("heart",34)}<div class="sval" style="color:#E91E63">${bond}</div><div class="slbl">BOND POINTS</div></div>
+              <div class="scard sbg-lvl">${ic("star",34)}<div class="sval" style="color:#FFC107">${level}</div><div class="slbl">LEVEL</div></div>
+              <div class="scard sbg-pets">${ic("paw",34)}<div class="sval" style="color:#4CAF50">${petsCount}</div><div class="slbl">PETS</div></div>
             </div>
 
             <div class="spcard">
@@ -299,24 +294,25 @@
               <div class="sechead">${ic("trophy",20)}<span class="sectitle">Event Badges</span></div>
               ${eventBadges.length===0
                 ? `<p class="empty">No event badges earned yet.</p>`
-                : `<div class="evbadges">${eventBadges.map(b=>`<div class="evbadge">${ic("trophy",18)}<span>${esc(b.name||b)}</span></div>`).join("")}</div>`}
+                : `<div class="evlist">${eventBadges.map(b=>`<div class="evbadge">${ic("trophy",18)}<span>${esc(b.name||b)}</span></div>`).join("")}</div>`}
             </div>
 
             ${pets.length>0?`
             <div class="petssec">
-              <div class="petshead">My Pets (${pets.length})</div>
-              <div class="petsgrid">
+              <div class="phead">My Pets (${pets.length})</div>
+              <div class="pgrid">
                 ${pets.map(pet=>{
-                  const rc=rarityColor(pet.virtue), rl=rarityLabel(pet.rarity);
+                  const rc=rarityColor(pet.virtue);
+                  const rl=rarityInfo(pet.rarity);
                   return `<div class="petcard" style="border-color:${rc}55">
                     ${pet.photoUri
-                      ? `<img class="petphoto" src="${esc(pet.photoUri)}" alt="${esc(pet.name||"Pet")}" />`
-                      : `<div class="petphph">${ic("paw",36)}</div>`}
-                    <div class="petinfo">
-                      <div class="petname">${esc(pet.name||"Pet")}</div>
-                      <div class="petmeta">
-                        <span class="raritybadge" style="background:${rl.color}22;color:${rl.color}">${rl.label}</span>
-                        <span class="petlvl" style="color:${rc}">Lv.${pet.level||1}</span>
+                      ? `<img class="pphoto" src="${esc(pet.photoUri)}" alt="${esc(pet.name||"Pet")}" />`
+                      : `<div class="pphph">${ic("paw",36)}</div>`}
+                    <div class="pinfo">
+                      <div class="pname">${esc(pet.name||"Pet")}</div>
+                      <div class="pmeta">
+                        <span class="rbadge" style="background:${rl.color}22;color:${rl.color}">${rl.label}</span>
+                        <span class="plvl" style="color:${rc}">Lv.${pet.bondLevel||1}</span>
                       </div>
                     </div>
                   </div>`;
@@ -331,22 +327,22 @@
               </div>
               ${ACHIEVEMENT_CATEGORIES.map(cat=>{
                 const cnt=cat.badges.filter(b=>unlocked.has(b.title)).length;
-                return `<div class="achcat">
-                  <div class="achcathead" style="border-left-color:${cat.color}">
+                return `<div class="acat">
+                  <div class="acathead" style="border-left-color:${cat.color}">
                     <span>${cat.name}</span>
-                    <span class="achcnt" style="color:${cat.color}">${cnt}/${cat.badges.length}</span>
+                    <span style="color:${cat.color};font-size:12px;font-weight:700">${cnt}/${cat.badges.length}</span>
                   </div>
-                  <div class="achgrid">
+                  <div class="agrid">
                     ${cat.badges.map(badge=>{
                       const ul=unlocked.has(badge.title);
-                      return `<div class="achbadge ${ul?"ul":"lk"}">
-                        <div class="achicon" style="${ul?`background:${cat.color}22;border:1.5px solid ${cat.color}44`:""}">
-                          ${ic(ul?badge.icon:"lock", 28)}
+                      return `<div class="abadge ${ul?"aul":"alk"}">
+                        <div class="aicon" style="${ul?`background:${cat.color}22;border:1.5px solid ${cat.color}44`:""}">
+                          ${ic(ul?badge.icon:"lock",28)}
                         </div>
-                        <div class="achtxt">${esc(badge.title)}</div>
+                        <div class="atxt">${esc(badge.title)}</div>
                         ${ul
-                          ? `<div class="achst ul-st">${ic("check",10)} UNLOCKED</div>`
-                          : `<div class="achst lk-st">LOCKED</div>`}
+                          ? `<div class="ast ul-st">${ic("check",10)} UNLOCKED</div>`
+                          : `<div class="ast lk-st">LOCKED</div>`}
                       </div>`;
                     }).join("")}
                   </div>
@@ -358,17 +354,9 @@
               <a class="openbtn" href="intent://petquest#Intent;scheme=petquest;package=com.example.petquest;end">
                 Open in PetQuest
               </a>
-              <p class="storehint">Don't have PetQuest? Search "PetQuest" on the Play Store.</p>
+              <p class="shint">Don't have PetQuest? Search "PetQuest" on the Play Store.</p>
             </div>
           `;
-        }
-
-        function showErr(msg){
-          document.getElementById("loading").style.display="none";
-          const el=document.getElementById("error");
-          el.style.display="flex";
-          // preserve newlines
-          document.getElementById("errmsg").innerHTML=msg.replace(/\n/g,"<br/>");
         }
     </script>
 
@@ -383,51 +371,45 @@
         body{display:flex;justify-content:center;padding:0 0 48px}
         #root{width:100%;max-width:420px}
 
-        /* loading */
         #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:16px}
         .spin{width:48px;height:48px;border:4px solid #333;border-top-color:var(--or);border-radius:50%;animation:sp .8s linear infinite}
         @keyframes sp{to{transform:rotate(360deg)}}
         #loading p{color:var(--txs);font-size:15px}
+        #load-status{font-size:11px;color:#555;margin-top:8px;max-width:300px;text-align:center;word-break:break-all}
 
-        /* error */
-        #error{display:none;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:12px;padding:32px;text-align:center}
+        #error{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;padding:32px;text-align:center}
         #error h2{font-size:20px}
-        #errmsg{color:var(--txs);font-size:14px;line-height:1.5}
+        #errmsg{color:var(--txs);font-size:14px;line-height:1.6;margin-top:4px}
 
         #profile{display:none}
 
-        /* header */
         .header{background:linear-gradient(135deg,var(--or),var(--ord));padding:18px 20px 22px;display:flex;align-items:center;justify-content:space-between}
         .hbrand{display:flex;align-items:center;gap:8px}
         .htitle{font-size:18px;font-weight:800;color:#fff;letter-spacing:2px}
         .lvlbadge{background:rgba(255,255,255,.25);border:1.5px solid rgba(255,255,255,.5);color:#fff;font-size:14px;font-weight:700;padding:4px 12px;border-radius:20px}
 
-        /* avatar */
-        .avatar-section{background:linear-gradient(180deg,var(--ord),var(--bg));display:flex;flex-direction:column;align-items:center;padding:24px 20px 28px;gap:8px}
+        .avsec{background:linear-gradient(180deg,var(--ord),var(--bg));display:flex;flex-direction:column;align-items:center;padding:24px 20px 28px;gap:8px}
         .avwrap{position:relative;width:90px;height:90px}
         .avimg{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.8)}
         .avph{width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center}
-        .pct-badge{position:absolute;bottom:2px;right:2px;background:var(--or);color:#fff;font-size:11px;font-weight:700;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+        .pctbadge{position:absolute;bottom:2px;right:2px;background:var(--or);color:#fff;font-size:11px;font-weight:700;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
         .tname{font-size:26px;font-weight:800;color:#fff}
         .tsub{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
 
-        /* level card */
         .lvlcard{background:linear-gradient(135deg,var(--or),#D4752A);margin:0 16px 12px;border-radius:var(--r);padding:18px;display:flex;align-items:center;gap:16px}
         .lvlcard-icon{background:rgba(255,255,255,.2);border-radius:12px;padding:11px;flex-shrink:0;display:flex}
-        .lvlcard-info{flex:1}
+        .lvlcard-body{flex:1}
         .lvlcard-num{font-size:24px;font-weight:800;color:#fff}
         .lvlcard-sub{font-size:12px;color:rgba(255,255,255,.8);margin:2px 0 8px;display:flex;justify-content:space-between;font-weight:500}
         .xpbg{background:rgba(255,255,255,.3);border-radius:4px;height:6px;overflow:hidden}
         .xpfill{background:#fff;height:100%;border-radius:4px}
 
-        /* stats */
-        .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 12px}
+        .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 12px}
         .scard{border-radius:var(--r);padding:18px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:5px}
-        .sc-streak{background:#2A1A0A}.sc-bond{background:#1A0A14}.sc-level{background:#1A1A08}.sc-pets{background:#0A1A10}
+        .sbg-streak{background:#2A1A0A}.sbg-bond{background:#1A0A14}.sbg-lvl{background:#1A1A08}.sbg-pets{background:#0A1A10}
         .sval{font-size:28px;font-weight:800;line-height:1}
         .slbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--txm);font-weight:600}
 
-        /* species */
         .spcard{background:var(--grd);margin:0 16px 12px;border-radius:var(--r);padding:16px 18px}
         .sprow{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
         .splbl{display:flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:15px}
@@ -435,49 +417,44 @@
         .spbarbg{background:rgba(0,0,0,.25);border-radius:4px;height:6px;overflow:hidden}
         .spbarfill{background:rgba(255,255,255,.7);height:100%;border-radius:4px}
 
-        /* section card */
         .seccard{background:var(--card);margin:0 16px 12px;border-radius:var(--r);padding:16px 18px}
         .sechead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
         .sectitle{font-size:16px;font-weight:700}
         .empty{color:var(--txm);font-size:13px}
-        .evbadges{display:flex;flex-wrap:wrap;gap:8px}
+        .evlist{display:flex;flex-wrap:wrap;gap:8px}
         .evbadge{background:var(--card2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
 
-        /* pets */
         .petssec{margin:0 16px 12px}
-        .petshead{font-size:17px;font-weight:700;margin-bottom:12px}
-        .petsgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+        .phead{font-size:17px;font-weight:700;margin-bottom:12px}
+        .pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
         .petcard{background:var(--card);border-radius:var(--r);border:1.5px solid transparent;overflow:hidden}
-        .petphoto{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-        .petphph{width:100%;aspect-ratio:1;background:var(--card2);display:flex;align-items:center;justify-content:center}
-        .petinfo{padding:10px 10px 12px;display:flex;flex-direction:column;gap:5px}
-        .petname{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .petmeta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-        .raritybadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px}
-        .petlvl{font-size:12px;font-weight:700}
+        .pphoto{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+        .pphph{width:100%;aspect-ratio:1;background:var(--card2);display:flex;align-items:center;justify-content:center}
+        .pinfo{padding:10px 10px 12px;display:flex;flex-direction:column;gap:5px}
+        .pname{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .pmeta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+        .rbadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px}
+        .plvl{font-size:12px;font-weight:700}
 
-        /* achievements */
         .achsec{margin:0 16px 12px;background:var(--card);border-radius:var(--r);padding:18px 16px}
         .achhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
         .achtitle{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800}
         .ulbadge{background:rgba(232,148,58,.15);color:var(--or);font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid rgba(232,148,58,.35)}
-        .achcat{margin-bottom:20px}
-        .achcat:last-child{margin-bottom:0}
-        .achcathead{display:flex;align-items:center;justify-content:space-between;padding-left:10px;border-left:3px solid;margin-bottom:10px}
-        .achcathead>span:first-child{font-size:14px;font-weight:700}
-        .achcnt{font-size:12px;font-weight:700}
-        .achgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-        .achbadge{background:var(--card2);border-radius:12px;padding:12px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
-        .achbadge.lk{opacity:.4}
-        .achicon{width:48px;height:48px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center}
-        .achtxt{font-size:11px;font-weight:700;line-height:1.3}
-        .achst{font-size:9px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:3px}
+        .acat{margin-bottom:20px}
+        .acat:last-child{margin-bottom:0}
+        .acathead{display:flex;align-items:center;justify-content:space-between;padding-left:10px;border-left:3px solid;margin-bottom:10px}
+        .acathead>span:first-child{font-size:14px;font-weight:700}
+        .agrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+        .abadge{background:var(--card2);border-radius:12px;padding:12px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+        .alk{opacity:.4}
+        .aicon{width:48px;height:48px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center}
+        .atxt{font-size:11px;font-weight:700;line-height:1.3}
+        .ast{font-size:9px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:3px}
         .ul-st{color:#4CAF50}.lk-st{color:var(--txm)}
 
-        /* open in app */
         .openapp{margin:8px 16px 0;display:flex;flex-direction:column;align-items:center;gap:8px}
         .openbtn{display:block;width:100%;background:var(--or);color:#fff;text-align:center;text-decoration:none;font-size:16px;font-weight:700;padding:16px;border-radius:28px}
-        .storehint{font-size:12px;color:var(--txm);text-align:center}
+        .shint{font-size:12px;color:var(--txm);text-align:center}
     </style>
 </head>
 <body>
@@ -485,6 +462,7 @@
     <div id="loading">
         <div class="spin"></div>
         <p>Loading trainer profile...</p>
+        <p id="load-status"></p>
     </div>
     <div id="error">
         <img src="icons/lock.png" width="56" height="56" alt="" style="opacity:.5" />
