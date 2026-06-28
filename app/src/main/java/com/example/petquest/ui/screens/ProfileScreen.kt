@@ -241,8 +241,8 @@ fun ProfileScreen(
                     try { uid = firebaseRepository.ensureSignedIn() } catch (_: Exception) {}
 
                     // STEP 2: Upload photos and save profile to Firestore (best-effort).
-                    // We do NOT let a failure here block the share intent.
-                    try { firebaseRepository.pushProfile(profile) } catch (_: Exception) {}
+                    // Pass context so putStream() can open file:// and content:// URIs.
+                    try { firebaseRepository.pushProfile(profile, context) } catch (_: Exception) {}
 
                     val shareLink = if (uid != null) {
                         "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"
