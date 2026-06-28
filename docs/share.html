@@ -3,471 +3,356 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta property="og:title" content="PetQuest Trainer Profile" />
-    <meta property="og:description" content="Check out this PetQuest trainer!" />
-    <meta property="og:type" content="website" />
-    <title>PetQuest Trainer Profile</title>
-
-    <script type="module">
-        import { initializeApp }              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-          apiKey:            "AIzaSyDIcH9SSfX8vKBoefaohJ9MAk5nO4NxFZo",
-          authDomain:        "pet-quest-5f2eb.firebaseapp.com",
-          projectId:         "pet-quest-5f2eb",
-          storageBucket:     "pet-quest-5f2eb.firebasestorage.app",
-          messagingSenderId: "79374020591",
-          appId:             "1:79374020591:android:1aadf9cb300884392d101a"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db  = getFirestore(app);
-
-        const IC = {
-          paw:      "icons/paw.png",
-          star:     "icons/star.png",
-          flame:    "icons/flame.png",
-          heart:    "icons/heart.png",
-          trophy:   "icons/trophy.png",
-          compass:  "icons/compass.png",
-          lock:     "icons/lock.png",
-          check:    "icons/check.png",
-          camera:   "icons/camera.png",
-          shield:   "icons/shield.png",
-          bolt:     "icons/bolt.png",
-          bookmark: "icons/bookmark.png",
-          explore:  "icons/explore.png",
-          pets:     "icons/pets.png",
-          medal:    "icons/medal.png",
-        };
-
-        function ic(key, size) {
-          const s = size || 28;
-          return `<img src="${IC[key] || IC.paw}" width="${s}" height="${s}" alt="" />`;
-        }
-
-        const ACHIEVEMENT_CATEGORIES = [
-          {
-            name: "First Steps", color: "#4CAF50",
-            badges: [
-              { title: "First Pet",          icon: "paw"      },
-              { title: "First Verification", icon: "camera"   },
-              { title: "Pet Lover",          icon: "heart"    },
-              { title: "Own 5 Pets",         icon: "pets"     },
-              { title: "Own 10 Pets",        icon: "pets"     },
-              { title: "Verify 3 Pets",      icon: "camera"   },
-              { title: "Verify 5 Pets",      icon: "camera"   },
-              { title: "Verify 10 Pets",     icon: "camera"   },
-            ]
-          },
-          {
-            name: "Explorer", color: "#FF9800",
-            badges: [
-              { title: "Collector",          icon: "bookmark" },
-              { title: "Species Hunter",     icon: "explore"  },
-              { title: "5 Species",          icon: "compass"  },
-              { title: "10 Species",         icon: "compass"  },
-              { title: "15 Species",         icon: "compass"  },
-              { title: "20 Species",         icon: "compass"  },
-            ]
-          },
-          {
-            name: "Trainer", color: "#9C27B0",
-            badges: [
-              { title: "Dedicated Trainer",  icon: "paw"     },
-              { title: "Level 5",            icon: "star"    },
-              { title: "Level 10",           icon: "star"    },
-              { title: "Level 20",           icon: "star"    },
-              { title: "Level 50",           icon: "star"    },
-              { title: "Bond Master",        icon: "heart"   },
-              { title: "100 Bond Points",    icon: "heart"   },
-              { title: "500 Bond Points",    icon: "heart"   },
-            ]
-          },
-          {
-            name: "Streak", color: "#F44336",
-            badges: [
-              { title: "3 Day Streak",       icon: "flame"   },
-              { title: "7 Day Streak",       icon: "flame"   },
-              { title: "14 Day Streak",      icon: "flame"   },
-              { title: "30 Day Streak",      icon: "flame"   },
-              { title: "60 Day Streak",      icon: "flame"   },
-              { title: "100 Day Streak",     icon: "flame"   },
-            ]
-          },
-          {
-            name: "Tasks", color: "#2196F3",
-            badges: [
-              { title: "Task Starter",       icon: "check"   },
-              { title: "10 Tasks Done",      icon: "check"   },
-              { title: "50 Tasks Done",      icon: "check"   },
-              { title: "100 Tasks Done",     icon: "check"   },
-              { title: "Consistent",         icon: "bolt"    },
-            ]
-          },
-          {
-            name: "Social", color: "#00BCD4",
-            badges: [
-              { title: "Profile Shared",     icon: "shield"  },
-              { title: "Community Member",   icon: "shield"  },
-              { title: "Event Participant",  icon: "trophy"  },
-              { title: "Event Champion",     icon: "medal"   },
-            ]
-          },
-        ];
-
-        function getLevelTitle(level) {
-          if (level >= 50) return "Legendary Trainer";
-          if (level >= 30) return "Master Trainer";
-          if (level >= 20) return "Expert Trainer";
-          if (level >= 10) return "Advanced Trainer";
-          if (level >= 5)  return "Skilled Trainer";
-          if (level >= 3)  return "Rising Trainer";
-          return "Beginner Trainer";
-        }
-
-        function rarityColor(virtue) {
-          return ({
-            WISDOM: "#9C27B0", COURAGE: "#F44336", KINDNESS: "#E91E63",
-            LOYALTY: "#2196F3", CURIOSITY: "#FF9800", JOY: "#FFEB3B",
-          })[(virtue || "").toUpperCase()] || "#4CAF50";
-        }
-
-        function rarityInfo(rarity) {
-          return ({
-            COMMON:    { label: "Common",    color: "#9E9E9E" },
-            UNCOMMON:  { label: "Uncommon",  color: "#4CAF50" },
-            RARE:      { label: "Rare",      color: "#2196F3" },
-            EPIC:      { label: "Epic",      color: "#9C27B0" },
-            LEGENDARY: { label: "Legendary", color: "#FF9800" },
-          })[(rarity || "").toUpperCase()] || { label: rarity || "Common", color: "#9E9E9E" };
-        }
-
-        function esc(s) {
-          return String(s)
-            .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-            .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-        }
-
-        function setStatus(msg) {
-          const el = document.getElementById("load-status");
-          if (el) el.textContent = msg;
-        }
-
-        function showErr(msg) {
-          document.getElementById("loading").style.display = "none";
-          const el = document.getElementById("error");
-          el.style.display = "flex";
-          document.getElementById("errmsg").innerHTML = msg.replace(/\n/g, "<br/>");
-        }
-
-        window.addEventListener("DOMContentLoaded", async () => {
-          const uid = new URLSearchParams(location.search).get("uid");
-          if (!uid) {
-            showErr("No trainer ID in this link.\nAsk the trainer to share again from the app.");
-            return;
-          }
-
-          setStatus("Connecting...");
-
-          try {
-            setStatus("Fetching profile...");
-
-            const timeout = new Promise((_, rej) =>
-              setTimeout(() => rej(new Error("__timeout__")), 10000)
-            );
-            const docRef  = doc(db, "profiles", uid);
-            const snap    = await Promise.race([getDoc(docRef), timeout]);
-
-            if (!snap.exists()) {
-              showErr(
-                "Profile not found.\n\nUID: " + uid + "\n\n" +
-                "This usually means:\n" +
-                "- App data was cleared — the old link no longer works\n" +
-                "- The Share button was tapped before data finished saving\n\n" +
-                "Fix: Open PetQuest, tap Share Profile again to get a fresh link."
-              );
-              return;
-            }
-
-            render(snap.data(), uid);
-
-          } catch (e) {
-            if (e.message === "__timeout__") {
-              showErr(
-                "Connection timed out.\n\n" +
-                "Check that the Firebase projectId in share.html matches\n" +
-                "your google-services.json file."
-              );
-            } else {
-              console.error(e);
-              showErr("Error loading profile: " + e.message);
-            }
-          }
-        });
-
-        function isWebUrl(uri) {
-          return uri && (uri.startsWith("http://") || uri.startsWith("https://"));
-        }
-
-        function render(d, uid) {
-          document.getElementById("loading").style.display = "none";
-          const root = document.getElementById("profile");
-          root.style.display = "block";
-
-          const name        = d.trainerName       || "Trainer";
-          const level       = d.level             || 1;
-          const streak      = d.streak            || 0;
-          const bond        = d.bondPoints        || 0;
-          const petsCount   = d.petCount          || 0;
-          const species     = d.speciesCount      || 0;
-          const totalSp     = 29;
-          const xpCur       = d.xpCurrent         || 0;
-          const xpNext      = level * 100;
-          const unlocked    = new Set(d.unlockedBadgeTitles || []);
-          const pets        = Array.isArray(d.pets) ? d.pets : [];
-          const eventBadges = Array.isArray(d.eventBadges) ? d.eventBadges : [];
-          const photo       = isWebUrl(d.profilePhotoUrl) ? d.profilePhotoUrl : null;
-
-          document.title = `${name}'s PetQuest Profile`;
-          document.querySelector('[property="og:title"]').content =
-            `${name} — PetQuest Trainer`;
-          document.querySelector('[property="og:description"]').content =
-            `Level ${level} - ${unlocked.size} achievements - ${petsCount} pet${petsCount !== 1 ? "s" : ""}`;
-
-          const xpPct = Math.min(100, (xpCur / Math.max(xpNext, 1)) * 100).toFixed(1);
-          const spPct = Math.min(100, (species / totalSp) * 100).toFixed(1);
-
-          root.innerHTML = `
-
-            <div class="header">
-              <div class="hbrand">${ic("paw",22)}<span class="htitle">PETQUEST</span></div>
-              <div class="lvlbadge">Lv. ${level}</div>
-            </div>
-
-            <div class="avsec">
-              <div class="avwrap">
-                ${photo
-                  ? `<img class="avimg" src="${esc(photo)}" alt="${esc(name)}"
-                       onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
-                     <div class="avph" style="display:none">${ic("paw",44)}</div>`
-                  : `<div class="avph">${ic("paw",44)}</div>`}
-                <div class="pctbadge">${petsCount}</div>
-              </div>
-              <h1 class="tname">${esc(name)}</h1>
-              <p class="tsub">${esc(getLevelTitle(level))}</p>
-            </div>
-
-            <div class="lvlcard">
-              <div class="lvlcard-icon">${ic("paw",30)}</div>
-              <div class="lvlcard-body">
-                <div class="lvlcard-num">Level ${level}</div>
-                <div class="lvlcard-sub">
-                  <span>XP to next level</span><span>${xpCur} / ${xpNext}</span>
-                </div>
-                <div class="xpbg"><div class="xpfill" style="width:${xpPct}%"></div></div>
-              </div>
-            </div>
-
-            <div class="stats">
-              <div class="scard sbg-streak">${ic("flame",34)}<div class="sval" style="color:#FF7043">${streak}</div><div class="slbl">DAY STREAK</div></div>
-              <div class="scard sbg-bond">${ic("heart",34)}<div class="sval" style="color:#E91E63">${bond}</div><div class="slbl">BOND POINTS</div></div>
-              <div class="scard sbg-lvl">${ic("star",34)}<div class="sval" style="color:#FFC107">${level}</div><div class="slbl">LEVEL</div></div>
-              <div class="scard sbg-pets">${ic("paw",34)}<div class="sval" style="color:#4CAF50">${petsCount}</div><div class="slbl">PETS</div></div>
-            </div>
-
-            <div class="spcard">
-              <div class="sprow">
-                <div class="splbl">${ic("compass",20)} Species Collected</div>
-                <div class="spct">${species} / ${totalSp}</div>
-              </div>
-              <div class="spbarbg"><div class="spbarfill" style="width:${spPct}%"></div></div>
-            </div>
-
-            <div class="seccard">
-              <div class="sechead">${ic("trophy",20)}<span class="sectitle">Event Badges</span></div>
-              ${eventBadges.length === 0
-                ? `<p class="empty">No event badges earned yet.</p>`
-                : `<div class="evlist">${eventBadges.map(b =>
-                    `<div class="evbadge">${ic("trophy",18)}<span>${esc(b.name||b)}</span></div>`
-                  ).join("")}</div>`}
-            </div>
-
-            ${pets.length > 0 ? `
-            <div class="petssec">
-              <div class="phead">My Pets (${pets.length})</div>
-              <div class="pgrid">
-                ${pets.map(pet => {
-                  const rc = rarityColor(pet.virtue);
-                  const rl = rarityInfo(pet.rarity);
-                  const hasWebPhoto = isWebUrl(pet.photoUri);
-                  return `<div class="petcard" style="border-color:${rc}55">
-                    ${hasWebPhoto
-                      ? `<img class="pphoto" src="${esc(pet.photoUri)}" alt="${esc(pet.name||"Pet")}"
-                           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
-                         <div class="pphph" style="display:none">${ic("paw",36)}</div>`
-                      : `<div class="pphph">${ic("paw",36)}</div>`}
-                    <div class="pinfo">
-                      <div class="pname">${esc(pet.name||"Pet")}</div>
-                      <div class="pmeta">
-                        <span class="rbadge" style="background:${rl.color}22;color:${rl.color}">${rl.label}</span>
-                        <span class="plvl" style="color:${rc}">Lv.${pet.bondLevel||1}</span>
-                      </div>
-                    </div>
-                  </div>`;
-                }).join("")}
-              </div>
-            </div>` : ""}
-
-            <div class="achsec">
-              <div class="achhead">
-                <div class="achtitle">${ic("trophy",22)} Achievements</div>
-                ${unlocked.size > 0 ? `<span class="ulbadge">${unlocked.size} unlocked</span>` : ""}
-              </div>
-              ${ACHIEVEMENT_CATEGORIES.map(cat => {
-                const cnt = cat.badges.filter(b => unlocked.has(b.title)).length;
-                return `<div class="acat">
-                  <div class="acathead" style="border-left-color:${cat.color}">
-                    <span>${cat.name}</span>
-                    <span style="color:${cat.color};font-size:12px;font-weight:700">${cnt}/${cat.badges.length}</span>
-                  </div>
-                  <div class="agrid">
-                    ${cat.badges.map(badge => {
-                      const ul = unlocked.has(badge.title);
-                      return `<div class="abadge ${ul ? "aul" : "alk"}">
-                        <div class="aicon" style="${ul ? `background:${cat.color}22;border:1.5px solid ${cat.color}44` : ""}">
-                          ${ic(ul ? badge.icon : "lock", 28)}
-                        </div>
-                        <div class="atxt">${esc(badge.title)}</div>
-                        ${ul
-                          ? `<div class="ast ul-st">${ic("check",10)} UNLOCKED</div>`
-                          : `<div class="ast lk-st">LOCKED</div>`}
-                      </div>`;
-                    }).join("")}
-                  </div>
-                </div>`;
-              }).join("")}
-            </div>
-
-            <div class="openapp">
-              <a class="openbtn" href="petquest://share?uid=${uid}">Open in PetQuest</a>
-              <p class="shint">Don't have PetQuest? Search "PetQuest" on the Play Store.</p>
-            </div>
-          `;
-        }
-    </script>
-
+    <title>PetQuest – Trainer Profile</title>
     <style>
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        :root{
-          --or:#E8943A;--ord:#C4722A;--gr:#4CAF50;--grd:#2E7D32;
-          --bg:#121218;--card:#1E1E2A;--card2:#252532;
-          --tx:#fff;--txs:#B0B0C0;--txm:#6B6B80;--r:16px;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+          font-family: 'Segoe UI', sans-serif;
+          background: var(--bg, #121212);
+          color: var(--or, #fff);
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
         }
-        html,body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh}
-        body{display:flex;justify-content:center;padding:0 0 48px}
-        #root{width:100%;max-width:420px}
 
-        #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:16px}
-        .spin{width:48px;height:48px;border:4px solid #333;border-top-color:var(--or);border-radius:50%;animation:sp .8s linear infinite}
-        @keyframes sp{to{transform:rotate(360deg)}}
-        #loading p{color:var(--txs);font-size:15px}
-        #load-status{font-size:11px;color:#555;margin-top:8px;max-width:300px;text-align:center;word-break:break-all}
+        /* ── Loading ── */
+        #loading {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          height: 100vh;
+          width: 100%;
+        }
+        .spin {
+          width: 40px; height: 40px;
+          border: 4px solid #4CAF5040;
+          border-top-color: #4CAF50;
+          border-radius: 50%;
+          animation: spin .8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #load-status { font-size: 14px; color: #aaa; }
 
-        #error{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:12px;padding:32px;text-align:center}
-        #error h2{font-size:20px}
-        #errmsg{color:var(--txs);font-size:14px;line-height:1.6;margin-top:4px}
+        /* ── Error ── */
+        #error {
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          height: 100vh;
+          width: 100%;
+          text-align: center;
+          padding: 24px;
+        }
+        #error img { opacity: .5; margin-bottom: 8px; }
+        #error h2 { font-size: 20px; font-weight: 700; }
+        #errmsg { font-size: 14px; color: #aaa; }
 
-        #profile{display:none}
+        /* ── Profile card ── */
+        #profile { display: none; width: 100%; max-width: 480px; padding: 16px; }
 
-        .header{background:linear-gradient(135deg,var(--or),var(--ord));padding:18px 20px 22px;display:flex;align-items:center;justify-content:space-between}
-        .hbrand{display:flex;align-items:center;gap:8px}
-        .htitle{font-size:18px;font-weight:800;color:#fff;letter-spacing:2px}
-        .lvlbadge{background:rgba(255,255,255,.25);border:1.5px solid rgba(255,255,255,.5);color:#fff;font-size:14px;font-weight:700;padding:4px 12px;border-radius:20px}
+        .achead {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 16px;
+        }
+        .achtitle { font-size: 18px; font-weight: 800; }
+        .achead span:first-child { font-size: 14px; font-weight: 700; }
 
-        .avsec{background:linear-gradient(180deg,var(--ord),var(--bg));display:flex;flex-direction:column;align-items:center;padding:24px 20px 28px;gap:8px}
-        .avwrap{position:relative;width:90px;height:90px}
-        .avimg{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.8)}
-        .avph{width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center}
-        .pctbadge{position:absolute;bottom:2px;right:2px;background:var(--or);color:#fff;font-size:11px;font-weight:700;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
-        .tname{font-size:26px;font-weight:800;color:#fff}
-        .tsub{font-size:13px;color:rgba(255,255,255,.75);font-weight:500}
+        .agrid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+          margin-bottom: 16px;
+        }
 
-        .lvlcard{background:linear-gradient(135deg,var(--or),#D4752A);margin:0 16px 12px;border-radius:var(--r);padding:18px;display:flex;align-items:center;gap:16px}
-        .lvlcard-icon{background:rgba(255,255,255,.2);border-radius:12px;padding:11px;flex-shrink:0;display:flex}
-        .lvlcard-body{flex:1}
-        .lvlcard-num{font-size:24px;font-weight:800;color:#fff}
-        .lvlcard-sub{font-size:12px;color:rgba(255,255,255,.8);margin:2px 0 8px;display:flex;justify-content:space-between;font-weight:500}
-        .xpbg{background:rgba(255,255,255,.3);border-radius:4px;height:6px;overflow:hidden}
-        .xpfill{background:#fff;height:100%;border-radius:4px}
+        .abadge {
+          background: var(--card2, #1e1e1e);
+          border-radius: 12px;
+          padding: 12px 10px 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .alk { opacity: .4; }
+        .aicon {
+          width: 48px; height: 48px;
+          border-radius: 12px;
+          background: var(--card, #252525);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 4px;
+        }
+        .aicon svg { width: 28px; height: 28px; }
+        .atxt { font-size: 11px; font-weight: 700; line-height: 1.3; }
+        .ast  { font-size: 9px; font-weight: 700; letter-spacing: .5px; display: flex; align-items: center; }
+        .ul-st { color: #4CAF50; }
+        .lk-st { color: var(--txm, #888); }
 
-        .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 12px}
-        .scard{border-radius:var(--r);padding:18px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:5px}
-        .sbg-streak{background:#2A1A0A}.sbg-bond{background:#1A0A14}.sbg-lvl{background:#1A1A08}.sbg-pets{background:#0A1A10}
-        .sval{font-size:28px;font-weight:800;line-height:1}
-        .slbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--txm);font-weight:600}
+        /* Level banner */
+        .lvbanner {
+          background: linear-gradient(135deg, #4CAF50, #2e7d32);
+          border-radius: 12px;
+          padding: 16px;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .lvbanner-icon {
+          width: 52px; height: 52px;
+          background: rgba(255,255,255,.15);
+          border-radius: 12px;
+          display: flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .lvbanner-icon svg { width: 32px; height: 32px; fill: #fff; }
+        .lvbanner-info { flex: 1; }
+        .lvbanner-title { font-size: 20px; font-weight: 800; color: #fff; }
+        .lvbanner-sub   { font-size: 11px; color: rgba(255,255,255,.75); margin-top: 2px; }
+        .lvbar-wrap { margin-top: 6px; background: rgba(255,255,255,.2); border-radius: 99px; height: 6px; }
+        .lvbar      { height: 6px; border-radius: 99px; background: #fff; transition: width .4s; }
 
-        .spcard{background:var(--grd);margin:0 16px 12px;border-radius:var(--r);padding:16px 18px}
-        .sprow{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-        .splbl{display:flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:15px}
-        .spct{background:rgba(255,255,255,.2);color:#fff;font-size:13px;font-weight:700;padding:3px 10px;border-radius:12px}
-        .spbarbg{background:rgba(0,0,0,.25);border-radius:4px;height:6px;overflow:hidden}
-        .spbarfill{background:rgba(255,255,255,.7);height:100%;border-radius:4px}
+        /* Stats row */
+        .statsrow {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+        .statcard {
+          background: var(--card2, #1e1e1e);
+          border-radius: 12px;
+          padding: 14px;
+          text-align: center;
+        }
+        .statcard .val { font-size: 26px; font-weight: 800; }
+        .statcard .lbl { font-size: 11px; color: var(--txm, #888); margin-top: 2px; }
 
-        .seccard{background:var(--card);margin:0 16px 12px;border-radius:var(--r);padding:16px 18px}
-        .sechead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-        .sectitle{font-size:16px;font-weight:700}
-        .empty{color:var(--txm);font-size:13px}
-        .evlist{display:flex;flex-wrap:wrap;gap:8px}
-        .evbadge{background:var(--card2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
+        /* Section */
+        .section {
+          background: var(--card2, #1e1e1e);
+          border-radius: 12px;
+          padding: 14px;
+          margin-bottom: 10px;
+        }
+        .section-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+        .section-sub   { font-size: 12px; color: var(--txm, #888); }
 
-        .petssec{margin:0 16px 12px}
-        .phead{font-size:17px;font-weight:700;margin-bottom:12px}
-        .pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-        .petcard{background:var(--card);border-radius:var(--r);border:1.5px solid transparent;overflow:hidden}
-        .pphoto{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-        .pphph{width:100%;aspect-ratio:1;background:var(--card2);display:flex;align-items:center;justify-content:center}
-        .pinfo{padding:10px 10px 12px;display:flex;flex-direction:column;gap:5px}
-        .pname{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .pmeta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-        .rbadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px}
-        .plvl{font-size:12px;font-weight:700}
+        /* Species bar */
+        .spbar-wrap { background: var(--card, #252525); border-radius: 99px; height: 6px; margin-top: 8px; }
+        .spbar      { height: 6px; border-radius: 99px; background: #4CAF50; transition: width .4s; }
 
-        .achsec{margin:0 16px 12px;background:var(--card);border-radius:var(--r);padding:18px 16px}
-        .achhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-        .achtitle{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800}
-        .ulbadge{background:rgba(232,148,58,.15);color:var(--or);font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;border:1px solid rgba(232,148,58,.35)}
-        .acat{margin-bottom:20px}
-        .acat:last-child{margin-bottom:0}
-        .acathead{display:flex;align-items:center;justify-content:space-between;padding-left:10px;border-left:3px solid;margin-bottom:10px}
-        .acathead>span:first-child{font-size:14px;font-weight:700}
-        .agrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-        .abadge{background:var(--card2);border-radius:12px;padding:12px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
-        .alk{opacity:.4}
-        .aicon{width:48px;height:48px;border-radius:12px;background:var(--card);display:flex;align-items:center;justify-content:center}
-        .atxt{font-size:11px;font-weight:700;line-height:1.3}
-        .ast{font-size:9px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:3px}
-        .ul-st{color:#4CAF50}.lk-st{color:var(--txm)}
+        /* Pets list */
+        .pet-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 0;
+          border-bottom: 1px solid var(--card, #252525);
+        }
+        .pet-item:last-child { border-bottom: none; }
+        .pet-img {
+          width: 48px; height: 48px;
+          border-radius: 10px;
+          object-fit: cover;
+          background: var(--card, #252525);
+          flex-shrink: 0;
+        }
+        .pet-name { font-size: 13px; font-weight: 700; }
+        .pet-meta { font-size: 11px; color: var(--txm, #888); }
+        .pet-badge {
+          margin-left: auto;
+          font-size: 10px; font-weight: 700;
+          padding: 3px 8px;
+          border-radius: 99px;
+          background: var(--card, #252525);
+          color: var(--txm, #888);
+        }
 
-        .openapp{margin:8px 16px 0;display:flex;flex-direction:column;align-items:center;gap:8px}
-        .openbtn{display:block;width:100%;background:var(--or);color:#fff;text-align:center;text-decoration:none;font-size:16px;font-weight:700;padding:16px;border-radius:28px}
-        .shint{font-size:12px;color:var(--txm);text-align:center}
+        /* Open button */
+        .openapp {
+          margin: 8px 16px 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+        .openbtn {
+          display: block;
+          width: 100%;
+          background: var(--or, #4CAF50);
+          color: #fff;
+          font-size: 15px;
+          font-weight: 700;
+          text-align: center;
+          padding: 14px;
+          border-radius: 12px;
+          text-decoration: none;
+          letter-spacing: .3px;
+        }
+        .shint { font-size: 12px; color: var(--txm, #888); text-align: center; }
     </style>
 </head>
 <body>
-<div id="root">
-    <div id="loading">
-        <div class="spin"></div>
-        <p>Loading trainer profile...</p>
-        <p id="load-status"></p>
-    </div>
-    <div id="error">
-        <img src="icons/lock.png" width="56" height="56" alt="" style="opacity:.5" />
-        <h2>Profile not found</h2>
-        <p id="errmsg"></p>
-    </div>
-    <div id="profile"></div>
+
+<div id="loading">
+    <div class="spin"></div>
+    <p>Loading trainer profile...</p>
+    <p id="load-status"></p>
 </div>
+
+<div id="error">
+    <img src="icons/lock.png" width="56" height="56" alt="" style="opacity:.5" />
+    <h2>Profile not found</h2>
+    <div id="errmsg"></div>
+</div>
+
+<div id="profile"></div>
+
+<script type="module">
+    import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc }
+                                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey:            "AIzaSyDIcH9SSfX8vKBoefaohJ9MAk5nO4NxFZo",
+      authDomain:        "pet-quest-5f2eb.firebaseapp.com",
+      projectId:         "pet-quest-5f2eb",
+      storageBucket:     "pet-quest-5f2eb.firebasestorage.app",
+      messagingSenderId: "79374020591",
+      appId:             "1:79374020591:android:1aadf9cb300884392d101a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    /* ── Read uid from URL ── */
+    const params = new URLSearchParams(window.location.search);
+    const uid    = params.get("uid");          // ← captured in outer scope
+
+    const statusEl = document.getElementById("load-status");
+    const loadEl   = document.getElementById("loading");
+    const errorEl  = document.getElementById("error");
+    const errMsg   = document.getElementById("errmsg");
+    const profileEl= document.getElementById("profile");
+
+    function showError(msg) {
+      loadEl.style.display   = "none";
+      errorEl.style.display  = "flex";
+      errMsg.textContent     = msg;
+    }
+
+    if (!uid) {
+      showError("uid is not defined");
+      throw new Error("No uid in URL");
+    }
+
+    statusEl.textContent = "Fetching profile…";
+
+    try {
+      const snap = await getDoc(doc(db, "profiles", uid));
+
+      if (!snap.exists()) {
+        showError("This trainer hasn't set up their profile yet.");
+      } else {
+        const data = snap.data();
+        render(data, uid);   // ← uid passed explicitly
+      }
+    } catch (e) {
+      showError(e.message || "Failed to load profile.");
+    }
+
+    /* ── Render ── */
+    function render(data, profileUid) {       // ← uid received as parameter
+      loadEl.style.display    = "none";
+      profileEl.style.display = "block";
+
+      const name       = data.trainerName  || "Trainer";
+      const level      = data.level        ?? 1;
+      const xp         = data.xp           ?? 0;
+      const xpNext     = data.xpToNextLevel ?? 100;
+      const bondPts    = data.bondPoints   ?? 0;
+      const pets       = Array.isArray(data.pets) ? data.pets : [];
+      const species    = data.speciesCollected ?? 0;
+      const totalSp    = 29;
+      const spPct      = Math.round((species / totalSp) * 100);
+      const lvPct      = xpNext > 0 ? Math.min(100, Math.round((xp / xpNext) * 100)) : 0;
+
+      /* Deep link — profileUid is always the correct uid */
+      const deepLink = `petquest://share?uid=${encodeURIComponent(profileUid)}`;
+
+      profileEl.innerHTML = `
+        <div class="achead">
+          <span class="achtitle">Trainer Profile</span>
+        </div>
+
+        <div class="lvbanner">
+          <div class="lvbanner-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2 L15 9 L22 9.5 L17 14 L18.5 21 L12 17.5 L5.5 21 L7 14 L2 9.5 L9 9 Z"/>
+            </svg>
+          </div>
+          <div class="lvbanner-info">
+            <div class="lvbanner-title">Level ${level}</div>
+            <div class="lvbanner-sub">${xp} / ${xpNext} XP to next level</div>
+            <div class="lvbar-wrap"><div class="lvbar" style="width:${lvPct}%"></div></div>
+          </div>
+        </div>
+
+        <div class="statsrow">
+          <div class="statcard">
+            <div class="val">${bondPts}</div>
+            <div class="lbl">Total Bond Pts</div>
+          </div>
+          <div class="statcard">
+            <div class="val">${pets.length}</div>
+            <div class="lbl">Active Pets</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Species Collected</div>
+          <div class="section-sub">${species} / ${totalSp}</div>
+          <div class="spbar-wrap">
+            <div class="spbar" style="width:${spPct}%"></div>
+          </div>
+        </div>
+
+        ${pets.length > 0 ? `
+        <div class="section">
+          <div class="section-title">My Pets (${pets.length})</div>
+          ${pets.map(pet => `
+            <div class="pet-item">
+              ${pet.photoUrl
+                ? `<img class="pet-img" src="${pet.photoUrl}" alt="${pet.name}" />`
+                : `<div class="pet-img"></div>`
+              }
+              <div>
+                <div class="pet-name">${pet.name || "Unknown"}</div>
+                <div class="pet-meta">${pet.species || ""}</div>
+              </div>
+              <span class="pet-badge">Lv.${pet.level ?? 1}</span>
+            </div>
+          `).join("")}
+        </div>` : ""}
+
+        <div class="openapp" style="margin-bottom:24px;">
+          <a class="openbtn" href="${deepLink}">Open in PetQuest</a>
+          <p class="shint">Don't have the app? Search "PetQuest" in the Play Store.</p>
+        </div>
+      `;
+
+      /* Trainer name in page title */
+      document.title = `${name} – PetQuest`;
+    }
+</script>
 </body>
 </html>
