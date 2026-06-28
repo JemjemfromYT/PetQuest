@@ -3,432 +3,1097 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PetQuest – Trainer Profile</title>
+    <meta property="og:title" content="PetQuest Trainer Profile" />
+    <meta property="og:description" content="Check out this PetQuest trainer!" />
+    <meta property="og:type" content="website" />
+    <title>PetQuest Trainer Profile</title>
 
-    <meta property="og:title"       content="PetQuest Trainer Profile" />
-    <meta property="og:description" content="Check out this trainer's live PetQuest stats!" />
-    <meta property="og:type"        content="website" />
-    <meta property="og:image"       content="https://jemjemfromyt.github.io/PetQuest/og-image.png" />
-    <meta name="twitter:card"        content="summary_large_image" />
-    <meta name="twitter:title"       content="PetQuest Trainer Profile" />
-    <meta name="twitter:description" content="Check out this trainer's live PetQuest stats!" />
+    <!-- ============================================================
+         FIREBASE SDK
+         ============================================================ -->
+    <script type="module">
+        // ============================================================
+        // PASTE YOUR FIREBASE CONFIG HERE
+        // (copy it from your existing share.html or google-services.json)
+        // ============================================================
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        const firebaseConfig = {
+          apiKey: "YOUR_API_KEY",
+          authDomain: "YOUR_AUTH_DOMAIN",
+          databaseURL: "YOUR_DATABASE_URL",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_STORAGE_BUCKET",
+          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+          appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db  = getDatabase(app);
+
+        // ─── SVG ICON HELPERS ────────────────────────────────────────
+        const ICONS = {
+          paw: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="6"  cy="7"  r="2.2"/>
+            <circle cx="18" cy="7"  r="2.2"/>
+            <circle cx="3.5"  cy="12" r="1.7"/>
+            <circle cx="20.5" cy="12" r="1.7"/>
+            <path d="M12 10c-3.5 0-6.5 2.5-6.5 6 0 2.2 1.8 3.5 3.5 3.5.9 0 1.8-.3 2.5-.3s1.6.3 2.5.3c1.7 0 3.5-1.3 3.5-3.5 0-3.5-3-6-5.5-6z"/>
+          </svg>`,
+          star: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>`,
+          flame: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2c0 0-6 5.686-6 10.5a6 6 0 0 0 12 0C18 7.686 12 2 12 2zm0 15.5a3.5 3.5 0 0 1-3.5-3.5c0-2.239 2-4.732 3.5-6.5 1.5 1.768 3.5 4.261 3.5 6.5A3.5 3.5 0 0 1 12 17.5z"/>
+          </svg>`,
+          heart: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>`,
+          trophy: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 3H4v3c0 1.66 1.34 3 3 3v1c0 1.1.9 2 2 2h1v2H8v2h8v-2h-2v-2h1c1.1 0 2-.9 2-2V9c1.66 0 3-1.34 3-3V3h-3V1H7v2zM6 6H5V4h1v2zm8 3H10V5h4v4zm4-3h-1V4h1v2z"/>
+          </svg>`,
+          compass: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13l-4 8 8-4-4-4zm1 6.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+          </svg>`,
+          lock: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+          </svg>`,
+          check: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>`,
+          camera: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 15.2A3.2 3.2 0 1 0 12 8.8a3.2 3.2 0 0 0 0 6.4zM20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 13c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+          </svg>`,
+          person: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+          </svg>`,
+          shield: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+          </svg>`,
+          bolt: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
+          </svg>`,
+          bookmark: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+          </svg>`,
+          explore: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>`,
+          pets: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="4.5"  cy="9.5"  r="2.5"/>
+            <circle cx="9"    cy="5.5"  r="2.5"/>
+            <circle cx="15"   cy="5.5"  r="2.5"/>
+            <circle cx="19.5" cy="9.5"  r="2.5"/>
+            <path d="M17.34 14.86c-.87-1.02-1.6-1.89-2.48-2.91-.46-.54-1.05-1.08-1.75-1.32-.11-.04-.22-.07-.33-.09-.25-.04-.52-.04-.78-.04s-.53 0-.79.05c-.11.02-.22.05-.33.09-.7.24-1.28.78-1.75 1.32-.87 1.02-1.6 1.89-2.48 2.91-1.31 1.31-2.92 2.76-2.62 4.79.29 1.02 1.02 2.03 2.33 2.32.73.15 3.06-.44 5.54-.44h.18c2.48 0 4.81.58 5.54.44 1.31-.29 2.04-1.31 2.33-2.32.31-2.04-1.32-3.49-2.62-4.8z"/>
+          </svg>`,
+        };
+
+        // ─── ACHIEVEMENT DEFINITIONS ─────────────────────────────────
+        // Map each badge title to a display icon key and category
+        const ACHIEVEMENT_CATEGORIES = [
+          {
+            name: "First Steps",
+            color: "#4CAF50",
+            badges: [
+              { title: "First Pet",         icon: "paw"      },
+              { title: "First Verification",icon: "camera"   },
+              { title: "Pet Lover",         icon: "heart"    },
+              { title: "Own 5 Pets",        icon: "pets"     },
+              { title: "Own 10 Pets",       icon: "pets"     },
+              { title: "Verify 3 Pets",     icon: "camera"   },
+              { title: "Verify 5 Pets",     icon: "camera"   },
+              { title: "Verify 10 Pets",    icon: "camera"   },
+            ]
+          },
+          {
+            name: "Explorer",
+            color: "#FF9800",
+            badges: [
+              { title: "Collector",         icon: "bookmark" },
+              { title: "Species Hunter",    icon: "explore"  },
+              { title: "5 Species",         icon: "compass"  },
+              { title: "10 Species",        icon: "compass"  },
+              { title: "15 Species",        icon: "compass"  },
+              { title: "20 Species",        icon: "compass"  },
+            ]
+          },
+          {
+            name: "Trainer",
+            color: "#9C27B0",
+            badges: [
+              { title: "Dedicated Trainer", icon: "person"   },
+              { title: "Level 5",           icon: "star"     },
+              { title: "Level 10",          icon: "star"     },
+              { title: "Level 20",          icon: "star"     },
+              { title: "Level 50",          icon: "star"     },
+              { title: "Bond Master",       icon: "heart"    },
+              { title: "100 Bond Points",   icon: "heart"    },
+              { title: "500 Bond Points",   icon: "heart"    },
+            ]
+          },
+          {
+            name: "Streak",
+            color: "#F44336",
+            badges: [
+              { title: "3 Day Streak",      icon: "flame"    },
+              { title: "7 Day Streak",      icon: "flame"    },
+              { title: "14 Day Streak",     icon: "flame"    },
+              { title: "30 Day Streak",     icon: "flame"    },
+              { title: "60 Day Streak",     icon: "flame"    },
+              { title: "100 Day Streak",    icon: "flame"    },
+            ]
+          },
+          {
+            name: "Tasks",
+            color: "#2196F3",
+            badges: [
+              { title: "Task Starter",      icon: "check"    },
+              { title: "10 Tasks Done",     icon: "check"    },
+              { title: "50 Tasks Done",     icon: "check"    },
+              { title: "100 Tasks Done",    icon: "check"    },
+              { title: "Consistent",        icon: "bolt"     },
+            ]
+          },
+          {
+            name: "Social",
+            color: "#00BCD4",
+            badges: [
+              { title: "Profile Shared",    icon: "person"   },
+              { title: "Community Member",  icon: "shield"   },
+              { title: "Event Participant", icon: "trophy"   },
+              { title: "Event Champion",    icon: "trophy"   },
+            ]
+          },
+        ];
+
+        // ─── LEVEL TITLE HELPER ──────────────────────────────────────
+        function getLevelTitle(level) {
+          if (level >= 50) return "Legendary Trainer";
+          if (level >= 30) return "Master Trainer";
+          if (level >= 20) return "Expert Trainer";
+          if (level >= 10) return "Advanced Trainer";
+          if (level >= 5)  return "Skilled Trainer";
+          if (level >= 3)  return "Rising Trainer";
+          return "Beginner Trainer";
+        }
+
+        // ─── XP HELPER ───────────────────────────────────────────────
+        function getXpToNext(level) {
+          return level * 100;
+        }
+
+        // ─── RARITY COLOR ────────────────────────────────────────────
+        function rarityColor(virtue) {
+          const map = {
+            WISDOM:    "#9C27B0",
+            COURAGE:   "#F44336",
+            KINDNESS:  "#E91E63",
+            LOYALTY:   "#2196F3",
+            CURIOSITY: "#FF9800",
+            JOY:       "#FFEB3B",
+          };
+          return map[(virtue || "").toUpperCase()] || "#4CAF50";
+        }
+
+        function rarityLabel(rarity) {
+          const map = {
+            COMMON:    { label: "Common",    color: "#9E9E9E" },
+            UNCOMMON:  { label: "Uncommon",  color: "#4CAF50" },
+            RARE:      { label: "Rare",      color: "#2196F3" },
+            EPIC:      { label: "Epic",      color: "#9C27B0" },
+            LEGENDARY: { label: "Legendary", color: "#FF9800" },
+          };
+          return map[(rarity || "").toUpperCase()] || { label: rarity || "Common", color: "#9E9E9E" };
+        }
+
+        // ─── MAIN LOADER ─────────────────────────────────────────────
+        window.addEventListener("DOMContentLoaded", async () => {
+          const params = new URLSearchParams(window.location.search);
+          const uid    = params.get("uid");
+
+          if (!uid) {
+            showError("No trainer ID provided in the URL.");
+            return;
+          }
+
+          try {
+            // Try shared_profiles first (what HomeScreen pushes), fall back to users node
+            let snapshot = await get(ref(db, `shared_profiles/${uid}`));
+            if (!snapshot.exists()) {
+              snapshot = await get(ref(db, `users/${uid}`));
+            }
+            if (!snapshot.exists()) {
+              showError("Trainer profile not found. Ask them to share their profile again from the app.");
+              return;
+            }
+
+            render(snapshot.val());
+          } catch (e) {
+            console.error(e);
+            showError("Failed to load profile. Please try again later.");
+          }
+        });
+
+        // ─── RENDER ──────────────────────────────────────────────────
+        function render(data) {
+          document.getElementById("loading").style.display = "none";
+          const root = document.getElementById("profile");
+          root.style.display = "block";
+
+          const name           = data.name           || "Trainer";
+          const level          = data.level          || 1;
+          const streak         = data.streak         || data.dayStreak         || 0;
+          const bondPoints     = data.bondPoints      || data.totalBondPoints   || 0;
+          const petsCount      = Array.isArray(data.pets) ? data.pets.length
+                               : (data.petsCount || data.activePets || 0);
+          const speciesCount   = data.speciesCount   || data.speciesCollected  || 0;
+          const totalSpecies   = data.totalSpecies   || 29;
+          const xpCurrent      = data.xpCurrent      || data.xp               || 0;
+          const xpToNext       = data.xpToNext       || getXpToNext(level);
+          const unlockedTitles = new Set(data.unlockedBadgeTitles || []);
+          const pets           = Array.isArray(data.pets) ? data.pets : [];
+          const profilePhotoUrl= data.profilePhotoUrl || data.photoUri         || null;
+          const eventBadges    = Array.isArray(data.eventBadges) ? data.eventBadges : [];
+
+          // ── Meta og image ──────────────────────────────────────────
+          if (profilePhotoUrl) {
+            document.querySelector('meta[property="og:image"]')?.setAttribute("content", profilePhotoUrl);
+          }
+          document.title = `${name}'s PetQuest Profile`;
+          document.querySelector('meta[property="og:title"]').content = `${name} — PetQuest Trainer`;
+          document.querySelector('meta[property="og:description"]').content =
+            `Level ${level} trainer • ${unlockedTitles.size} achievements • ${petsCount} pet${petsCount !== 1 ? "s" : ""}`;
+
+          // ── HEADER ─────────────────────────────────────────────────
+          root.innerHTML = `
+            <!-- ───── HEADER ───── -->
+            <div class="header">
+              <div class="header-brand">
+                <span class="header-paw">${ICONS.paw}</span>
+                <span class="header-title">PETQUEST</span>
+              </div>
+              <div class="level-badge">Lv. ${level}</div>
+            </div>
+
+            <!-- ───── AVATAR SECTION ───── -->
+            <div class="avatar-section">
+              <div class="avatar-wrap">
+                ${profilePhotoUrl
+                  ? `<img class="avatar-img" src="${profilePhotoUrl}" alt="${name}" />`
+                  : `<div class="avatar-placeholder">${ICONS.paw}</div>`
+                }
+                <div class="pet-count-badge">${petsCount}</div>
+              </div>
+              <h1 class="trainer-name">${escHtml(name)}</h1>
+              <p class="trainer-subtitle">${getLevelTitle(level)}</p>
+            </div>
+
+            <!-- ───── LEVEL CARD ───── -->
+            <div class="level-card">
+              <div class="level-card-icon">${ICONS.paw}</div>
+              <div class="level-card-info">
+                <div class="level-card-title">Level ${level}</div>
+                <div class="level-card-sub">XP to next level <span>${xpCurrent} / ${xpToNext}</span></div>
+                <div class="xp-bar-bg"><div class="xp-bar-fill" style="width:${Math.min(100, (xpCurrent/Math.max(xpToNext,1))*100)}%"></div></div>
+              </div>
+            </div>
+
+            <!-- ───── STATS GRID ───── -->
+            <div class="stats-grid">
+              <div class="stat-card stat-streak">
+                <div class="stat-icon">${ICONS.flame}</div>
+                <div class="stat-value">${streak}</div>
+                <div class="stat-label">Day Streak</div>
+              </div>
+              <div class="stat-card stat-bond">
+                <div class="stat-icon">${ICONS.heart}</div>
+                <div class="stat-value">${bondPoints}</div>
+                <div class="stat-label">Bond Points</div>
+              </div>
+              <div class="stat-card stat-level">
+                <div class="stat-icon">${ICONS.star}</div>
+                <div class="stat-value">${level}</div>
+                <div class="stat-label">Level</div>
+              </div>
+              <div class="stat-card stat-pets">
+                <div class="stat-icon">${ICONS.paw}</div>
+                <div class="stat-value">${petsCount}</div>
+                <div class="stat-label">Pets</div>
+              </div>
+            </div>
+
+            <!-- ───── SPECIES COLLECTED ───── -->
+            <div class="species-card">
+              <div class="species-row">
+                <div class="species-label">
+                  <span class="species-icon">${ICONS.compass}</span>
+                  Species Collected
+                </div>
+                <div class="species-count">${speciesCount} / ${totalSpecies}</div>
+              </div>
+              <div class="species-bar-bg">
+                <div class="species-bar-fill" style="width:${Math.min(100,(speciesCount/Math.max(totalSpecies,1))*100)}%"></div>
+              </div>
+            </div>
+
+            <!-- ───── EVENT BADGES ───── -->
+            <div class="section-card">
+              <div class="section-header">
+                <span class="section-icon">${ICONS.trophy}</span>
+                <span class="section-title">Event Badges</span>
+              </div>
+              ${eventBadges.length === 0
+                ? `<p class="empty-text">No event badges earned yet.</p>`
+                : `<div class="event-badges-grid">${eventBadges.map(b =>
+                    `<div class="event-badge">
+                       <div class="event-badge-icon">${ICONS.trophy}</div>
+                       <div class="event-badge-name">${escHtml(b.name || b)}</div>
+                     </div>`).join("")}
+                   </div>`
+              }
+            </div>
+
+            <!-- ───── MY PETS ───── -->
+            ${pets.length > 0 ? `
+            <div class="my-pets-section">
+              <div class="my-pets-header">My Pets (${pets.length})</div>
+              <div class="pets-grid">
+                ${pets.map(pet => {
+                  const rc = rarityColor(pet.virtue);
+                  const rl = rarityLabel(pet.rarity);
+                  return `
+                  <div class="pet-card" style="border-color:${rc}33">
+                    ${pet.photoUri
+                      ? `<img class="pet-photo" src="${pet.photoUri}" alt="${escHtml(pet.name||'Pet')}" />`
+                      : `<div class="pet-photo-placeholder">${ICONS.paw}</div>`
+                    }
+                    <div class="pet-info">
+                      <div class="pet-name">${escHtml(pet.name || "Pet")}</div>
+                      <div class="pet-meta">
+                        <span class="rarity-badge" style="background:${rl.color}22;color:${rl.color}">${rl.label}</span>
+                        <span class="pet-level" style="color:${rc}">Lv.${pet.level || 1}</span>
+                      </div>
+                      ${pet.virtue ? `<div class="pet-virtue" style="color:${rc}">${ICONS.bolt} ${capitalize(pet.virtue)}</div>` : ""}
+                    </div>
+                  </div>`;
+                }).join("")}
+              </div>
+            </div>` : ""}
+
+            <!-- ───── ACHIEVEMENTS ───── -->
+            <div class="achievements-section">
+              <div class="achievements-header">
+                <div class="achievements-title">
+                  <span class="section-icon">${ICONS.trophy}</span>
+                  Achievements
+                </div>
+                ${unlockedTitles.size > 0
+                  ? `<span class="unlocked-badge">${unlockedTitles.size} unlocked</span>`
+                  : ""}
+              </div>
+              ${ACHIEVEMENT_CATEGORIES.map(cat => {
+                const catUnlocked = cat.badges.filter(b => unlockedTitles.has(b.title));
+                // Only show category if at least one badge is unlocked (or show all — toggle below)
+                // To show all categories always: remove the check below
+                return `
+                <div class="ach-category">
+                  <div class="ach-category-header" style="border-left-color:${cat.color}">
+                    <span>${cat.name}</span>
+                    <span class="ach-count" style="color:${cat.color}">${catUnlocked.length}/${cat.badges.length}</span>
+                  </div>
+                  <div class="ach-badges-grid">
+                    ${cat.badges.map(badge => {
+                      const unlocked = unlockedTitles.has(badge.title);
+                      return `
+                      <div class="ach-badge ${unlocked ? "unlocked" : "locked"}"
+                           style="${unlocked ? `--cat-color:${cat.color}` : ""}">
+                        <div class="ach-badge-icon" style="${unlocked ? `color:${cat.color}` : ""}">
+                          ${unlocked ? ICONS[badge.icon] || ICONS.paw : ICONS.lock}
+                        </div>
+                        <div class="ach-badge-title">${escHtml(badge.title)}</div>
+                        ${unlocked
+                          ? `<div class="ach-badge-status unlocked-status">${ICONS.check} UNLOCKED</div>`
+                          : `<div class="ach-badge-status locked-status">LOCKED</div>`}
+                      </div>`;
+                    }).join("")}
+                  </div>
+                </div>`;
+              }).join("")}
+            </div>
+
+            <!-- ───── OPEN IN APP ───── -->
+            <div class="open-app-section">
+              <a class="open-app-btn" href="intent://petquest#Intent;scheme=petquest;package=com.example.petquest;end">
+                Open in PetQuest
+              </a>
+              <p class="store-hint">Don't have PetQuest? Search "PetQuest" on the Play Store.</p>
+            </div>
+          `;
+        }
+
+        function showError(msg) {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("error").style.display = "block";
+          document.getElementById("error-msg").textContent = msg;
+        }
+
+        function escHtml(str) {
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        }
+
+        function capitalize(str) {
+          if (!str) return "";
+          return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        }
+    </script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* ─── RESET & BASE ─────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --orange:     #E8943A;
+          --orange-dark:#C4722A;
+          --green:      #4CAF50;
+          --green-dark: #2E7D32;
+          --bg:         #121218;
+          --card:       #1E1E2A;
+          --card2:      #252532;
+          --text:       #FFFFFF;
+          --text-sub:   #B0B0C0;
+          --text-muted: #6B6B80;
+          --radius:     16px;
+        }
+
+        html, body {
+          background: var(--bg);
+          color: var(--text);
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          min-height: 100vh;
+        }
 
         body {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          background: #111;
-          min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          padding: 0 0 48px;
+        }
+
+        #root {
+          width: 100%;
+          max-width: 420px;
+        }
+
+        /* ─── LOADING / ERROR ──────────────────────────────── */
+        #loading {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          gap: 16px;
+        }
+
+        .spinner {
+          width: 48px; height: 48px;
+          border: 4px solid #333;
+          border-top-color: var(--orange);
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #loading p { color: var(--text-sub); font-size: 15px; }
+
+        #error {
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          gap: 12px;
+          padding: 32px;
+          text-align: center;
+        }
+
+        #error-icon { font-size: 48px; }
+        #error h2 { color: var(--text); font-size: 20px; }
+        #error-msg { color: var(--text-sub); font-size: 14px; line-height: 1.5; }
+
+        /* ─── PROFILE ROOT ─────────────────────────────────── */
+        #profile { display: none; }
+
+        /* ─── HEADER ───────────────────────────────────────── */
+        .header {
+          background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
+          padding: 18px 20px 22px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .header-brand {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .header-paw {
+          width: 22px; height: 22px;
+          color: rgba(255,255,255,0.9);
+          display: flex;
+        }
+
+        .header-paw svg { width: 100%; height: 100%; }
+
+        .header-title {
+          font-size: 18px;
+          font-weight: 800;
+          color: #fff;
+          letter-spacing: 2px;
+        }
+
+        .level-badge {
+          background: rgba(255,255,255,0.25);
+          border: 1.5px solid rgba(255,255,255,0.5);
+          color: #fff;
+          font-size: 14px;
+          font-weight: 700;
+          padding: 4px 12px;
+          border-radius: 20px;
+        }
+
+        /* ─── AVATAR ───────────────────────────────────────── */
+        .avatar-section {
+          background: linear-gradient(180deg, var(--orange-dark) 0%, var(--bg) 100%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 24px 20px 28px;
+          gap: 8px;
+        }
+
+        .avatar-wrap {
+          position: relative;
+          width: 90px; height: 90px;
+        }
+
+        .avatar-img {
+          width: 90px; height: 90px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 3px solid rgba(255,255,255,0.8);
+        }
+
+        .avatar-placeholder {
+          width: 90px; height: 90px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.2);
+          border: 3px solid rgba(255,255,255,0.5);
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 20px;
+          color: rgba(255,255,255,0.8);
         }
 
-        /* ── Loading / Error ─────────────────────────────────────── */
-        .center-screen { text-align: center; color: white; }
-        .center-screen .paw { font-size: 56px; margin-bottom: 16px; }
-        .center-screen h2   { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-        .center-screen p    { font-size: 14px; opacity: 0.75; line-height: 1.5; max-width: 280px; }
+        .avatar-placeholder svg { width: 44px; height: 44px; }
 
-        .spinner {
-          width: 44px; height: 44px;
-          border: 4px solid rgba(255,255,255,0.15);
-          border-top-color: #FF8C42;
+        .pet-count-badge {
+          position: absolute;
+          bottom: 2px; right: 2px;
+          background: var(--orange);
+          color: #fff;
+          font-size: 11px;
+          font-weight: 700;
+          width: 22px; height: 22px;
           border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-          margin: 0 auto 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 2px solid var(--bg);
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Card ────────────────────────────────────────────────── */
-        .card {
-          background: #1C1C1E;
-          border-radius: 28px;
-          max-width: 390px;
-          width: 100%;
-          box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+        .trainer-name {
+          font-size: 26px;
+          font-weight: 800;
+          color: #fff;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        }
+
+        .trainer-subtitle {
+          font-size: 13px;
+          color: rgba(255,255,255,0.75);
+          font-weight: 500;
+        }
+
+        /* ─── LEVEL CARD ───────────────────────────────────── */
+        .level-card {
+          background: linear-gradient(135deg, var(--orange) 0%, #D4752A 100%);
+          margin: 0 16px 12px;
+          border-radius: var(--radius);
+          padding: 18px 18px 16px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .level-card-icon {
+          background: rgba(255,255,255,0.2);
+          border-radius: 12px;
+          padding: 12px;
+          flex-shrink: 0;
+          width: 52px; height: 52px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+        }
+
+        .level-card-icon svg { width: 28px; height: 28px; }
+
+        .level-card-info { flex: 1; }
+
+        .level-card-title {
+          font-size: 24px;
+          font-weight: 800;
+          color: #fff;
+        }
+
+        .level-card-sub {
+          font-size: 12px;
+          color: rgba(255,255,255,0.8);
+          margin: 2px 0 8px;
+          display: flex;
+          justify-content: space-between;
+        }
+
+        .level-card-sub span { font-weight: 600; }
+
+        .xp-bar-bg {
+          background: rgba(255,255,255,0.3);
+          border-radius: 4px;
+          height: 6px;
           overflow: hidden;
         }
 
-        /* Header */
-        .card-header {
-          background: linear-gradient(145deg, #FF8C42, #E65100);
-          padding: 28px 24px 32px;
-          text-align: center;
-          position: relative;
-        }
-        .logo-row {
-          font-size: 12px; font-weight: 700;
-          letter-spacing: 2.5px; color: rgba(255,255,255,0.7);
-          text-transform: uppercase; margin-bottom: 20px;
-        }
-        .avatar-ring {
-          width: 88px; height: 88px;
-          background: rgba(255,255,255,0.18);
-          border-radius: 50%;
-          border: 3px solid rgba(255,255,255,0.4);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 46px; margin: 0 auto 16px;
-          position: relative;
-        }
-        .pet-count-badge {
-          position: absolute; bottom: 0; right: 0;
-          background: white; color: #E65100;
-          font-size: 12px; font-weight: 800;
-          width: 24px; height: 24px;
-          border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          border: 2px solid rgba(255,255,255,0.5);
-        }
-        .trainer-name {
-          font-size: 28px; font-weight: 900;
-          color: white; margin-bottom: 4px; letter-spacing: -0.5px;
-        }
-        .trainer-sub {
-          font-size: 13px; color: rgba(255,255,255,0.75); font-weight: 500;
-        }
-        .level-badge {
-          position: absolute; top: 18px; right: 18px;
-          background: rgba(255,255,255,0.18);
-          border: 2px solid rgba(255,255,255,0.4);
-          border-radius: 50px; padding: 5px 13px;
-          font-size: 13px; font-weight: 800; color: white;
+        .xp-bar-fill {
+          background: #fff;
+          height: 100%;
+          border-radius: 4px;
+          transition: width 0.6s ease;
         }
 
-        /* Stats */
-        .stats-section { padding: 20px 16px 0; }
+        /* ─── STATS GRID ───────────────────────────────────── */
         .stats-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin: 0 16px 12px;
         }
+
         .stat-card {
-          border-radius: 18px; padding: 16px 10px; text-align: center;
+          border-radius: var(--radius);
+          padding: 18px 14px 14px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
         }
-        .s-icon  { font-size: 24px; margin-bottom: 6px; }
-        .s-value { font-size: 28px; font-weight: 900; line-height: 1; margin-bottom: 4px; }
-        .s-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.75; }
 
-        .sc-level  { background: #2D2500; }
-        .sc-level  .s-value { color: #FFD740; } .sc-level  .s-label { color: #FFB300; }
-        .sc-streak { background: #2A1500; }
-        .sc-streak .s-value { color: #FF8C42; } .sc-streak .s-label { color: #E65100; }
-        .sc-bond   { background: #2A0F1F; }
-        .sc-bond   .s-value { color: #F48FB1; } .sc-bond   .s-label { color: #E91E63; }
-        .sc-pets   { background: #0F2A14; }
-        .sc-pets   .s-value { color: #81C784; } .sc-pets   .s-label { color: #43A047; }
+        .stat-streak  { background: #2A1A0A; }
+        .stat-bond    { background: #1A0A14; }
+        .stat-level   { background: #1A1A08; }
+        .stat-pets    { background: #0A1A10; }
 
+        .stat-icon { width: 26px; height: 26px; display: flex; }
+        .stat-icon svg { width: 100%; height: 100%; }
+
+        .stat-streak  .stat-icon { color: #FF7043; }
+        .stat-bond    .stat-icon { color: #E91E63; }
+        .stat-level   .stat-icon { color: #FFC107; }
+        .stat-pets    .stat-icon { color: var(--green); }
+
+        .stat-value {
+          font-size: 28px;
+          font-weight: 800;
+          color: #fff;
+          line-height: 1;
+        }
+
+        .stat-streak  .stat-value { color: #FF7043; }
+        .stat-bond    .stat-value { color: #E91E63; }
+        .stat-level   .stat-value { color: #FFC107; }
+        .stat-pets    .stat-value { color: var(--green); }
+
+        .stat-label {
+          font-size: 10px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          color: var(--text-muted);
+          font-weight: 600;
+        }
+
+        /* ─── SPECIES CARD ─────────────────────────────────── */
         .species-card {
-          margin-top: 10px;
-          background: #0D1D2E; border-radius: 18px;
-          padding: 16px; display: flex; align-items: center; gap: 12px;
+          background: var(--green-dark);
+          margin: 0 16px 12px;
+          border-radius: var(--radius);
+          padding: 16px 18px;
         }
-        .sp-icon { font-size: 28px; }
-        .sp-value { font-size: 22px; font-weight: 900; color: #64B5F6; }
-        .sp-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1E88E5; }
 
-        /* Pets section */
-        .pets-section { padding: 20px 16px 0; }
-        .pets-section h3 {
-          font-size: 13px; font-weight: 700;
-          color: rgba(255,255,255,0.45);
-          text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+        .species-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
         }
+
+        .species-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #fff;
+          font-weight: 700;
+          font-size: 15px;
+        }
+
+        .species-icon { width: 20px; height: 20px; display: flex; color: rgba(255,255,255,0.8); }
+        .species-icon svg { width: 100%; height: 100%; }
+
+        .species-count {
+          background: rgba(255,255,255,0.2);
+          color: #fff;
+          font-size: 13px;
+          font-weight: 700;
+          padding: 3px 10px;
+          border-radius: 12px;
+        }
+
+        .species-bar-bg {
+          background: rgba(0,0,0,0.25);
+          border-radius: 4px;
+          height: 6px;
+          overflow: hidden;
+        }
+
+        .species-bar-fill {
+          background: rgba(255,255,255,0.7);
+          height: 100%;
+          border-radius: 4px;
+          transition: width 0.6s ease;
+        }
+
+        /* ─── GENERIC SECTION CARD ─────────────────────────── */
+        .section-card {
+          background: var(--card);
+          margin: 0 16px 12px;
+          border-radius: var(--radius);
+          padding: 16px 18px;
+        }
+
+        .section-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .section-icon { width: 20px; height: 20px; display: flex; color: var(--orange); }
+        .section-icon svg { width: 100%; height: 100%; }
+
+        .section-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--text);
+        }
+
+        .empty-text {
+          color: var(--text-muted);
+          font-size: 13px;
+        }
+
+        .event-badges-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .event-badge {
+          background: var(--card2);
+          border-radius: 10px;
+          padding: 10px 14px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .event-badge-icon { width: 18px; height: 18px; display: flex; color: var(--orange); }
+        .event-badge-icon svg { width: 100%; height: 100%; }
+
+        .event-badge-name { font-size: 12px; font-weight: 600; color: var(--text); }
+
+        /* ─── MY PETS ──────────────────────────────────────── */
+        .my-pets-section {
+          margin: 0 16px 12px;
+        }
+
+        .my-pets-header {
+          font-size: 17px;
+          font-weight: 700;
+          color: var(--text);
+          margin-bottom: 12px;
+        }
+
         .pets-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(102px, 1fr));
+          grid-template-columns: repeat(2, 1fr);
           gap: 10px;
         }
+
         .pet-card {
-          background: #2C2C2E; border-radius: 16px;
-          padding: 14px 8px; text-align: center;
+          background: var(--card);
+          border-radius: var(--radius);
           border: 1.5px solid transparent;
+          overflow: hidden;
         }
-        .pet-emoji  { font-size: 38px; margin-bottom: 6px; display: block; }
-        .pet-name   {
-          font-size: 13px; font-weight: 700; color: #fff;
-          margin-bottom: 5px; white-space: nowrap;
-          overflow: hidden; text-overflow: ellipsis;
-        }
-        .pet-rarity {
-          display: inline-block; font-size: 9px; font-weight: 700;
-          text-transform: uppercase; letter-spacing: 0.3px;
-          padding: 2px 7px; border-radius: 6px; margin-bottom: 5px;
-        }
-        .pet-level { font-size: 11px; color: rgba(255,255,255,0.45); }
 
-        .r-COMMON    { border-color: #616161; }
-        .r-COMMON    .pet-rarity { background: #424242; color: #BDBDBD; }
-        .r-UNCOMMON  { border-color: #388E3C; }
-        .r-UNCOMMON  .pet-rarity { background: #1B5E20; color: #A5D6A7; }
-        .r-RARE      { border-color: #1565C0; }
-        .r-RARE      .pet-rarity { background: #0D47A1; color: #90CAF9; }
-        .r-EPIC      { border-color: #6A1B9A; }
-        .r-EPIC      .pet-rarity { background: #4A148C; color: #CE93D8; }
-        .r-LEGENDARY { border-color: #F9A825; box-shadow: 0 0 12px rgba(249,168,37,0.3); }
-        .r-LEGENDARY .pet-rarity { background: #F57F17; color: #FFF9C4; }
+        .pet-photo {
+          width: 100%;
+          aspect-ratio: 1;
+          object-fit: cover;
+        }
 
-        /* CTA */
-        .cta-section { padding: 20px 16px; }
-        .open-btn {
+        .pet-photo-placeholder {
+          width: 100%;
+          aspect-ratio: 1;
+          background: var(--card2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-muted);
+        }
+
+        .pet-photo-placeholder svg { width: 40px; height: 40px; }
+
+        .pet-info {
+          padding: 10px 10px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .pet-name {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--text);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .pet-meta {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .rarity-badge {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 6px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .pet-level {
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .pet-virtue {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .pet-virtue svg { width: 12px; height: 12px; }
+
+        /* ─── ACHIEVEMENTS ─────────────────────────────────── */
+        .achievements-section {
+          margin: 0 16px 12px;
+          background: var(--card);
+          border-radius: var(--radius);
+          padding: 18px 16px;
+        }
+
+        .achievements-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 18px;
+        }
+
+        .achievements-title {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 18px;
+          font-weight: 800;
+          color: var(--text);
+        }
+
+        .unlocked-badge {
+          background: rgba(232, 148, 58, 0.2);
+          color: var(--orange);
+          font-size: 12px;
+          font-weight: 700;
+          padding: 4px 12px;
+          border-radius: 20px;
+          border: 1px solid rgba(232,148,58,0.4);
+        }
+
+        .ach-category {
+          margin-bottom: 20px;
+        }
+
+        .ach-category:last-child { margin-bottom: 0; }
+
+        .ach-category-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-left: 10px;
+          border-left: 3px solid;
+          margin-bottom: 10px;
+        }
+
+        .ach-category-header span:first-child {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--text);
+        }
+
+        .ach-count {
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .ach-badges-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+        }
+
+        .ach-badge {
+          background: var(--card2);
+          border-radius: 12px;
+          padding: 12px 10px 10px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          text-align: center;
+        }
+
+        .ach-badge.unlocked {
+          background: color-mix(in srgb, var(--cat-color, #4CAF50) 12%, var(--card2));
+          border: 1px solid color-mix(in srgb, var(--cat-color, #4CAF50) 35%, transparent);
+        }
+
+        .ach-badge.locked {
+          opacity: 0.45;
+        }
+
+        .ach-badge-icon {
+          width: 32px; height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-muted);
+        }
+
+        .ach-badge-icon svg { width: 100%; height: 100%; }
+
+        .ach-badge-title {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--text);
+          line-height: 1.3;
+        }
+
+        .ach-badge-status {
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: center;
+          gap: 3px;
+        }
+
+        .ach-badge-status svg { width: 10px; height: 10px; }
+
+        .unlocked-status { color: var(--green); }
+        .locked-status   { color: var(--text-muted); }
+
+        /* ─── OPEN IN APP ──────────────────────────────────── */
+        .open-app-section {
+          margin: 8px 16px 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .open-app-btn {
           display: block;
-          background: linear-gradient(135deg, #FF8C42, #E65100);
-          color: white; font-size: 16px; font-weight: 800;
-          text-align: center; padding: 17px; border-radius: 50px;
+          width: 100%;
+          background: var(--orange);
+          color: #fff;
+          text-align: center;
           text-decoration: none;
-          box-shadow: 0 8px 24px rgba(230,81,0,0.45);
-          letter-spacing: 0.3px;
-          transition: transform 0.12s, box-shadow 0.12s;
+          font-size: 16px;
+          font-weight: 700;
+          padding: 16px;
+          border-radius: 28px;
         }
-        .open-btn:active { transform: scale(0.97); }
-        .open-hint {
-          text-align: center; font-size: 12px;
-          color: rgba(255,255,255,0.3); margin-top: 10px;
+
+        .open-app-btn:active { background: var(--orange-dark); }
+
+        .store-hint {
+          font-size: 12px;
+          color: var(--text-muted);
+          text-align: center;
         }
     </style>
 </head>
 <body>
-
-<div id="loading" class="center-screen">
-    <div class="spinner"></div>
-    <h2>Loading Profile…</h2>
-    <p>Fetching this trainer's live PetQuest stats.</p>
-</div>
-
-<div id="error-no-uid" class="center-screen" style="display:none;">
-    <div class="paw">🐾</div>
-    <h2>Invalid Link</h2>
-    <p>This share link is missing a trainer ID. Ask your friend to share again from PetQuest.</p>
-</div>
-
-<div id="error-not-found" class="center-screen" style="display:none;">
-    <div class="paw">😔</div>
-    <h2>Profile Not Found</h2>
-    <p>This trainer may have uninstalled PetQuest, or the link has expired.</p>
-</div>
-
-<div id="error-network" class="center-screen" style="display:none;">
-    <div class="paw">📡</div>
-    <h2>Couldn't Load Profile</h2>
-    <p>Check your internet connection and try again.</p>
-</div>
-
-<div id="profile-card" class="card" style="display:none;">
-
-    <div class="card-header">
-        <div class="logo-row">🐾 PetQuest</div>
-        <div class="avatar-ring">
-            <span id="avatar-emoji">🐾</span>
-            <span class="pet-count-badge" id="pet-count-badge">0</span>
-        </div>
-        <div class="trainer-name" id="trainer-name">—</div>
-        <div class="trainer-sub"  id="trainer-sub">PetQuest Trainer</div>
-        <div class="level-badge"  id="level-badge">Lv. —</div>
+<div id="root">
+    <!-- LOADING -->
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Loading trainer profile...</p>
     </div>
 
-    <div class="stats-section">
-        <div class="stats-grid">
-            <div class="stat-card sc-level">
-                <div class="s-icon">⭐</div>
-                <div class="s-value" id="level-val">—</div>
-                <div class="s-label">Level</div>
-            </div>
-            <div class="stat-card sc-streak">
-                <div class="s-icon">🔥</div>
-                <div class="s-value" id="streak-val">—</div>
-                <div class="s-label">Day Streak</div>
-            </div>
-            <div class="stat-card sc-bond">
-                <div class="s-icon">💗</div>
-                <div class="s-value" id="bond-val">—</div>
-                <div class="s-label">Bond Points</div>
-            </div>
-            <div class="stat-card sc-pets">
-                <div class="s-icon">🐾</div>
-                <div class="s-value" id="pet-val">—</div>
-                <div class="s-label">Pets</div>
-            </div>
-        </div>
-
-        <div class="species-card">
-            <div class="sp-icon">🧭</div>
-            <div>
-                <div class="sp-value" id="species-val">—</div>
-                <div class="sp-label">Species Discovered</div>
-            </div>
-        </div>
+    <!-- ERROR -->
+    <div id="error" style="display:none;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:12px;padding:32px;text-align:center;">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="#6B6B80" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        </svg>
+        <h2 style="color:#fff;font-size:20px;">Profile not found</h2>
+        <p id="error-msg" style="color:#B0B0C0;font-size:14px;line-height:1.5;"></p>
     </div>
 
-    <div class="pets-section" id="pets-section" style="display:none;">
-        <h3>My Pets</h3>
-        <div class="pets-grid" id="pets-grid"></div>
-    </div>
-
-    <div class="cta-section">
-        <a id="open-btn" class="open-btn" href="#">Open in PetQuest</a>
-        <p class="open-hint">Don't have PetQuest? Search "PetQuest" on the Play Store.</p>
-    </div>
-
+    <!-- PROFILE (populated by JS) -->
+    <div id="profile"></div>
 </div>
-
-<script>
-    function show(id) { document.getElementById(id).style.display = ''; }
-    function hide(id) { document.getElementById(id).style.display = 'none'; }
-
-    // Parse a Firestore REST field value
-    function fv(field) {
-      if (!field) return null;
-      if ('stringValue'  in field) return field.stringValue;
-      if ('integerValue' in field) return parseInt(field.integerValue, 10);
-      if ('doubleValue'  in field) return field.doubleValue;
-      if ('booleanValue' in field) return field.booleanValue;
-      return null;
-    }
-
-    // Parse Firestore arrayValue of mapValues → plain array
-    function readPets(field) {
-      if (!field || !field.arrayValue) return [];
-      var vals = field.arrayValue.values || [];
-      return vals.map(function(v) {
-        var f = (v.mapValue && v.mapValue.fields) ? v.mapValue.fields : {};
-        return {
-          name:       fv(f.name)       || '',
-          species:    fv(f.species)    || '',
-          rarity:     fv(f.rarity)     || 'COMMON',
-          bondLevel:  fv(f.bondLevel)  || 1,
-          isVerified: fv(f.isVerified) || false
-        };
-      });
-    }
-
-    // Species → emoji (mirrors petEmoji() in HomeScreen.kt)
-    function petEmoji(s) {
-      switch ((s || '').toUpperCase()) {
-        case 'DOG':        return '🐶';
-        case 'CAT':        return '🐱';
-        case 'RABBIT':     return '🐰';
-        case 'HAMSTER':    return '🐹';
-        case 'BIRD':       return '🦜';
-        case 'FISH':       return '🐟';
-        case 'TURTLE':     return '🐢';
-        case 'LIZARD':     return '🦎';
-        case 'SNAKE':      return '🐍';
-        case 'HEDGEHOG':   return '🦔';
-        case 'CHICKEN':    return '🐔';
-        case 'GUINEA_PIG': return '🐭';
-        case 'FERRET':     return '🦦';
-        case 'HORSE':      return '🐴';
-        case 'DUCK':       return '🦆';
-        case 'FROG':       return '🐸';
-        case 'CRAB':       return '🦀';
-        case 'MONKEY':     return '🐒';
-        case 'FOX':        return '🦊';
-        case 'OWL':        return '🦉';
-        case 'PENGUIN':    return '🐧';
-        case 'PANDA':      return '🐼';
-        case 'GOAT':       return '🐐';
-        case 'PIG':        return '🐷';
-        case 'COW':        return '🐄';
-        case 'SHEEP':      return '🐑';
-        case 'DEER':       return '🦌';
-        case 'BEAR':       return '🐻';
-        case 'WOLF':       return '🐺';
-        default:           return '🐾';
-      }
-    }
-
-    // Level → trainer title (mirrors trainerTitle() in HomeScreen.kt)
-    function trainerTitle(level) {
-      if (level >= 50) return 'Legendary Keeper';
-      if (level >= 40) return 'Grand Master';
-      if (level >= 30) return 'Master Trainer';
-      if (level >= 20) return 'Devoted Trainer';
-      if (level >= 10) return 'Caretaker';
-      return 'Beginner';
-    }
-
-    function cap(s) {
-      if (!s) return '';
-      return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-    }
-
-    // ── Main ──────────────────────────────────────────────────────────────────
-    var params = new URLSearchParams(window.location.search);
-    var uid    = params.get('uid') || '';
-
-    if (!uid) {
-      hide('loading');
-      show('error-no-uid');
-    } else {
-      document.getElementById('open-btn').href = 'petquest://share?uid=' + encodeURIComponent(uid);
-
-      var PROJECT_ID = 'pet-quest-5f2eb';
-      var API_KEY    = 'AIzaSyDIcH9SSfX8vKBoefaohJ9MAk5nO4NxFZo';
-      var url = 'https://firestore.googleapis.com/v1/projects/' + PROJECT_ID +
-                '/databases/(default)/documents/profiles/' +
-                encodeURIComponent(uid) + '?key=' + API_KEY;
-
-      fetch(url)
-        .then(function(res) {
-          if (res.status === 404) throw { type: 'not-found' };
-          if (!res.ok) throw { type: 'network' };
-          return res.json();
-        })
-        .then(function(data) {
-          var f = data.fields || {};
-
-          var name         = fv(f.trainerName)  || 'Unknown Trainer';
-          var level        = fv(f.level)         || 1;
-          var streak       = fv(f.streak)        || 0;
-          var bondPoints   = fv(f.bondPoints)    || 0;
-          var petCount     = fv(f.petCount)      || 0;
-          var speciesCount = fv(f.speciesCount)  || 0;
-          var pets         = readPets(f.pets);
-          var title        = trainerTitle(level);
-
-          // Avatar = first pet's emoji
-          var firstEmoji = pets.length > 0 ? petEmoji(pets[0].species) : '🐾';
-          document.getElementById('avatar-emoji').textContent    = firstEmoji;
-          document.getElementById('pet-count-badge').textContent = petCount;
-          document.getElementById('trainer-name').textContent    = name;
-          document.getElementById('trainer-sub').textContent     = title + ' · Level ' + level;
-          document.getElementById('level-badge').textContent     = 'Lv. ' + level;
-
-          document.getElementById('level-val').textContent   = level;
-          document.getElementById('streak-val').textContent  = streak;
-          document.getElementById('bond-val').textContent    = bondPoints;
-          document.getElementById('pet-val').textContent     = petCount;
-          document.getElementById('species-val').textContent = speciesCount + ' species';
-
-          // Build pet cards
-          if (pets.length > 0) {
-            var grid = document.getElementById('pets-grid');
-            pets.forEach(function(pet) {
-              var rarityKey = (pet.rarity || 'COMMON').toUpperCase();
-              var card = document.createElement('div');
-              card.className = 'pet-card r-' + rarityKey;
-              card.innerHTML =
-                '<span class="pet-emoji">' + petEmoji(pet.species) + '</span>' +
-                '<div class="pet-name">'  + (pet.name || 'Pet') + '</div>' +
-                '<span class="pet-rarity">' + cap(pet.rarity) + '</span>' +
-                '<div class="pet-level">Lv. ' + (pet.bondLevel || 1) + '</div>';
-              grid.appendChild(card);
-            });
-            show('pets-section');
-          }
-
-          hide('loading');
-          show('profile-card');
-        })
-        .catch(function(err) {
-          hide('loading');
-          if (err && err.type === 'not-found') {
-            show('error-not-found');
-          } else {
-            show('error-network');
-          }
-        });
-    }
-</script>
 </body>
 </html>
