@@ -305,8 +305,8 @@
                   const rc=rarityColor(pet.virtue);
                   const rl=rarityInfo(pet.rarity);
                   return `<div class="petcard" style="border-color:${rc}55">
-                    ${pet.photoUri
-                      ? `<img class="pphoto" src="${esc(pet.photoUri)}" alt="${esc(pet.name||"Pet")}" />`
+                    ${pet.photoUri && (pet.photoUri.startsWith("http://") || pet.photoUri.startsWith("https://"))
+                      ? `<img class="pphoto" src="${esc(pet.photoUri)}" alt="${esc(pet.name||"Pet")}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="pphph" style="display:none">${ic("paw",36)}</div>`
                       : `<div class="pphph">${ic("paw",36)}</div>`}
                     <div class="pinfo">
                       <div class="pname">${esc(pet.name||"Pet")}</div>
