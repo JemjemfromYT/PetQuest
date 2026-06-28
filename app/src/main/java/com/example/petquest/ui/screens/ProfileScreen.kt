@@ -1,3 +1,17 @@
+// ============================================================
+// FILE: app/src/main/java/com/example/petquest/ui/screens/ProfileScreen.kt
+//
+// CHANGES vs GitHub:
+//   1. Added isSyncing state (shows spinner banner during auto-sync)
+//   2. Wrapped both auto-sync LaunchedEffect + DisposableEffect with isSyncing
+//   3. Added SyncBanner item at top of LazyColumn
+//   4. Added SyncBanner composable at bottom of file
+//   5. Added required animation imports
+//
+// Everything else is IDENTICAL to the GitHub version.
+// No new classes or files needed — do NOT create Pet.kt.
+// ============================================================
+
 package com.example.petquest.ui.screens
 
 import android.Manifest
@@ -7,11 +21,19 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -74,15 +96,15 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current
 
-    val pets                by viewModel.allPets.collectAsState()
-    val userLevel           by viewModel.userLevel.collectAsState()
-    val totalBondPoints     by viewModel.totalBondPoints.collectAsState()
-    val collectedSpecies    by viewModel.collectedSpecies.collectAsState()
-    val allAchievements     by viewModel.allAchievements.collectAsState()
+    val pets                 by viewModel.allPets.collectAsState()
+    val userLevel            by viewModel.userLevel.collectAsState()
+    val totalBondPoints      by viewModel.totalBondPoints.collectAsState()
+    val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
+    val allAchievements      by viewModel.allAchievements.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
-    val notificationHour    by viewModel.notificationHour.collectAsState()
-    val notificationMinute  by viewModel.notificationMinute.collectAsState()
-    val userStreak          by viewModel.userStreak.collectAsState()
+    val notificationHour     by viewModel.notificationHour.collectAsState()
+    val notificationMinute   by viewModel.notificationMinute.collectAsState()
+    val userStreak           by viewModel.userStreak.collectAsState()
 
     val speciesCount = collectedSpecies.size
     val totalSpecies = PetType.entries.size
@@ -110,6 +132,8 @@ fun ProfileScreen(
 
     val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
+    // ── NEW: tracks when background auto-sync is running ─────────────────────
+    var isSyncing        by remember { mutableStateOf(false) }
 
     // ── Helper: build current PublicProfile from live state ──────────────────
     fun buildCurrentProfile() = PublicProfile(
@@ -136,27 +160,33 @@ fun ProfileScreen(
     // ── Auto-sync 1: push whenever pet count or badge count changes ────────
     LaunchedEffect(pets.size, allAchievements.count { it.isUnlocked }) {
         kotlinx.coroutines.delay(800)
-        try {
-            if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
+        if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
+            isSyncing = true
+            try {
                 firebaseRepository.pushProfile(buildCurrentProfile())
+            } catch (_: Exception) {
+            } finally {
+                isSyncing = false
             }
-        } catch (_: Exception) {}
+        }
     }
 
     // ── Auto-sync 2: also push every time the user RETURNS to this screen ──
-    // Covers the case where a pet was added in another screen and the user
-    // comes back — the new pet will be included automatically.
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 scope.launch {
                     kotlinx.coroutines.delay(500)
-                    try {
-                        if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
+                    if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
+                        isSyncing = true
+                        try {
                             firebaseRepository.pushProfile(buildCurrentProfile())
+                        } catch (_: Exception) {
+                        } finally {
+                            isSyncing = false
                         }
-                    } catch (_: Exception) {}
+                    }
                 }
             }
         }
@@ -214,7 +244,6 @@ fun ProfileScreen(
     }
 
     val shareProfile: () -> Unit = {
-        // Guard against double-tap
         if (!isSharingProfile) {
             scope.launch {
                 isSharingProfile = true
@@ -223,7 +252,6 @@ fun ProfileScreen(
                     firebaseRepository.pushProfile(profile)
                     val uid = firebaseRepository.getMyUid() ?: return@launch
 
-                    // Single link at top — prevents messenger apps from showing it twice
                     val shareLink = "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"
                     val shareText = buildString {
                         append(shareLink)
@@ -340,6 +368,17 @@ fun ProfileScreen(
             contentPadding      = PaddingValues(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
+            // ── Sync banner — visible during background photo upload ──────────
+            item {
+                AnimatedVisibility(
+                    visible = isSyncing,
+                    enter   = fadeIn(tween(300)),
+                    exit    = fadeOut(tween(600))
+                ) {
+                    SyncBanner()
+                }
+            }
 
             // ── Trainer level card ────────────────────────────────────────────
             item {
@@ -644,6 +683,49 @@ fun ProfileScreen(
             }
 
             item { Spacer(Modifier.height(8.dp)) }
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Sync Banner — pulsing orange strip while photos are uploading to Firebase
+// ──────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun SyncBanner() {
+    val transition = rememberInfiniteTransition(label = "syncPulse")
+    val bannerAlpha by transition.animateFloat(
+        initialValue  = 0.60f,
+        targetValue   = 1f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(700, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "bannerAlpha"
+    )
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer { alpha = bannerAlpha },
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFFFFF3E0)
+    ) {
+        Row(
+            modifier              = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            CircularProgressIndicator(
+                modifier    = Modifier.size(16.dp),
+                strokeWidth = 2.dp,
+                color       = Color(0xFFE65100)
+            )
+            Text(
+                text       = "Syncing photos to share link…",
+                fontSize   = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color      = Color(0xFFE65100)
+            )
         }
     }
 }

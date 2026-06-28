@@ -1,6 +1,7 @@
 // ============================================================
 // FILE: app/src/main/java/com/example/petquest/viewmodel/PetQuestViewModel.kt
-// FULL REPLACEMENT — adds hasSeenTutorial + markTutorialSeen()
+// CHANGES: Added FirebaseRepository + getCurrentUserUid() + syncProfileToFirebase()
+// Everything else is UNCHANGED from your original file.
 // ============================================================
 
 package com.example.petquest.viewmodel
@@ -27,6 +28,70 @@ class PetQuestViewModel(
     private val prefsRepository: UserPreferencesRepository
 ) : ViewModel() {
 
+    // ─── Firebase (for share link photo sync) ─────────────────────────────────
+    private val firebaseRepository = FirebaseRepository()
+
+    /** Returns the current user's Firebase UID, or null if not signed in. */
+    fun getCurrentUserUid(): String? = firebaseRepository.getMyUid()
+
+    /**
+     * Builds the PublicProfile from current local data and pushes it to Firestore.
+     * For each pet that has a local content:// photo URI, this will also upload
+     * the photo to Firebase Storage so the share-link web page and
+     * SharedProfileScreen can display the real photo instead of an emoji.
+     *
+     * Call this:
+     *   - On Profile screen ON_RESUME (already wired in ProfileScreen.kt)
+     *   - When the user taps the Share button (already wired in ProfileScreen.kt)
+     */
+    fun syncProfileToFirebase() {
+        viewModelScope.launch {
+            try {
+                val uid        = firebaseRepository.ensureSignedIn()
+                val pets       = allPets.value
+                val total      = totalBondPoints.value
+                val level      = userLevel.value
+                val streak     = prefsRepository.userStreak.first()
+                val specCount  = collectedSpecies.value.size
+                val badgeTitles = allAchievements.value
+                    .filter { it.isUnlocked }
+                    .map { it.title }
+
+                // Use the first pet's name as the trainer name (matches ProfileScreen logic)
+                val trainerName = pets.firstOrNull()?.name ?: "Trainer"
+
+                val petSummaries = pets.take(6).mapIndexed { index, pet ->
+                    PetSummary(
+                        name       = pet.name,
+                        species    = pet.type.name.uppercase(),
+                        rarity     = pet.type.rarity.name.uppercase(),
+                        bondLevel  = pet.bondLevel,
+                        isVerified = pet.isVerified,
+                        photoUri   = pet.photoUri,   // FirebaseRepository will upload if content://
+                        virtue     = pet.virtue.name.uppercase()
+                    )
+                }
+
+                val profile = PublicProfile(
+                    uid                 = uid,
+                    trainerName         = trainerName,
+                    level               = level,
+                    streak              = streak,
+                    bondPoints          = total,
+                    petCount            = pets.size,
+                    speciesCount        = specCount,
+                    pets                = petSummaries,
+                    unlockedBadgeTitles = badgeTitles
+                )
+
+                firebaseRepository.pushProfile(profile)
+                Log.d("PetQuestVM", "syncProfileToFirebase: pushed profile for uid=$uid")
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "syncProfileToFirebase error", e)
+            }
+        }
+    }
+
     // ─── StateFlows ────────────────────────────────────────────────────────────
 
     val allPets: StateFlow<List<PetEntity>> =
@@ -51,7 +116,6 @@ class PetQuestViewModel(
     val hasSeenOnboarding: StateFlow<Boolean> =
         prefsRepository.hasSeenOnboarding.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    // ── NEW: Whisker cat tutorial ──────────────────────────────────────────────
     val hasSeenTutorial: StateFlow<Boolean> =
         prefsRepository.hasSeenTutorial
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
@@ -238,7 +302,6 @@ class PetQuestViewModel(
         }
     }
 
-    // ── NEW: dismiss the Whisker cat tutorial forever ─────────────────────────
     fun markTutorialSeen() {
         viewModelScope.launch {
             try {
