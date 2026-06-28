@@ -146,7 +146,7 @@ fun ProfileScreen(
         if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
             isSyncing = true
             try {
-                firebaseRepository.pushProfile(buildCurrentProfile())
+                firebaseRepository.pushProfile(buildCurrentProfile(), context)
             } catch (_: Exception) {
             } finally {
                 isSyncing = false
@@ -163,7 +163,7 @@ fun ProfileScreen(
                     if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
                         isSyncing = true
                         try {
-                            firebaseRepository.pushProfile(buildCurrentProfile())
+                            firebaseRepository.pushProfile(buildCurrentProfile(), context)
                         } catch (_: Exception) {
                         } finally {
                             isSyncing = false
