@@ -146,7 +146,7 @@ fun ProfileScreen(
         if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
             isSyncing = true
             try {
-                firebaseRepository.pushProfile(buildCurrentProfile(), context)
+                firebaseRepository.pushProfile(buildCurrentProfile())
             } catch (_: Exception) {
             } finally {
                 isSyncing = false
@@ -163,7 +163,7 @@ fun ProfileScreen(
                     if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
                         isSyncing = true
                         try {
-                            firebaseRepository.pushProfile(buildCurrentProfile(), context)
+                            firebaseRepository.pushProfile(buildCurrentProfile())
                         } catch (_: Exception) {
                         } finally {
                             isSyncing = false
@@ -241,8 +241,7 @@ fun ProfileScreen(
                     try { uid = firebaseRepository.ensureSignedIn() } catch (_: Exception) {}
 
                     // STEP 2: Upload photos and save profile to Firestore (best-effort).
-                    // Pass context so putStream() can open file:// and content:// URIs.
-                    try { firebaseRepository.pushProfile(profile, context) } catch (_: Exception) {}
+                    try { firebaseRepository.pushProfile(profile) } catch (_: Exception) {}
 
                     val shareLink = if (uid != null) {
                         "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"

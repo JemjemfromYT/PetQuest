@@ -1,7 +1,7 @@
 package com.example.petquest.data.repository
 
-import android.content.Context
 import android.net.Uri
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -38,12 +38,13 @@ class FirebaseRepository {
     private val db      = Firebase.firestore
     private val storage = Firebase.storage
 
-    // In-memory cache: local URI string -> Firebase Storage download URL.
-    // Prevents re-uploading the same photo every time pushProfile is called.
+    // Application context — always valid because Firebase was initialised with it
+    private val appContext get() = FirebaseApp.getInstance().applicationContext
+
+    // In-memory cache: local URI string -> Firebase Storage download URL
     private val photoCache = mutableMapOf<String, String>()
 
-    // Persistent URL cache keyed by "uid/petIndex" -> download URL.
-    // Survives within the same app session so already-uploaded URLs are never lost.
+    // Session cache: "uid/petIndex" -> download URL (preserves URLs across pushProfile calls)
     private val savedUrlCache = mutableMapOf<String, String>()
 
     suspend fun ensureSignedIn(): String {
@@ -58,67 +59,52 @@ class FirebaseRepository {
 
     /**
      * Open a local URI as an InputStream.
-     *
-     * Handles both file:// URIs (internal app storage, e.g. from CameraX) and
-     * content:// URIs (MediaStore / gallery picks).
+     * Handles file:// (CameraX internal storage) and content:// (MediaStore / gallery).
      */
-    private fun openUriStream(context: Context, uri: Uri): java.io.InputStream? {
+    private fun openUriStream(uri: Uri): java.io.InputStream? {
         return if (uri.scheme == "file") {
             val path = uri.path ?: return null
             val file = File(path)
             if (file.exists()) file.inputStream() else null
         } else {
-            context.contentResolver.openInputStream(uri)
+            appContext.contentResolver.openInputStream(uri)
         }
     }
 
     /**
-     * Upload a single pet photo to Firebase Storage and return the download URL.
-     * Uses putStream() so it works for both file:// and content:// URIs.
+     * Upload one pet photo to Firebase Storage and return the https download URL.
+     * Uses putStream() which works for both file:// and content:// URIs.
      */
     private suspend fun uploadPetPhoto(
-        context  : Context,
         uid      : String,
         index    : Int,
         petName  : String,
         uriString: String
     ): String? {
-        val uri = Uri.parse(uriString)
-        val safeKey = petName.lowercase()
-            .replace(Regex("[^a-z0-9]"), "_")
-            .take(40)
-        val storageRef = storage.reference
-            .child("pet_photos/$uid/${safeKey}_$index.jpg")
-
-        val stream = openUriStream(context, uri) ?: return null
+        val uri      = Uri.parse(uriString)
+        val safeKey  = petName.lowercase().replace(Regex("[^a-z0-9]"), "_").take(40)
+        val storageRef = storage.reference.child("pet_photos/$uid/${safeKey}_$index.jpg")
+        val stream   = openUriStream(uri) ?: return null
         return try {
-            stream.use { s ->
-                storageRef.putStream(s).await()
-            }
+            stream.use { s -> storageRef.putStream(s).await() }
             storageRef.downloadUrl.await().toString()
         } catch (_: Exception) {
             null
         }
     }
 
-    suspend fun pushProfile(profile: PublicProfile, context: Context) {
+    suspend fun pushProfile(profile: PublicProfile) {
         val uid = ensureSignedIn()
 
-        // ── Step 1: Fetch whatever is already saved in Firestore ────────────
-        // This lets us preserve existing photo URLs if a new upload fails.
+        // ── Step 1: Load existing Firestore data so we can fall back to saved URLs ──
         val existingPets: List<PetSummary> = try {
-            db.collection("profiles")
-                .document(uid)
-                .get()
-                .await()
-                .toObject(PublicProfile::class.java)
-                ?.pets
-                ?: emptyList()
+            db.collection("profiles").document(uid).get().await()
+                .toObject(PublicProfile::class.java)?.pets ?: emptyList()
         } catch (_: Exception) {
             emptyList()
         }
 
-        // Populate savedUrlCache from Firestore so we don't re-upload unnecessarily.
+        // Warm the session cache from what Firestore already has
         existingPets.forEachIndexed { index, pet ->
             val url = pet.photoUri
             if (url != null && url.startsWith("https://")) {
@@ -126,7 +112,7 @@ class FirebaseRepository {
             }
         }
 
-        // ── Step 2: Upload any new local photos ─────────────────────────────
+        // ── Step 2: Upload any new local photos ────────────────────────────────────
         val petsWithWebUrls = profile.pets.mapIndexed { index, pet ->
             val uriString = pet.photoUri
             val cacheKey  = "$uid/$index"
@@ -140,17 +126,15 @@ class FirebaseRepository {
 
                 // Local file (file:// or content://) — upload to Firebase Storage
                 uriString != null && uriString != "admin_verified" -> {
-                    val downloadUrl: String? = photoCache.getOrElse(uriString) {
-                        // Try to upload; returns null if the file is unreadable
-                        val uploaded = uploadPetPhoto(context, uid, index, pet.name, uriString)
-                        if (uploaded != null) {
-                            photoCache[uriString] = uploaded
-                        }
+                    val downloadUrl = photoCache.getOrElse(uriString) {
+                        val uploaded = uploadPetPhoto(uid, index, pet.name, uriString)
+                        if (uploaded != null) photoCache[uriString] = uploaded
                         uploaded
-                    } ?: savedUrlCache[cacheKey]  // fall back to previously saved URL
+                    } ?: savedUrlCache[cacheKey]
 
                     if (downloadUrl != null) savedUrlCache[cacheKey] = downloadUrl
 
+                    // Use uploaded URL, fall back to previously saved URL if upload failed
                     pet.copy(photoUri = downloadUrl ?: existingPets.getOrNull(index)?.photoUri)
                 }
 
@@ -161,7 +145,7 @@ class FirebaseRepository {
             }
         }
 
-        // ── Step 3: Write the merged profile to Firestore ───────────────────
+        // ── Step 3: Write merged profile to Firestore ──────────────────────────────
         db.collection("profiles")
             .document(uid)
             .set(
@@ -176,10 +160,7 @@ class FirebaseRepository {
 
     suspend fun fetchProfile(uid: String): PublicProfile? {
         return try {
-            db.collection("profiles")
-                .document(uid)
-                .get()
-                .await()
+            db.collection("profiles").document(uid).get().await()
                 .toObject(PublicProfile::class.java)
         } catch (_: Exception) {
             null
