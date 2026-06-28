@@ -4,7 +4,7 @@
             "outputFile": "com.example.petquest.test.app-mergeDebugAndroidTestResources-34:/values-v21/values-v21.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\3e314942d6a613a2f7cf1d4706d5ef33\\workspace\\transformed\\core-1.13.1\\res\\values-v21\\values-v21.xml",
+                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\3e1f71dba7562e6ed135392ab67ab346\\workspace\\transformed\\core-1.13.1\\res\\values-v21\\values-v21.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,13",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\3b7999a9cde71a1596b0d861bff021a2\\workspace\\transformed\\core-1.5.0\\res\\values-v21\\values.xml",
+                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\26c1e760fa8929a13700531da55d5818\\workspace\\transformed\\core-1.5.0\\res\\values-v21\\values.xml",
                     "from": {
                         "startLines": "4,13",
                         "startColumns": "0,0",

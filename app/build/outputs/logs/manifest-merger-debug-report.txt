@@ -115,6 +115,7 @@ MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.3] C:\Us
 MERGED from [androidx.compose.ui:ui-android:1.7.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\e30ad74d0cebb2a0e3b7c2db84dd94b8\workspace\transformed\ui-release\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f2deefddd835a61ba1f978a09d68c9\workspace\transformed\runtime-saveable-release\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.runtime:runtime-android:1.7.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\77b878923053516c831d6fad5ff3130e\workspace\transformed\runtime-release\AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:17:1-55:12
 MERGED from [androidx.datastore:datastore:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\ed58eb4cfc45961367ee723fd2397a97\workspace\transformed\datastore-1.0.0\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.sqlite:sqlite-framework:2.4.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\feba78a36d2124b0fee4503ebf621a19\workspace\transformed\sqlite-framework-2.4.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.sqlite:sqlite:2.4.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\b31cab92b6346c6aeae99c9497254f0f\workspace\transformed\sqlite-2.4.0\AndroidManifest.xml:17:1-22:12
@@ -129,7 +130,6 @@ MERGED from [com.google.android.datatransport:transport-api:2.2.1] C:\Users\alma
 MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\66847a2861aebbc0621205383c4fef92\workspace\transformed\firebase-encoders-json-17.1.0\AndroidManifest.xml:15:1-23:12
 MERGED from [com.google.firebase:firebase-components:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bec8eb200e1b3fe78f354a74b2074dd0\workspace\transformed\firebase-components-18.0.0\AndroidManifest.xml:15:1-20:12
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\09ebd7ba21b7e4838416df1c21cbd8fb\workspace\transformed\cursoradapter-1.0.0\AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:17:1-55:12
 MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3b97b7c762502aaafd70b1bb2084b0cf\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:17:1-33:12
 MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\9732a9f42c69596012be09cf10a60c53\workspace\transformed\tracing-1.0.0\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\922699098749f278cbd0694d3d993b5c\workspace\transformed\localbroadcastmanager-1.0.0\AndroidManifest.xml:17:1-22:12
@@ -243,14 +243,14 @@ MERGED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\tran
 MERGED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e1f71dba7562e6ed135392ab67ab346\workspace\transformed\core-1.13.1\AndroidManifest.xml:28:5-89
 MERGED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\f9261e30f8d961ea2b303c97d6859ac9\workspace\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:23:5-33:19
 MERGED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\f9261e30f8d961ea2b303c97d6859ac9\workspace\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:23:5-53:19
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\8fc72634af2b8b51ed69c3d59bfb873c\workspace\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\8fc72634af2b8b51ed69c3d59bfb873c\workspace\transformed\versionedparcelable-1.1.1\AndroidManifest.xml:24:5-25:19
 MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:28:5-36:19
 MERGED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:28:5-36:19
 MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:25:5-39:19
 MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:25:5-39:19
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:23:5-53:19
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:23:5-53:19
 MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3b97b7c762502aaafd70b1bb2084b0cf\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
 MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3b97b7c762502aaafd70b1bb2084b0cf\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:25:5-31:19
 MERGED from [com.google.android.odml:image:1.0.0-beta1] C:\Users\almar\.gradle\caches\9.2.1\transforms\c976ff280cbdccaeb75f01bd3e3599a4\workspace\transformed\image-1.0.0-beta1\AndroidManifest.xml:7:5-20
@@ -557,6 +557,8 @@ MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.0] C:\Users\a
 MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f2deefddd835a61ba1f978a09d68c9\workspace\transformed\runtime-saveable-release\AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.runtime:runtime-android:1.7.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\77b878923053516c831d6fad5ff3130e\workspace\transformed\runtime-release\AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.runtime:runtime-android:1.7.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\77b878923053516c831d6fad5ff3130e\workspace\transformed\runtime-release\AndroidManifest.xml:5:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:21:5-44
 MERGED from [androidx.datastore:datastore:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\ed58eb4cfc45961367ee723fd2397a97\workspace\transformed\datastore-1.0.0\AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.datastore:datastore:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\ed58eb4cfc45961367ee723fd2397a97\workspace\transformed\datastore-1.0.0\AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.sqlite:sqlite-framework:2.4.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\feba78a36d2124b0fee4503ebf621a19\workspace\transformed\sqlite-framework-2.4.0\AndroidManifest.xml:20:5-44
@@ -585,8 +587,6 @@ MERGED from [com.google.firebase:firebase-components:18.0.0] C:\Users\almar\.gra
 MERGED from [com.google.firebase:firebase-components:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bec8eb200e1b3fe78f354a74b2074dd0\workspace\transformed\firebase-components-18.0.0\AndroidManifest.xml:18:5-44
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\09ebd7ba21b7e4838416df1c21cbd8fb\workspace\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\09ebd7ba21b7e4838416df1c21cbd8fb\workspace\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:21:5-44
-MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:21:5-44
 MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3b97b7c762502aaafd70b1bb2084b0cf\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:21:5-23:41
 MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3b97b7c762502aaafd70b1bb2084b0cf\workspace\transformed\startup-runtime-1.1.1\AndroidManifest.xml:21:5-23:41
 MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\9732a9f42c69596012be09cf10a60c53\workspace\transformed\tracing-1.0.0\AndroidManifest.xml:20:5-22:41
@@ -1161,34 +1161,6 @@ ADDED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\almar\.gradle\c
 		ADDED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\f9261e30f8d961ea2b303c97d6859ac9\workspace\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:31:17-49
 	android:name
 		ADDED from [androidx.lifecycle:lifecycle-process:2.8.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\f9261e30f8d961ea2b303c97d6859ac9\workspace\transformed\lifecycle-process-2.8.3\AndroidManifest.xml:30:17-78
-service#com.google.android.datatransport.runtime.backends.TransportBackendDiscovery
-ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:29:9-35:19
-MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:36:9-38:40
-MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:36:9-38:40
-	android:exported
-		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:31:13-37
-	android:name
-		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:30:13-103
-meta-data#backend:com.google.android.datatransport.cct.CctBackendFactory
-ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:32:13-34:39
-	android:value
-		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:34:17-36
-	android:name
-		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:33:17-94
-service#com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService
-ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:26:9-30:19
-	android:exported
-		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:28:13-37
-	android:permission
-		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:29:13-69
-	android:name
-		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:27:13-117
-receiver#com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver
-ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:32:9-34:40
-	android:exported
-		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:34:13-37
-	android:name
-		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:33:13-132
 meta-data#androidx.profileinstaller.ProfileInstallerInitializer
 ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
 	android:value
@@ -1231,3 +1203,31 @@ action#androidx.profileinstaller.action.BENCHMARK_OPERATION
 ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
 	android:name
 		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\0eb072d679a99df3e436df742432cf67\workspace\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
+service#com.google.android.datatransport.runtime.backends.TransportBackendDiscovery
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:29:9-35:19
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:36:9-38:40
+MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:36:9-38:40
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:31:13-37
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:30:13-103
+meta-data#backend:com.google.android.datatransport.cct.CctBackendFactory
+ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:32:13-34:39
+	android:value
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:34:17-36
+	android:name
+		ADDED from [com.google.android.datatransport:transport-backend-cct:2.3.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f6241ebf7b217365efa667a9d3ae5e0\workspace\transformed\transport-backend-cct-2.3.3\AndroidManifest.xml:33:17-94
+service#com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService
+ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:26:9-30:19
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:28:13-37
+	android:permission
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:29:13-69
+	android:name
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:27:13-117
+receiver#com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver
+ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:32:9-34:40
+	android:exported
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:34:13-37
+	android:name
+		ADDED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\almar\.gradle\caches\9.2.1\transforms\1384fb2554e9719b1a061a155990d640\workspace\transformed\transport-runtime-2.2.6\AndroidManifest.xml:33:13-132

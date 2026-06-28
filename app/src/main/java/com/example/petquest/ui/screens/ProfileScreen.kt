@@ -156,7 +156,9 @@ fun ProfileScreen(
         }
     }
 
-    // Share profile: pushes live stats to Firebase then shares a uid link
+    // ── FIXED: share now uses an https:// GitHub Pages link so it shows as
+    // a tappable blue hyperlink in WhatsApp, Messages, Discord, etc.
+    // The page (docs/share.html) auto-redirects to petquest://share?uid=...
     val shareProfile: () -> Unit = {
         scope.launch {
             isSharingProfile = true
@@ -171,14 +173,18 @@ fun ProfileScreen(
                 )
                 firebaseRepository.pushProfile(profile)
                 val uid = firebaseRepository.getMyUid() ?: return@launch
+
+                // https:// so messaging apps render it as a tappable link
+                val shareLink = "https://jemjemfromyt.github.io/PetQuest/share?uid=$uid"
+
                 val shareText = buildString {
                     append("🐾 Check out my PetQuest profile!\n\n")
                     append("Trainer: ${profile.trainerName}\n")
                     append("Level: ${profile.level}  |  Streak: ${profile.streak} days\n")
                     append("Bond Points: ${profile.bondPoints}\n")
                     append("Pets: ${profile.petCount}  |  Species: ${profile.speciesCount} discovered\n\n")
-                    append("Tap to see my live profile:\n")
-                    append("petquest://share?uid=$uid")
+                    append("Tap to view my live profile 👇\n")
+                    append(shareLink)
                 }
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"

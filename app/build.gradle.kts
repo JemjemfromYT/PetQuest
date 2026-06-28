@@ -5,6 +5,7 @@
 //   1. Added CameraX dependencies (camera-camera2, camera-lifecycle, camera-view)
 //   2. Added ML Kit image labeling (on-device, works offline)
 //   3. Added ML Kit object detection (for bounding-box animal scan UI)
+//   4. ADDED: Custom APK renaming to "Pet Quest.apk"
 //
 // HOW TO APPLY:
 //   Open app/build.gradle.kts in Android Studio
@@ -39,6 +40,16 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+
+    // ── ADDED: Permanently rename APK output ───────────────────────────────
+    applicationVariants.all {
+        outputs.all {
+            if (this is com.android.build.gradle.internal.api.BaseVariantOutputImpl) {
+                this.outputFileName = "Pet Quest.apk"
+            }
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -97,4 +108,3 @@ dependencies {
     implementation("com.google.guava:guava:32.1.3-android")
     implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")
 }
-    
