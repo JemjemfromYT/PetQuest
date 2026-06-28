@@ -130,11 +130,12 @@ fun ProfileScreen(
         unlockedBadgeTitles = allAchievements.filter { it.isUnlocked }.map { it.title }
     )
 
-    // ── Auto-sync: silently push profile whenever screen is opened ───────────
-    // This ensures Firebase always has the latest achievements, pets, and stats
-    // even if the user never manually presses Share.
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(600) // let Room DB StateFlows emit current values
+    // ── Auto-sync: push whenever pets or achievements change ────────────────
+    // Keyed on pets.size AND unlocked count — any new pet or newly-earned
+    // badge immediately triggers a fresh push so web + SharedProfileScreen
+    // always show the latest data.
+    LaunchedEffect(pets.size, allAchievements.count { it.isUnlocked }) {
+        kotlinx.coroutines.delay(800) // let Room DB StateFlows settle
         try {
             if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
                 firebaseRepository.pushProfile(buildCurrentProfile())

@@ -51,12 +51,23 @@ private sealed interface SharedProfileState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 private val KNOWN_EVENT_BADGE_TITLES = setOf(
-    "Spring Blossom Badge",
-    "Summer Splash Badge",
-    "Autumn Harvest Badge",
-    "Winter Frost Badge",
-    "New Year Sprint Badge",
-    "Valentine Bond Badge"
+    "New Year Celebrant",
+    "Beloved Keeper",
+    "Lucky Lantern Holder",
+    "Easter Hatchling",
+    "Sun Keeper",
+    "Pumpkin Master",
+    "Festive Keeper"
+)
+
+private val EVENT_BADGE_EMOJI = mapOf(
+    "New Year Celebrant"   to "\uD83C\uDF8A",  // 🎊
+    "Beloved Keeper"       to "\uD83D\uDC9D",  // 💝
+    "Lucky Lantern Holder" to "\uD83C\uDFEE",  // 🏮
+    "Easter Hatchling"     to "\uD83D\uDC23",  // 🐣
+    "Sun Keeper"           to "\u2600\uFE0F",  // ☀️
+    "Pumpkin Master"       to "\uD83C\uDF83",  // 🎃
+    "Festive Keeper"       to "\uD83C\uDF84"   // 🎄
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -525,7 +536,7 @@ private fun SpEventBadgesSection(eventBadges: List<String>) {
                                 color = Color(0xFFF9A825).copy(alpha = 0.12f)) {
                                 Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text("🏅", fontSize = 20.sp)
+                                    Text(EVENT_BADGE_EMOJI[title] ?: "🏅", fontSize = 20.sp)
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(title, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold,
                                             color = Color(0xFFE65100), maxLines = 1, overflow = TextOverflow.Ellipsis)

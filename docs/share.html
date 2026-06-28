@@ -257,11 +257,22 @@
           titles:["Species Collector","Animal Explorer","Master Explorer","Rarity Hunter","Epic Tamer"] },
     ];
 
-    /* Known event badge titles — exact mirror of KNOWN_EVENT_BADGE_TITLES */
+    /* Known event badge titles — exact mirror of ALL_SEASONAL_EVENTS.badgeTitle in EventsScreen.kt */
     const KNOWN_EVENT_BADGE_TITLES = new Set([
-        "Spring Blossom Badge","Summer Splash Badge","Autumn Harvest Badge",
-        "Winter Frost Badge","New Year Sprint Badge","Valentine Bond Badge"
+        "New Year Celebrant","Beloved Keeper","Lucky Lantern Holder",
+        "Easter Hatchling","Sun Keeper","Pumpkin Master","Festive Keeper"
     ]);
+
+    /* Emoji per event badge — mirrors SeasonalEvent.badgeEmoji in EventsScreen.kt */
+    const EVENT_BADGE_EMOJI = {
+        "New Year Celebrant":   "🎊",
+        "Beloved Keeper":       "💝",
+        "Lucky Lantern Holder": "🏮",
+        "Easter Hatchling":     "🐣",
+        "Sun Keeper":           "☀️",
+        "Pumpkin Master":       "🎃",
+        "Festive Keeper":       "🎄"
+    };
 
     /* Rarity → color */
     function rarityColor(r) {
@@ -431,7 +442,7 @@
                         <span class="scard-title">🏆 Event Badges</span>
                     </div>
                     ${eventBadges.length > 0
-                        ? eventBadges.map(b => `<span style="display:inline-block;background:#2d2d2d;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;margin:3px">${b}</span>`).join("")
+                        ? eventBadges.map(b => `<span style="display:inline-flex;align-items:center;gap:6px;background:#2d2d2d;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;margin:3px">${EVENT_BADGE_EMOJI[b]||"🏅"} ${b}</span>`).join("")
                         : `<p class="scard-empty">No event badges earned yet.<br>Complete seasonal event challenges to earn exclusive badges that display here.</p>`
                     }
                 </div>

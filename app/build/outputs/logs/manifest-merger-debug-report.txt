@@ -51,11 +51,14 @@ MERGED from [io.coil-kt:coil-base:2.6.0] C:\Users\almar\.gradle\caches\9.2.1\tra
 MERGED from [androidx.appcompat:appcompat-resources:1.6.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\d8184f751d47d3c8e2a32f82b591c074\workspace\transformed\appcompat-resources-1.6.1\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.appcompat:appcompat:1.6.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\581dd2d5c80b6b85f90a1ebb8067cd0b\workspace\transformed\appcompat-1.6.1\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.viewpager2:viewpager2:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\f77bd32b2f7f96c397c8f4cf2bc57da2\workspace\transformed\viewpager2-1.0.0\AndroidManifest.xml:17:1-24:12
+MERGED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:2:1-18:12
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:15:1-39:12
 MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:2:1-18:12
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bbc20ebe20141d5b1bb1e5d174c814fa\workspace\transformed\firebase-firestore-25.0.0\AndroidManifest.xml:2:1-26:12
 MERGED from [com.google.firebase:firebase-auth-ktx:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\1d4bed5767a5e447a81cacffc1a11046\workspace\transformed\firebase-auth-ktx-23.0.0\AndroidManifest.xml:2:1-17:12
 MERGED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:17:1-75:12
-MERGED from [com.google.firebase:firebase-appcheck-interop:17.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\23042f9b9d7095e6f2a4b54b156a62e6\workspace\transformed\firebase-appcheck-interop-17.0.0\AndroidManifest.xml:15:1-25:12
+MERGED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:15:1-34:12
+MERGED from [com.google.firebase:firebase-appcheck-interop:17.1.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\d276a86d4f38d9ca82b2735682fbf6ce\workspace\transformed\firebase-appcheck-interop-17.1.0\AndroidManifest.xml:15:1-23:12
 MERGED from [com.google.firebase:firebase-database-collection:18.0.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\c9e46b5372a53ae8d92251423665b45d\workspace\transformed\firebase-database-collection-18.0.1\AndroidManifest.xml:2:1-9:12
 MERGED from [androidx.credentials:credentials:1.2.0-rc01] C:\Users\almar\.gradle\caches\9.2.1\transforms\eff4dd9982c8f02187b8d006a41c62d4\workspace\transformed\credentials-1.2.0-rc01\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.credentials:credentials-play-services-auth:1.2.0-rc01] C:\Users\almar\.gradle\caches\9.2.1\transforms\46dc90f47828ab25b3700c326d607f88\workspace\transformed\credentials-play-services-auth-1.2.0-rc01\AndroidManifest.xml:17:1-44:12
@@ -170,6 +173,8 @@ uses-permission#android.permission.INTERNET
 ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:9:5-67
 MERGED from [com.google.mlkit:vision-internal-vkp:18.2.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\d61742b35afea6b7e5fc6c17cbc9d6e3\workspace\transformed\vision-internal-vkp-18.2.3\AndroidManifest.xml:8:5-67
 MERGED from [com.google.mlkit:vision-internal-vkp:18.2.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\d61742b35afea6b7e5fc6c17cbc9d6e3\workspace\transformed\vision-internal-vkp-18.2.3\AndroidManifest.xml:8:5-67
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:24:5-67
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:24:5-67
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bbc20ebe20141d5b1bb1e5d174c814fa\workspace\transformed\firebase-firestore-25.0.0\AndroidManifest.xml:11:5-67
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bbc20ebe20141d5b1bb1e5d174c814fa\workspace\transformed\firebase-firestore-25.0.0\AndroidManifest.xml:11:5-67
 MERGED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:25:5-67
@@ -207,6 +212,10 @@ MERGED from [com.google.mlkit:vision-common:17.3.0] C:\Users\almar\.gradle\cache
 MERGED from [com.google.mlkit:vision-common:17.3.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\415435f8ecc0c1073b263963c1519609\workspace\transformed\vision-common-17.3.0\AndroidManifest.xml:8:5-16:19
 MERGED from [com.google.mlkit:common:18.11.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\15d791c2bf390fb580ee3bbd5d78fe7c\workspace\transformed\common-18.11.0\AndroidManifest.xml:8:5-24:19
 MERGED from [com.google.mlkit:common:18.11.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\15d791c2bf390fb580ee3bbd5d78fe7c\workspace\transformed\common-18.11.0\AndroidManifest.xml:8:5-24:19
+MERGED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:8:5-16:19
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:26:5-37:19
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:26:5-37:19
 MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:8:5-16:19
 MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:8:5-16:19
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bbc20ebe20141d5b1bb1e5d174c814fa\workspace\transformed\firebase-firestore-25.0.0\AndroidManifest.xml:13:5-24:19
@@ -215,8 +224,10 @@ MERGED from [com.google.firebase:firebase-auth-ktx:23.0.0] C:\Users\almar\.gradl
 MERGED from [com.google.firebase:firebase-auth-ktx:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\1d4bed5767a5e447a81cacffc1a11046\workspace\transformed\firebase-auth-ktx-23.0.0\AndroidManifest.xml:7:5-15:19
 MERGED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:28:5-73:19
 MERGED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:28:5-73:19
-MERGED from [com.google.firebase:firebase-appcheck-interop:17.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\23042f9b9d7095e6f2a4b54b156a62e6\workspace\transformed\firebase-appcheck-interop-17.0.0\AndroidManifest.xml:23:5-20
-MERGED from [com.google.firebase:firebase-appcheck-interop:17.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\23042f9b9d7095e6f2a4b54b156a62e6\workspace\transformed\firebase-appcheck-interop-17.0.0\AndroidManifest.xml:23:5-20
+MERGED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:21:5-32:19
+MERGED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:21:5-32:19
+MERGED from [com.google.firebase:firebase-appcheck-interop:17.1.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\d276a86d4f38d9ca82b2735682fbf6ce\workspace\transformed\firebase-appcheck-interop-17.1.0\AndroidManifest.xml:21:5-20
+MERGED from [com.google.firebase:firebase-appcheck-interop:17.1.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\d276a86d4f38d9ca82b2735682fbf6ce\workspace\transformed\firebase-appcheck-interop-17.1.0\AndroidManifest.xml:21:5-20
 MERGED from [androidx.credentials:credentials-play-services-auth:1.2.0-rc01] C:\Users\almar\.gradle\caches\9.2.1\transforms\46dc90f47828ab25b3700c326d607f88\workspace\transformed\credentials-play-services-auth-1.2.0-rc01\AndroidManifest.xml:23:5-42:19
 MERGED from [androidx.credentials:credentials-play-services-auth:1.2.0-rc01] C:\Users\almar\.gradle\caches\9.2.1\transforms\46dc90f47828ab25b3700c326d607f88\workspace\transformed\credentials-play-services-auth-1.2.0-rc01\AndroidManifest.xml:23:5-42:19
 MERGED from [com.google.android.gms:play-services-auth:20.7.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\9878f2a6224423a1a721c5b3902f35e9\workspace\transformed\play-services-auth-20.7.0\AndroidManifest.xml:22:5-38:19
@@ -429,6 +440,10 @@ MERGED from [androidx.appcompat:appcompat:1.6.1] C:\Users\almar\.gradle\caches\9
 MERGED from [androidx.appcompat:appcompat:1.6.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\581dd2d5c80b6b85f90a1ebb8067cd0b\workspace\transformed\appcompat-1.6.1\AndroidManifest.xml:20:5-44
 MERGED from [androidx.viewpager2:viewpager2:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\f77bd32b2f7f96c397c8f4cf2bc57da2\workspace\transformed\viewpager2-1.0.0\AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.viewpager2:viewpager2:1.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\f77bd32b2f7f96c397c8f4cf2bc57da2\workspace\transformed\viewpager2-1.0.0\AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:19:5-44
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:19:5-44
 MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:5:5-44
 MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:5:5-44
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bbc20ebe20141d5b1bb1e5d174c814fa\workspace\transformed\firebase-firestore-25.0.0\AndroidManifest.xml:6:5-44
@@ -437,8 +452,10 @@ MERGED from [com.google.firebase:firebase-auth-ktx:23.0.0] C:\Users\almar\.gradl
 MERGED from [com.google.firebase:firebase-auth-ktx:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\1d4bed5767a5e447a81cacffc1a11046\workspace\transformed\firebase-auth-ktx-23.0.0\AndroidManifest.xml:5:5-44
 MERGED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:21:5-23:151
 MERGED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:21:5-23:151
-MERGED from [com.google.firebase:firebase-appcheck-interop:17.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\23042f9b9d7095e6f2a4b54b156a62e6\workspace\transformed\firebase-appcheck-interop-17.0.0\AndroidManifest.xml:18:5-20:41
-MERGED from [com.google.firebase:firebase-appcheck-interop:17.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\23042f9b9d7095e6f2a4b54b156a62e6\workspace\transformed\firebase-appcheck-interop-17.0.0\AndroidManifest.xml:18:5-20:41
+MERGED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:18:5-44
+MERGED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:18:5-44
+MERGED from [com.google.firebase:firebase-appcheck-interop:17.1.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\d276a86d4f38d9ca82b2735682fbf6ce\workspace\transformed\firebase-appcheck-interop-17.1.0\AndroidManifest.xml:18:5-44
+MERGED from [com.google.firebase:firebase-appcheck-interop:17.1.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\d276a86d4f38d9ca82b2735682fbf6ce\workspace\transformed\firebase-appcheck-interop-17.1.0\AndroidManifest.xml:18:5-44
 MERGED from [com.google.firebase:firebase-database-collection:18.0.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\c9e46b5372a53ae8d92251423665b45d\workspace\transformed\firebase-database-collection-18.0.1\AndroidManifest.xml:5:5-7:41
 MERGED from [com.google.firebase:firebase-database-collection:18.0.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\c9e46b5372a53ae8d92251423665b45d\workspace\transformed\firebase-database-collection-18.0.1\AndroidManifest.xml:5:5-7:41
 MERGED from [androidx.credentials:credentials:1.2.0-rc01] C:\Users\almar\.gradle\caches\9.2.1\transforms\eff4dd9982c8f02187b8d006a41c62d4\workspace\transformed\credentials-1.2.0-rc01\AndroidManifest.xml:5:5-44
@@ -631,6 +648,8 @@ uses-permission#android.permission.ACCESS_NETWORK_STATE
 ADDED from [androidx.work:work-runtime:2.9.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\ab356b7a7199b6ff1a555a969f805f23\workspace\transformed\work-runtime-2.9.0\AndroidManifest.xml:24:5-79
 MERGED from [com.google.mlkit:vision-internal-vkp:18.2.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\d61742b35afea6b7e5fc6c17cbc9d6e3\workspace\transformed\vision-internal-vkp-18.2.3\AndroidManifest.xml:7:5-79
 MERGED from [com.google.mlkit:vision-internal-vkp:18.2.3] C:\Users\almar\.gradle\caches\9.2.1\transforms\d61742b35afea6b7e5fc6c17cbc9d6e3\workspace\transformed\vision-internal-vkp-18.2.3\AndroidManifest.xml:7:5-79
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:23:5-79
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:23:5-79
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bbc20ebe20141d5b1bb1e5d174c814fa\workspace\transformed\firebase-firestore-25.0.0\AndroidManifest.xml:10:5-79
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bbc20ebe20141d5b1bb1e5d174c814fa\workspace\transformed\firebase-firestore-25.0.0\AndroidManifest.xml:10:5-79
 MERGED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:26:5-79
@@ -960,25 +979,49 @@ ADDED from [com.google.mlkit:common:18.11.0] C:\Users\almar\.gradle\caches\9.2.1
 	android:name
 		ADDED from [com.google.mlkit:common:18.11.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\15d791c2bf390fb580ee3bbd5d78fe7c\workspace\transformed\common-18.11.0\AndroidManifest.xml:21:17-120
 service#com.google.firebase.components.ComponentDiscoveryService
-ADDED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:9:9-15:19
+ADDED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:27:9-36:19
+MERGED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:27:9-36:19
+MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:9:9-15:19
+MERGED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:9:9-15:19
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bbc20ebe20141d5b1bb1e5d174c814fa\workspace\transformed\firebase-firestore-25.0.0\AndroidManifest.xml:14:9-23:19
 MERGED from [com.google.firebase:firebase-firestore:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\bbc20ebe20141d5b1bb1e5d174c814fa\workspace\transformed\firebase-firestore-25.0.0\AndroidManifest.xml:14:9-23:19
 MERGED from [com.google.firebase:firebase-auth-ktx:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\1d4bed5767a5e447a81cacffc1a11046\workspace\transformed\firebase-auth-ktx-23.0.0\AndroidManifest.xml:8:9-14:19
 MERGED from [com.google.firebase:firebase-auth-ktx:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\1d4bed5767a5e447a81cacffc1a11046\workspace\transformed\firebase-auth-ktx-23.0.0\AndroidManifest.xml:8:9-14:19
 MERGED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:66:9-72:19
 MERGED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:66:9-72:19
+MERGED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:22:9-31:19
+MERGED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:22:9-31:19
 MERGED from [com.google.firebase:firebase-common-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\e70b84fd46cca2a9ad56e013582c0d4e\workspace\transformed\firebase-common-ktx-21.0.0\AndroidManifest.xml:9:9-15:19
 MERGED from [com.google.firebase:firebase-common-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\e70b84fd46cca2a9ad56e013582c0d4e\workspace\transformed\firebase-common-ktx-21.0.0\AndroidManifest.xml:9:9-15:19
 MERGED from [com.google.firebase:firebase-common:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f9c907410ab3a6065e96c83370917cc\workspace\transformed\firebase-common-21.0.0\AndroidManifest.xml:30:9-38:19
 MERGED from [com.google.firebase:firebase-common:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f9c907410ab3a6065e96c83370917cc\workspace\transformed\firebase-common-21.0.0\AndroidManifest.xml:30:9-38:19
 	android:exported
-		ADDED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:11:13-37
+		ADDED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:11:13-37
 	tools:targetApi
 		ADDED from [com.google.firebase:firebase-common:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f9c907410ab3a6065e96c83370917cc\workspace\transformed\firebase-common-21.0.0\AndroidManifest.xml:34:13-32
 	android:directBootAware
 		ADDED from [com.google.firebase:firebase-common:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\7f9c907410ab3a6065e96c83370917cc\workspace\transformed\firebase-common-21.0.0\AndroidManifest.xml:32:13-43
 	android:name
-		ADDED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:10:13-84
+		ADDED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:10:13-84
+meta-data#com.google.firebase.components:com.google.firebase.storage.ktx.FirebaseStorageLegacyRegistrar
+ADDED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:12:13-14:85
+	android:value
+		ADDED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:14:17-82
+	android:name
+		ADDED from [com.google.firebase:firebase-storage-ktx:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\21f1a5c51fe1f8d45354d092c83f02a4\workspace\transformed\firebase-storage-ktx-21.0.0\AndroidManifest.xml:13:17-125
+meta-data#com.google.firebase.components:com.google.firebase.storage.FirebaseStorageKtxRegistrar
+ADDED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:30:13-32:85
+	android:value
+		ADDED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:32:17-82
+	android:name
+		ADDED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:31:17-118
+meta-data#com.google.firebase.components:com.google.firebase.storage.StorageRegistrar
+ADDED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:33:13-35:85
+	android:value
+		ADDED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:35:17-82
+	android:name
+		ADDED from [com.google.firebase:firebase-storage:21.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\4b3fc725696819b151159d35220fb825\workspace\transformed\firebase-storage-21.0.0\AndroidManifest.xml:34:17-107
 meta-data#com.google.firebase.components:com.google.firebase.firestore.ktx.FirebaseFirestoreLegacyRegistrar
 ADDED from [com.google.firebase:firebase-firestore-ktx:25.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\db32aae568cb740a0235e3153b9b8a03\workspace\transformed\firebase-firestore-ktx-25.0.0\AndroidManifest.xml:12:13-14:85
 	android:value
@@ -1037,6 +1080,18 @@ ADDED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\cac
 		ADDED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:71:17-82
 	android:name
 		ADDED from [com.google.firebase:firebase-auth:23.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\8837a7392b3188084e5996d3413915cc\workspace\transformed\firebase-auth-23.0.0\AndroidManifest.xml:70:17-109
+meta-data#com.google.firebase.components:com.google.firebase.appcheck.FirebaseAppCheckKtxRegistrar
+ADDED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:25:13-27:85
+	android:value
+		ADDED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:27:17-82
+	android:name
+		ADDED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:26:17-120
+meta-data#com.google.firebase.components:com.google.firebase.appcheck.FirebaseAppCheckRegistrar
+ADDED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:28:13-30:85
+	android:value
+		ADDED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:30:17-82
+	android:name
+		ADDED from [com.google.firebase:firebase-appcheck:18.0.0] C:\Users\almar\.gradle\caches\9.2.1\transforms\96cad7d091402204c238f4ffa2f39745\workspace\transformed\firebase-appcheck-18.0.0\AndroidManifest.xml:29:17-117
 service#androidx.credentials.playservices.CredentialProviderMetadataHolder
 ADDED from [androidx.credentials:credentials-play-services-auth:1.2.0-rc01] C:\Users\almar\.gradle\caches\9.2.1\transforms\46dc90f47828ab25b3700c326d607f88\workspace\transformed\credentials-play-services-auth-1.2.0-rc01\AndroidManifest.xml:24:9-32:19
 	android:enabled
