@@ -1,11 +1,9 @@
 // ============================================================
 // FILE: app/build.gradle.kts  (COMPLETE FILE — replace fully)
 //
-// CHANGES FROM ORIGINAL:
-//   1. Added CameraX dependencies (camera-camera2, camera-lifecycle, camera-view)
-//   2. Added ML Kit image labeling (on-device, works offline)
-//   3. Added ML Kit object detection (for bounding-box animal scan UI)
-//   4. ADDED: Custom APK renaming to "Pet Quest.apk"
+// CHANGES FROM PREVIOUS VERSION:
+//   Added firebase-storage-ktx so pet photos can be uploaded
+//   to Firebase Storage and shown on the share.html web page.
 //
 // HOW TO APPLY:
 //   Open app/build.gradle.kts in Android Studio
@@ -41,7 +39,6 @@ android {
         }
     }
 
-    // ── ADDED: Permanently rename APK output ───────────────────────────────
     applicationVariants.all {
         outputs.all {
             if (this is com.android.build.gradle.internal.api.BaseVariantOutputImpl) {
@@ -85,24 +82,20 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    // WorkManager — scheduled daily reminder notifications
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
-    // ── CameraX — live camera preview for pet scanning ─────────────────────
     val cameraxVersion = "1.3.4"
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
 
-    // ── ML Kit — on-device image labeling (no internet required) ──────────
-    // Bundled model: ships inside the APK (~3 MB). Works offline immediately.
-    // Recognises ~400+ labels including all common pet types.
     implementation("com.google.mlkit:image-labeling:17.0.9")
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")   // ← ADDED
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
 
     implementation("com.google.guava:guava:32.1.3-android")
