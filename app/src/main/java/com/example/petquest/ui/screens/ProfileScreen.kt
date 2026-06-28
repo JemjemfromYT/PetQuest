@@ -1,15 +1,12 @@
 // ============================================================
 // FILE: app/src/main/java/com/example/petquest/ui/screens/ProfileScreen.kt
 //
-// CHANGES vs GitHub:
-//   1. Added isSyncing state (shows spinner banner during auto-sync)
-//   2. Wrapped both auto-sync LaunchedEffect + DisposableEffect with isSyncing
-//   3. Added SyncBanner item at top of LazyColumn
-//   4. Added SyncBanner composable at bottom of file
-//   5. Added required animation imports
-//
-// Everything else is IDENTICAL to the GitHub version.
-// No new classes or files needed — do NOT create Pet.kt.
+// CHANGES vs GitHub v4:
+//   1. Share ALWAYS launches — Firebase failure no longer silently kills it
+//   2. Link is at the END of the share text so it's visible in all apps
+//   3. isSyncing banner during background photo upload
+//   4. SyncBanner composable added at bottom
+//   5. Fallback to generic share link if Firebase sign-in is unavailable
 // ============================================================
 
 package com.example.petquest.ui.screens
@@ -132,7 +129,6 @@ fun ProfileScreen(
 
     val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
-    // ── NEW: tracks when background auto-sync is running ─────────────────────
     var isSyncing        by remember { mutableStateOf(false) }
 
     // ── Helper: build current PublicProfile from live state ──────────────────
@@ -243,37 +239,54 @@ fun ProfileScreen(
         }
     }
 
+    // ── Share profile ─────────────────────────────────────────────────────────
+    // KEY FIX: share ALWAYS launches even if Firebase fails.
+    // Firebase photo upload is attempted first (best-effort); if it fails or
+    // sign-in hasn't completed, we fall back to the generic share page URL.
+    // The link is placed at the END of the message so it's visible in all apps.
     val shareProfile: () -> Unit = {
         if (!isSharingProfile) {
             scope.launch {
                 isSharingProfile = true
                 try {
                     val profile = buildCurrentProfile()
-                    firebaseRepository.pushProfile(profile)
-                    val uid = firebaseRepository.getMyUid() ?: return@launch
 
-                    val shareLink = "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"
+                    // Best-effort: upload photos so the share page shows them.
+                    // We do NOT let this failure block the share.
+                    var uid: String? = null
+                    try {
+                        firebaseRepository.pushProfile(profile)
+                        uid = firebaseRepository.getMyUid()
+                    } catch (_: Exception) {
+                        // Firebase unavailable — share will use the generic link
+                    }
+
+                    val shareLink = if (uid != null) {
+                        "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"
+                    } else {
+                        "https://jemjemfromyt.github.io/PetQuest/share.html"
+                    }
+
+                    // Link at the END so messaging apps don't hide it behind a preview
                     val shareText = buildString {
-                        append(shareLink)
-                        append("\n\n")
                         append("🐾 Check out my PetQuest profile!\n")
                         append("Level ${profile.level} Trainer")
                         if (profile.streak > 0) append(" • 🔥 ${profile.streak} day streak")
                         append("\n")
-                        append("💚 ${profile.bondPoints} Bond Points • 🐾 ${profile.petCount} pet${if (profile.petCount != 1) "s" else ""}")
+                        append("💚 ${profile.bondPoints} Bond Points")
+                        append(" • 🐾 ${profile.petCount} pet${if (profile.petCount != 1) "s" else ""}")
                         append("\n\n")
-                        append("Join me on PetQuest and become a legendary pet trainer!")
+                        append(shareLink)
                     }
+
                     val intent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
                         putExtra(Intent.EXTRA_TEXT, shareText)
                         putExtra(Intent.EXTRA_TITLE, "${profile.trainerName}'s PetQuest Profile")
                     }
-                    context.startActivity(
-                        Intent.createChooser(intent, "Share your PetQuest profile")
-                    )
+                    context.startActivity(Intent.createChooser(intent, "Share your PetQuest profile"))
                 } catch (e: Exception) {
-                    Toast.makeText(context, "Couldn't share — check your connection.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Couldn't share — please try again.", Toast.LENGTH_SHORT).show()
                 } finally {
                     isSharingProfile = false
                 }
@@ -688,7 +701,7 @@ fun ProfileScreen(
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Sync Banner — pulsing orange strip while photos are uploading to Firebase
+// Sync Banner — pulsing strip while photos upload to Firebase in the background
 // ──────────────────────────────────────────────────────────────────────────────
 
 @Composable
