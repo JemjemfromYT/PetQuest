@@ -9,10 +9,6 @@
     <title>PetQuest Trainer Profile</title>
 
     <script type="module">
-        // ============================================================
-        // PASTE YOUR FIREBASE CONFIG HERE
-        // (open google-services.json in Android Studio, copy the values)
-        // ============================================================
         import { initializeApp }              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -28,7 +24,6 @@
         const app = initializeApp(firebaseConfig);
         const db  = getFirestore(app);
 
-        // ── Icons (local PNGs in icons/ folder) ──────────────────────
         const IC = {
           paw:      "icons/paw.png",
           star:     "icons/star.png",
@@ -52,7 +47,6 @@
           return `<img src="${IC[key] || IC.paw}" width="${s}" height="${s}" alt="" />`;
         }
 
-        // ── Achievement definitions ───────────────────────────────────
         const ACHIEVEMENT_CATEGORIES = [
           {
             name: "First Steps", color: "#4CAF50",
@@ -123,7 +117,6 @@
           },
         ];
 
-        // ── Helpers ───────────────────────────────────────────────────
         function getLevelTitle(level) {
           if (level >= 50) return "Legendary Trainer";
           if (level >= 30) return "Master Trainer";
@@ -169,7 +162,6 @@
           document.getElementById("errmsg").innerHTML = msg.replace(/\n/g, "<br/>");
         }
 
-        // ── Main loader ───────────────────────────────────────────────
         window.addEventListener("DOMContentLoaded", async () => {
           const uid = new URLSearchParams(location.search).get("uid");
           if (!uid) {
@@ -177,11 +169,10 @@
             return;
           }
 
-          setStatus("Connecting…");
+          setStatus("Connecting...");
 
           try {
-            // App writes to Firestore: collection "profiles", document = uid
-            setStatus("Fetching profile…");
+            setStatus("Fetching profile...");
 
             const timeout = new Promise((_, rej) =>
               setTimeout(() => rej(new Error("__timeout__")), 10000)
@@ -193,9 +184,9 @@
               showErr(
                 "Profile not found.\n\nUID: " + uid + "\n\n" +
                 "This usually means:\n" +
-                "• App data was cleared — the old link no longer works\n" +
-                "• The Share button was tapped before data finished saving\n\n" +
-                "Fix: Open PetQuest → tap Share Profile again to get a fresh link."
+                "- App data was cleared — the old link no longer works\n" +
+                "- The Share button was tapped before data finished saving\n\n" +
+                "Fix: Open PetQuest, tap Share Profile again to get a fresh link."
               );
               return;
             }
@@ -216,37 +207,37 @@
           }
         });
 
-        // ── Render ────────────────────────────────────────────────────
-        // Field names from FirebaseRepository.kt / PublicProfile data class:
-        //   trainerName, level, streak, bondPoints, petCount,
-        //   speciesCount, pets (array of PetSummary), unlockedBadgeTitles
-        // PetSummary: name, species, rarity, bondLevel, isVerified, photoUri, virtue
+        function isWebUrl(uri) {
+          return uri && (uri.startsWith("http://") || uri.startsWith("https://"));
+        }
+
         function render(d) {
           document.getElementById("loading").style.display = "none";
           const root = document.getElementById("profile");
           root.style.display = "block";
 
-          const name         = d.trainerName        || "Trainer";
-          const level        = d.level              || 1;
-          const streak       = d.streak             || 0;
-          const bond         = d.bondPoints         || 0;
-          const petsCount    = d.petCount           || 0;
-          const species      = d.speciesCount       || 0;
-          const totalSp      = 29;
-          const xpCur        = d.xpCurrent          || 0;
-          const xpNext       = level * 100;
-          const unlocked     = new Set(d.unlockedBadgeTitles || []);
-          const pets         = Array.isArray(d.pets) ? d.pets : [];
-          const eventBadges  = Array.isArray(d.eventBadges) ? d.eventBadges : [];
-          const photo        = d.profilePhotoUrl    || null;
+          const name        = d.trainerName       || "Trainer";
+          const level       = d.level             || 1;
+          const streak      = d.streak            || 0;
+          const bond        = d.bondPoints        || 0;
+          const petsCount   = d.petCount          || 0;
+          const species     = d.speciesCount      || 0;
+          const totalSp     = 29;
+          const xpCur       = d.xpCurrent         || 0;
+          const xpNext      = level * 100;
+          const unlocked    = new Set(d.unlockedBadgeTitles || []);
+          const pets        = Array.isArray(d.pets) ? d.pets : [];
+          const eventBadges = Array.isArray(d.eventBadges) ? d.eventBadges : [];
+          const photo       = isWebUrl(d.profilePhotoUrl) ? d.profilePhotoUrl : null;
 
           document.title = `${name}'s PetQuest Profile`;
-          document.querySelector('[property="og:title"]').content    = `${name} — PetQuest Trainer`;
+          document.querySelector('[property="og:title"]').content =
+            `${name} — PetQuest Trainer`;
           document.querySelector('[property="og:description"]').content =
-            `Level ${level} • ${unlocked.size} achievements • ${petsCount} pet${petsCount!==1?"s":""}`;
+            `Level ${level} - ${unlocked.size} achievements - ${petsCount} pet${petsCount !== 1 ? "s" : ""}`;
 
-          const xpPct = Math.min(100,(xpCur/Math.max(xpNext,1))*100).toFixed(1);
-          const spPct = Math.min(100,(species/totalSp)*100).toFixed(1);
+          const xpPct = Math.min(100, (xpCur / Math.max(xpNext, 1)) * 100).toFixed(1);
+          const spPct = Math.min(100, (species / totalSp) * 100).toFixed(1);
 
           root.innerHTML = `
 
@@ -258,7 +249,9 @@
             <div class="avsec">
               <div class="avwrap">
                 ${photo
-                  ? `<img class="avimg" src="${esc(photo)}" alt="${esc(name)}" />`
+                  ? `<img class="avimg" src="${esc(photo)}" alt="${esc(name)}"
+                       onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                     <div class="avph" style="display:none">${ic("paw",44)}</div>`
                   : `<div class="avph">${ic("paw",44)}</div>`}
                 <div class="pctbadge">${petsCount}</div>
               </div>
@@ -270,7 +263,9 @@
               <div class="lvlcard-icon">${ic("paw",30)}</div>
               <div class="lvlcard-body">
                 <div class="lvlcard-num">Level ${level}</div>
-                <div class="lvlcard-sub"><span>XP to next level</span><span>${xpCur} / ${xpNext}</span></div>
+                <div class="lvlcard-sub">
+                  <span>XP to next level</span><span>${xpCur} / ${xpNext}</span>
+                </div>
                 <div class="xpbg"><div class="xpfill" style="width:${xpPct}%"></div></div>
               </div>
             </div>
@@ -292,21 +287,26 @@
 
             <div class="seccard">
               <div class="sechead">${ic("trophy",20)}<span class="sectitle">Event Badges</span></div>
-              ${eventBadges.length===0
+              ${eventBadges.length === 0
                 ? `<p class="empty">No event badges earned yet.</p>`
-                : `<div class="evlist">${eventBadges.map(b=>`<div class="evbadge">${ic("trophy",18)}<span>${esc(b.name||b)}</span></div>`).join("")}</div>`}
+                : `<div class="evlist">${eventBadges.map(b =>
+                    `<div class="evbadge">${ic("trophy",18)}<span>${esc(b.name||b)}</span></div>`
+                  ).join("")}</div>`}
             </div>
 
-            ${pets.length>0?`
+            ${pets.length > 0 ? `
             <div class="petssec">
               <div class="phead">My Pets (${pets.length})</div>
               <div class="pgrid">
-                ${pets.map(pet=>{
-                  const rc=rarityColor(pet.virtue);
-                  const rl=rarityInfo(pet.rarity);
+                ${pets.map(pet => {
+                  const rc = rarityColor(pet.virtue);
+                  const rl = rarityInfo(pet.rarity);
+                  const hasWebPhoto = isWebUrl(pet.photoUri);
                   return `<div class="petcard" style="border-color:${rc}55">
-                    ${pet.photoUri && (pet.photoUri.startsWith("http://") || pet.photoUri.startsWith("https://"))
-                      ? `<img class="pphoto" src="${esc(pet.photoUri)}" alt="${esc(pet.name||"Pet")}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="pphph" style="display:none">${ic("paw",36)}</div>`
+                    ${hasWebPhoto
+                      ? `<img class="pphoto" src="${esc(pet.photoUri)}" alt="${esc(pet.name||"Pet")}"
+                           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+                         <div class="pphph" style="display:none">${ic("paw",36)}</div>`
                       : `<div class="pphph">${ic("paw",36)}</div>`}
                     <div class="pinfo">
                       <div class="pname">${esc(pet.name||"Pet")}</div>
@@ -323,21 +323,21 @@
             <div class="achsec">
               <div class="achhead">
                 <div class="achtitle">${ic("trophy",22)} Achievements</div>
-                ${unlocked.size>0?`<span class="ulbadge">${unlocked.size} unlocked</span>`:""}
+                ${unlocked.size > 0 ? `<span class="ulbadge">${unlocked.size} unlocked</span>` : ""}
               </div>
-              ${ACHIEVEMENT_CATEGORIES.map(cat=>{
-                const cnt=cat.badges.filter(b=>unlocked.has(b.title)).length;
+              ${ACHIEVEMENT_CATEGORIES.map(cat => {
+                const cnt = cat.badges.filter(b => unlocked.has(b.title)).length;
                 return `<div class="acat">
                   <div class="acathead" style="border-left-color:${cat.color}">
                     <span>${cat.name}</span>
                     <span style="color:${cat.color};font-size:12px;font-weight:700">${cnt}/${cat.badges.length}</span>
                   </div>
                   <div class="agrid">
-                    ${cat.badges.map(badge=>{
-                      const ul=unlocked.has(badge.title);
-                      return `<div class="abadge ${ul?"aul":"alk"}">
-                        <div class="aicon" style="${ul?`background:${cat.color}22;border:1.5px solid ${cat.color}44`:""}">
-                          ${ic(ul?badge.icon:"lock",28)}
+                    ${cat.badges.map(badge => {
+                      const ul = unlocked.has(badge.title);
+                      return `<div class="abadge ${ul ? "aul" : "alk"}">
+                        <div class="aicon" style="${ul ? `background:${cat.color}22;border:1.5px solid ${cat.color}44` : ""}">
+                          ${ic(ul ? badge.icon : "lock", 28)}
                         </div>
                         <div class="atxt">${esc(badge.title)}</div>
                         ${ul
@@ -351,9 +351,7 @@
             </div>
 
             <div class="openapp">
-              <a class="openbtn" href="petquest://share">
-                Open in PetQuest
-              </a>
+              <a class="openbtn" href="petquest://share">Open in PetQuest</a>
               <p class="shint">Don't have PetQuest? Search "PetQuest" on the Play Store.</p>
             </div>
           `;
