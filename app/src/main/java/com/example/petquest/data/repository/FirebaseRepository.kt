@@ -10,20 +10,22 @@ data class PetSummary(
     val species    : String  = "",
     val rarity     : String  = "",
     val bondLevel  : Int     = 1,
-    val isVerified : Boolean = false
+    val isVerified : Boolean = false,
+    val photoUri   : String? = null,  // pet verified photo URL
+    val virtue     : String  = ""     // virtue name for card flip back face
 )
 
 data class PublicProfile(
-    val uid                  : String       = "",
-    val trainerName          : String       = "",
-    val level                : Int          = 1,
-    val streak               : Int          = 0,
-    val bondPoints           : Int          = 0,
-    val petCount             : Int          = 0,
-    val speciesCount         : Int          = 0,
-    val pets                 : List<PetSummary> = emptyList(),
-    val unlockedBadgeTitles  : List<String> = emptyList(),
-    val updatedAt            : Long         = 0L
+    val uid                 : String           = "",
+    val trainerName         : String           = "",
+    val level               : Int              = 1,
+    val streak              : Int              = 0,
+    val bondPoints          : Int              = 0,
+    val petCount            : Int              = 0,
+    val speciesCount        : Int              = 0,
+    val pets                : List<PetSummary> = emptyList(),
+    val unlockedBadgeTitles : List<String>     = emptyList(),
+    val updatedAt           : Long             = 0L
 )
 
 class FirebaseRepository {

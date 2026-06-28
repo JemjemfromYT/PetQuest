@@ -63,50 +63,84 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    viewModel: PetQuestViewModel,
-    firebaseRepository: FirebaseRepository,
-    onAddPetClick: () -> Unit,
-    onAdminClick: () -> Unit,
-    onNavigateToCollection: () -> Unit = {}
+    viewModel              : PetQuestViewModel,
+    firebaseRepository     : FirebaseRepository,
+    onAddPetClick          : () -> Unit,
+    onAdminClick           : () -> Unit,
+    onNavigateToCollection : () -> Unit = {}
 ) {
     val context = LocalContext.current
 
-    val pets by viewModel.allPets.collectAsState()
-    val userLevel by viewModel.userLevel.collectAsState()
-    val totalBondPoints by viewModel.totalBondPoints.collectAsState()
-    val collectedSpecies by viewModel.collectedSpecies.collectAsState()
-    val allAchievements by viewModel.allAchievements.collectAsState()
+    val pets                by viewModel.allPets.collectAsState()
+    val userLevel           by viewModel.userLevel.collectAsState()
+    val totalBondPoints     by viewModel.totalBondPoints.collectAsState()
+    val collectedSpecies    by viewModel.collectedSpecies.collectAsState()
+    val allAchievements     by viewModel.allAchievements.collectAsState()
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
-    val notificationHour by viewModel.notificationHour.collectAsState()
-    val notificationMinute by viewModel.notificationMinute.collectAsState()
-    val userStreak by viewModel.userStreak.collectAsState()
+    val notificationHour    by viewModel.notificationHour.collectAsState()
+    val notificationMinute  by viewModel.notificationMinute.collectAsState()
+    val userStreak          by viewModel.userStreak.collectAsState()
 
     val speciesCount = collectedSpecies.size
     val totalSpecies = PetType.entries.size
-    val xpInLevel = totalBondPoints % 100
+    val xpInLevel    = totalBondPoints % 100
 
     val xpProgress by animateFloatAsState(
-        targetValue = xpInLevel / 100f,
+        targetValue   = xpInLevel / 100f,
         animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
-        label = "xp_progress"
+        label         = "xp_progress"
     )
 
     val speciesProgress by animateFloatAsState(
-        targetValue = if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat(),
+        targetValue   = if (totalSpecies == 0) 0f else speciesCount / totalSpecies.toFloat(),
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-        label = "species_progress"
+        label         = "species_progress"
     )
 
     val eventBadges: List<AchievementEntity> = remember(allAchievements) {
         allAchievements.filter { it.isUnlocked && it.title in EVENT_BADGE_TITLES }
     }
 
-    var tapCount by remember { mutableIntStateOf(0) }
-    var lastTapMs by remember { mutableLongStateOf(0L) }
+    var tapCount      by remember { mutableIntStateOf(0) }
+    var lastTapMs     by remember { mutableLongStateOf(0L) }
     var showAdminHint by remember { mutableStateOf(false) }
 
-    val scope = rememberCoroutineScope()
+    val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
+
+    // ── Helper: build current PublicProfile from live state ──────────────────
+    fun buildCurrentProfile() = PublicProfile(
+        trainerName         = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
+        level               = userLevel,
+        streak              = userStreak,
+        bondPoints          = totalBondPoints,
+        petCount            = pets.size,
+        speciesCount        = speciesCount,
+        pets                = pets.take(6).map { pet ->
+            PetSummary(
+                name       = pet.name,
+                species    = pet.type.name,
+                rarity     = pet.type.rarity.name,
+                bondLevel  = pet.bondLevel,
+                isVerified = pet.isVerified,
+                photoUri   = pet.photoUri?.toString(),
+                virtue     = pet.virtue.name
+            )
+        },
+        unlockedBadgeTitles = allAchievements.filter { it.isUnlocked }.map { it.title }
+    )
+
+    // ── Auto-sync: silently push profile whenever screen is opened ───────────
+    // This ensures Firebase always has the latest achievements, pets, and stats
+    // even if the user never manually presses Share.
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(600) // let Room DB StateFlows emit current values
+        try {
+            if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
+                firebaseRepository.pushProfile(buildCurrentProfile())
+            }
+        } catch (_: Exception) { /* silent — user can still share manually */ }
+    }
 
     fun onLevelTap() {
         val now = System.currentTimeMillis()
@@ -158,55 +192,41 @@ fun ProfileScreen(
     }
 
     val shareProfile: () -> Unit = {
-        scope.launch {
-            isSharingProfile = true
-            try {
-                val profile = PublicProfile(
-                    trainerName = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
-                    level        = userLevel,
-                    streak       = userStreak,
-                    bondPoints   = totalBondPoints,
-                    petCount     = pets.size,
-                    speciesCount = speciesCount,
-                    pets = pets.take(6).map { pet ->
-                        PetSummary(
-                            name       = pet.name,
-                            species    = pet.type.name,
-                            rarity     = pet.type.rarity.name,
-                            bondLevel  = pet.bondLevel,
-                            isVerified = pet.isVerified
-                        )
-                    },
-                    unlockedBadgeTitles = allAchievements
-                        .filter { it.isUnlocked }
-                        .map { it.title }
-                )
-                firebaseRepository.pushProfile(profile)
-                val uid = firebaseRepository.getMyUid() ?: return@launch
+        // Guard against double-tap
+        if (!isSharingProfile) {
+            scope.launch {
+                isSharingProfile = true
+                try {
+                    val profile = buildCurrentProfile()
+                    firebaseRepository.pushProfile(profile)
+                    val uid = firebaseRepository.getMyUid() ?: return@launch
 
-                // URL on line 1 so WhatsApp / Messenger generate a link-preview card
-                val shareLink = "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"
-
-                val shareText = buildString {
-                    append(shareLink)
-                    append("\n\n")
-                    append("🐾 Check out my PetQuest profile!\n")
-                    append("Trainer: ${profile.trainerName} • Level ${profile.level}\n")
-                    append("Streak: ${profile.streak} days • Bond Pts: ${profile.bondPoints}\n")
-                    append("Pets: ${profile.petCount} • Species: ${profile.speciesCount} discovered")
+                    // Single link at top — prevents messenger apps from showing it twice
+                    val shareLink = "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"
+                    val shareText = buildString {
+                        append(shareLink)
+                        append("\n\n")
+                        append("🐾 Check out my PetQuest profile!\n")
+                        append("Level ${profile.level} Trainer")
+                        if (profile.streak > 0) append(" • 🔥 ${profile.streak} day streak")
+                        append("\n")
+                        append("💚 ${profile.bondPoints} Bond Points • 🐾 ${profile.petCount} pet${if (profile.petCount != 1) "s" else ""}")
+                        append("\n\n")
+                        append("Join me on PetQuest and become a legendary pet trainer!")
+                    }
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, shareText)
+                        putExtra(Intent.EXTRA_TITLE, "${profile.trainerName}'s PetQuest Profile")
+                    }
+                    context.startActivity(
+                        Intent.createChooser(intent, "Share your PetQuest profile")
+                    )
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Couldn't share — check your connection.", Toast.LENGTH_SHORT).show()
+                } finally {
+                    isSharingProfile = false
                 }
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, shareText)
-                    putExtra(Intent.EXTRA_TITLE, "${profile.trainerName}'s PetQuest Profile")
-                }
-                context.startActivity(
-                    Intent.createChooser(intent, "Share your PetQuest profile")
-                )
-            } catch (e: Exception) {
-                Toast.makeText(context, "Couldn't share — check your connection.", Toast.LENGTH_SHORT).show()
-            } finally {
-                isSharingProfile = false
             }
         }
     }
@@ -254,15 +274,15 @@ fun ProfileScreen(
                     .padding(start = 16.dp, end = 4.dp, top = 14.dp, bottom = 14.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Text(
                         "Profile",
-                        fontSize     = 24.sp,
-                        fontWeight   = FontWeight.ExtraBold,
-                        color        = Color.White,
+                        fontSize      = 24.sp,
+                        fontWeight    = FontWeight.ExtraBold,
+                        color         = Color.White,
                         letterSpacing = (-0.5).sp
                     )
                     Row {
@@ -277,7 +297,7 @@ fun ProfileScreen(
                                 Icon(
                                     Icons.Default.Share,
                                     contentDescription = "Share Profile",
-                                    tint = Color.White.copy(alpha = 0.85f)
+                                    tint               = Color.White.copy(alpha = 0.85f)
                                 )
                             }
                         }
@@ -285,7 +305,7 @@ fun ProfileScreen(
                             Icon(
                                 Icons.Default.Build,
                                 contentDescription = "Admin",
-                                tint = Color.White.copy(alpha = 0.85f)
+                                tint               = Color.White.copy(alpha = 0.85f)
                             )
                         }
                     }
@@ -294,8 +314,8 @@ fun ProfileScreen(
         }
     ) { padding ->
         LazyColumn(
-            modifier        = Modifier.fillMaxSize().padding(padding),
-            contentPadding  = PaddingValues(12.dp),
+            modifier            = Modifier.fillMaxSize().padding(padding),
+            contentPadding      = PaddingValues(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
@@ -320,8 +340,8 @@ fun ProfileScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Card(
-                                shape  = MaterialTheme.shapes.medium,
-                                colors = CardDefaults.cardColors(
+                                shape     = MaterialTheme.shapes.medium,
+                                colors    = CardDefaults.cardColors(
                                     containerColor = Color.White.copy(alpha = 0.25f)
                                 ),
                                 elevation = CardDefaults.cardElevation(0.dp)
@@ -578,7 +598,10 @@ fun ProfileScreen(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 rowPets.forEach { pet ->
-                                    PetCollectionCard(pet = pet, modifier = Modifier.weight(1f).fillMaxHeight())
+                                    PetCollectionCard(
+                                        pet      = pet,
+                                        modifier = Modifier.weight(1f).fillMaxHeight()
+                                    )
                                 }
                                 if (rowPets.size == 1) Spacer(modifier = Modifier.weight(1f))
                             }
@@ -1010,8 +1033,8 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                     .align(Alignment.TopStart)
                     .padding(9.dp)
                     .background(
-                        color  = Color.White.copy(alpha = 0.18f),
-                        shape  = RoundedCornerShape(20.dp)
+                        color = Color.White.copy(alpha = 0.18f),
+                        shape = RoundedCornerShape(20.dp)
                     )
                     .padding(7.dp)
             ) {
