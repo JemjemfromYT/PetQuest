@@ -5,81 +5,332 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PetQuest – Trainer Profile</title>
 
-    <!-- Open Graph tags so Facebook / Messenger shows a proper link preview card -->
+    <!-- Open Graph: messaging apps (Messenger, WhatsApp, Discord) use these for link previews -->
     <meta property="og:title"       content="PetQuest Trainer Profile" />
     <meta property="og:description" content="Check out this trainer's live PetQuest stats!" />
     <meta property="og:type"        content="website" />
     <meta property="og:image"       content="https://jemjemfromyt.github.io/PetQuest/og-image.png" />
-    <meta property="og:url"         content="https://jemjemfromyt.github.io/PetQuest/share" />
-
-    <!-- Twitter card fallback -->
     <meta name="twitter:card"        content="summary_large_image" />
     <meta name="twitter:title"       content="PetQuest Trainer Profile" />
     <meta name="twitter:description" content="Check out this trainer's live PetQuest stats!" />
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          background: linear-gradient(135deg, #FF8C42, #FFB77A);
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          background: linear-gradient(160deg, #FF8C42 0%, #FFB77A 50%, #FFF3E0 100%);
           min-height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          padding: 20px;
+        }
+
+        /* ── Loading / Error screens ──────────────────────────────────────── */
+        .center-screen {
           text-align: center;
-          padding: 24px;
+          color: white;
         }
+        .center-screen .paw { font-size: 56px; margin-bottom: 16px; }
+        .center-screen h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .center-screen p  { font-size: 14px; opacity: 0.85; line-height: 1.5; max-width: 280px; }
+
+        .spinner {
+          width: 44px; height: 44px;
+          border: 4px solid rgba(255,255,255,0.3);
+          border-top-color: white;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+          margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Profile card ─────────────────────────────────────────────────── */
         .card {
-          background: rgba(255,255,255,0.15);
-          border-radius: 24px;
-          padding: 40px 32px;
-          max-width: 360px;
-          width: 100%;
-          backdrop-filter: blur(8px);
-        }
-        .paw { font-size: 56px; margin-bottom: 16px; }
-        h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
-        p  { font-size: 15px; opacity: 0.85; margin-bottom: 28px; line-height: 1.5; }
-        .btn {
-          display: inline-block;
           background: white;
-          color: #FF8C42;
+          border-radius: 28px;
+          padding: 0 0 28px;
+          max-width: 380px;
+          width: 100%;
+          box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+          overflow: hidden;
+        }
+
+        /* Header banner */
+        .card-header {
+          background: linear-gradient(135deg, #FF8C42, #FFB77A);
+          padding: 32px 24px 24px;
+          text-align: center;
+          position: relative;
+        }
+        .card-header .logo-text {
+          font-size: 13px;
           font-weight: 700;
+          letter-spacing: 2px;
+          color: rgba(255,255,255,0.75);
+          text-transform: uppercase;
+          margin-bottom: 16px;
+        }
+        .avatar {
+          width: 80px; height: 80px;
+          background: rgba(255,255,255,0.25);
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 40px;
+          margin: 0 auto 14px;
+          border: 3px solid rgba(255,255,255,0.5);
+        }
+        .trainer-name {
+          font-size: 26px;
+          font-weight: 800;
+          color: white;
+          margin-bottom: 4px;
+        }
+        .trainer-sub {
+          font-size: 13px;
+          color: rgba(255,255,255,0.80);
+          font-weight: 500;
+        }
+        /* Level badge pinned top-right */
+        .level-badge {
+          position: absolute;
+          top: 20px; right: 20px;
+          background: rgba(255,255,255,0.22);
+          border: 2px solid rgba(255,255,255,0.45);
+          border-radius: 50px;
+          padding: 5px 13px;
+          font-size: 13px;
+          font-weight: 800;
+          color: white;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          padding: 20px 20px 0;
+        }
+        .stat-card {
+          background: #FFF8F2;
+          border-radius: 16px;
+          padding: 16px 12px;
+          text-align: center;
+          border: 1px solid #FFE0C0;
+        }
+        .stat-card .stat-icon { font-size: 22px; margin-bottom: 6px; }
+        .stat-card .stat-value {
+          font-size: 26px;
+          font-weight: 800;
+          color: #E65100;
+          line-height: 1;
+          margin-bottom: 4px;
+        }
+        .stat-card .stat-label {
+          font-size: 11px;
+          font-weight: 600;
+          color: #BF360C;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        /* Species card spans full width */
+        .stat-card.wide {
+          grid-column: 1 / -1;
+        }
+
+        /* Open button */
+        .open-btn {
+          display: block;
+          margin: 20px 20px 0;
+          background: linear-gradient(135deg, #FF8C42, #FF6D00);
+          color: white;
           font-size: 16px;
-          padding: 14px 32px;
+          font-weight: 700;
+          text-align: center;
+          padding: 16px;
           border-radius: 50px;
           text-decoration: none;
-          margin-bottom: 12px;
-          width: 100%;
+          box-shadow: 0 6px 20px rgba(255,110,0,0.35);
+          transition: transform 0.12s, box-shadow 0.12s;
         }
-        .sub { font-size: 12px; opacity: 0.70; margin-top: 8px; }
+        .open-btn:active {
+          transform: scale(0.97);
+          box-shadow: 0 2px 10px rgba(255,110,0,0.25);
+        }
+        .open-hint {
+          text-align: center;
+          font-size: 12px;
+          color: #999;
+          margin-top: 10px;
+          padding: 0 20px;
+        }
     </style>
 </head>
 <body>
-<div class="card">
+
+<!-- Loading state (shown by default, hidden once data loads) -->
+<div id="loading" class="center-screen">
+    <div class="spinner"></div>
+    <h2>Loading Profile…</h2>
+    <p>Fetching this trainer's live PetQuest stats.</p>
+</div>
+
+<!-- Error: no uid in URL -->
+<div id="error-no-uid" class="center-screen" style="display:none;">
     <div class="paw">🐾</div>
-    <h1>PetQuest</h1>
-    <p>Someone shared their Trainer Profile with you.<br>Open the app to view their live stats!</p>
-    <a class="btn" id="openBtn" href="#">Open in PetQuest</a>
-    <div class="sub" id="status">Opening PetQuest…</div>
+    <h2>Invalid Link</h2>
+    <p>This share link is missing a trainer ID. Ask your friend to share again from the PetQuest app.</p>
+</div>
+
+<!-- Error: profile not found -->
+<div id="error-not-found" class="center-screen" style="display:none;">
+    <div class="paw">😔</div>
+    <h2>Profile Not Found</h2>
+    <p>This trainer may have uninstalled PetQuest, or the link has expired.</p>
+</div>
+
+<!-- Error: network / rules -->
+<div id="error-network" class="center-screen" style="display:none;">
+    <div class="paw">📡</div>
+    <h2>Couldn't Load Profile</h2>
+    <p>Check your internet connection and try again.<br><br>
+        <small id="error-detail" style="opacity:0.7;"></small>
+    </p>
+</div>
+
+<!-- Profile card (filled in by JS) -->
+<div id="profile-card" class="card" style="display:none;">
+    <div class="card-header">
+        <div class="logo-text">🐾 PetQuest</div>
+        <div class="avatar">🎮</div>
+        <div class="trainer-name" id="trainer-name">—</div>
+        <div class="trainer-sub" id="trainer-sub">PetQuest Trainer</div>
+        <div class="level-badge" id="level-badge">Lv. —</div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🔥</div>
+            <div class="stat-value" id="streak-val">—</div>
+            <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💚</div>
+            <div class="stat-value" id="bond-val">—</div>
+            <div class="stat-label">Bond Points</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🐶</div>
+            <div class="stat-value" id="pet-val">—</div>
+            <div class="stat-label">Active Pets</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✨</div>
+            <div class="stat-value" id="trainer-title-val">—</div>
+            <div class="stat-label">Trainer Rank</div>
+        </div>
+        <div class="stat-card wide">
+            <div class="stat-icon">🌿</div>
+            <div class="stat-value" id="species-val">—</div>
+            <div class="stat-label">Species Discovered</div>
+        </div>
+    </div>
+
+    <a id="open-btn" class="open-btn" href="#">Open in PetQuest</a>
+    <p class="open-hint">Don't have PetQuest? Search "PetQuest" on the Play Store.</p>
 </div>
 
 <script>
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    function show(id) {
+      document.getElementById(id).style.display = '';
+    }
+    function hide(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // Parse a Firestore REST field value (stringValue, integerValue, etc.)
+    function fv(field) {
+      if (!field) return null;
+      if ('stringValue'  in field) return field.stringValue;
+      if ('integerValue' in field) return parseInt(field.integerValue, 10);
+      if ('doubleValue'  in field) return field.doubleValue;
+      if ('booleanValue' in field) return field.booleanValue;
+      return null;
+    }
+
+    // Map trainer level → rank title (mirrors trainerTitle() in ProfileScreen.kt)
+    function trainerTitle(level) {
+      if (level >= 50) return 'Legendary Master';
+      if (level >= 40) return 'Elite Trainer';
+      if (level >= 30) return 'Expert Trainer';
+      if (level >= 20) return 'Advanced Trainer';
+      if (level >= 10) return 'Trainer';
+      if (level >= 5)  return 'Novice';
+      return 'Beginner';
+    }
+
+    // ── Main ───────────────────────────────────────────────────────────────────
+
     const params = new URLSearchParams(window.location.search);
-    const uid    = params.get("uid") || "";
+    const uid    = params.get('uid') || '';
 
-    const deepLink = "petquest://share?uid=" + encodeURIComponent(uid);
-    document.getElementById("openBtn").href = deepLink;
-
-    if (uid) {
-      window.location.href = deepLink;
-      setTimeout(function () {
-        document.getElementById("status").textContent =
-          "App not installed? Search \"PetQuest\" in the Play Store.";
-      }, 2000);
+    if (!uid) {
+      hide('loading');
+      show('error-no-uid');
     } else {
-      document.getElementById("status").textContent = "Invalid link – no profile ID found.";
+      // Deep-link for the "Open in PetQuest" button
+      const deepLink = 'petquest://share?uid=' + encodeURIComponent(uid);
+      document.getElementById('open-btn').href = deepLink;
+
+      // Firestore REST API – no SDK needed, no auth required for public profiles
+      const PROJECT_ID = 'pet-quest-5f2eb';
+      const API_KEY    = 'AIzaSyDIcH9SSfX8vKBoefaohJ9MAk5nO4NxFZo';
+      const url = 'https://firestore.googleapis.com/v1/projects/' + PROJECT_ID +
+                  '/databases/(default)/documents/profiles/' +
+                  encodeURIComponent(uid) + '?key=' + API_KEY;
+
+      fetch(url)
+        .then(function(res) {
+          if (res.status === 404) throw { type: 'not-found' };
+          if (!res.ok) return res.json().then(function(e) { throw { type: 'network', detail: JSON.stringify(e) }; });
+          return res.json();
+        })
+        .then(function(data) {
+          var f = data.fields || {};
+
+          var name         = fv(f.trainerName)  || 'Unknown Trainer';
+          var level        = fv(f.level)         || 1;
+          var streak       = fv(f.streak)        || 0;
+          var bondPoints   = fv(f.bondPoints)    || 0;
+          var petCount     = fv(f.petCount)      || 0;
+          var speciesCount = fv(f.speciesCount)  || 0;
+          var title        = trainerTitle(level);
+
+          document.getElementById('trainer-name').textContent   = name;
+          document.getElementById('trainer-sub').textContent    = title + ' · Level ' + level;
+          document.getElementById('level-badge').textContent    = 'Lv. ' + level;
+          document.getElementById('streak-val').textContent     = streak;
+          document.getElementById('bond-val').textContent       = bondPoints;
+          document.getElementById('pet-val').textContent        = petCount;
+          document.getElementById('trainer-title-val').textContent = title;
+          document.getElementById('species-val').textContent    = speciesCount + ' species';
+
+          hide('loading');
+          show('profile-card');
+        })
+        .catch(function(err) {
+          hide('loading');
+          if (err && err.type === 'not-found') {
+            show('error-not-found');
+          } else {
+            document.getElementById('error-detail').textContent =
+              (err && err.detail) ? err.detail : '';
+            show('error-network');
+          }
+        });
     }
 </script>
 </body>

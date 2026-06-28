@@ -156,9 +156,6 @@ fun ProfileScreen(
         }
     }
 
-    // ── FIXED: share now uses an https:// GitHub Pages link so it shows as
-    // a tappable blue hyperlink in WhatsApp, Messages, Discord, etc.
-    // The page (docs/share.html) auto-redirects to petquest://share?uid=...
     val shareProfile: () -> Unit = {
         scope.launch {
             isSharingProfile = true
@@ -174,23 +171,25 @@ fun ProfileScreen(
                 firebaseRepository.pushProfile(profile)
                 val uid = firebaseRepository.getMyUid() ?: return@launch
 
-                // https:// so messaging apps render it as a tappable link
-                val shareLink = "https://jemjemfromyt.github.io/PetQuest/share?uid=$uid"
+                // URL on line 1 so WhatsApp / Messenger generate a link-preview card
+                val shareLink = "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"
 
                 val shareText = buildString {
-                    append("🐾 Check out my PetQuest profile!\n\n")
-                    append("Trainer: ${profile.trainerName}\n")
-                    append("Level: ${profile.level}  |  Streak: ${profile.streak} days\n")
-                    append("Bond Points: ${profile.bondPoints}\n")
-                    append("Pets: ${profile.petCount}  |  Species: ${profile.speciesCount} discovered\n\n")
-                    append("Tap to view my live profile 👇\n")
                     append(shareLink)
+                    append("\n\n")
+                    append("🐾 Check out my PetQuest profile!\n")
+                    append("Trainer: ${profile.trainerName}  •  Level ${profile.level}\n")
+                    append("Streak: ${profile.streak} days  •  Bond Pts: ${profile.bondPoints}\n")
+                    append("Pets: ${profile.petCount}  •  Species: ${profile.speciesCount} discovered")
                 }
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, shareText)
+                    putExtra(Intent.EXTRA_TEXT,  shareText)
+                    putExtra(Intent.EXTRA_TITLE, "${profile.trainerName}'s PetQuest Profile")
                 }
-                context.startActivity(Intent.createChooser(intent, "Share your PetQuest profile"))
+                context.startActivity(
+                    Intent.createChooser(intent, "Share your PetQuest profile")
+                )
             } catch (e: Exception) {
                 Toast.makeText(context, "Couldn't share — check your connection.", Toast.LENGTH_SHORT).show()
             } finally {
