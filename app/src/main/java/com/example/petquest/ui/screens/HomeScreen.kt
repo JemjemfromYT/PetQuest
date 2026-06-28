@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Celebration
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
@@ -100,38 +101,93 @@ fun trainerTitle(level: Int): String = when {
 
 // ---------------------------------------------------------------------------
 // StatCard — shared helper used by PetDetailScreen too
+// Overload A: resource-icon version (original)
 // ---------------------------------------------------------------------------
 @Composable
 fun StatCard(
     value           : String,
     label           : String,
     modifier        : Modifier = Modifier,
-    containerColor  : Color    = MaterialTheme.colorScheme.surfaceVariant,
-    valueColor      : Color    = MaterialTheme.colorScheme.onBackground
+    iconRes         : Int?     = null,
+    dimmed          : Boolean  = false,
+    accentContainer : Color?   = null,
+    accentContent   : Color?   = null
 ) {
+    val containerColor = when {
+        dimmed                  -> MaterialTheme.colorScheme.surfaceVariant
+        accentContainer != null -> accentContainer
+        else                    -> MaterialTheme.colorScheme.secondaryContainer
+    }
+    val contentColor = when {
+        dimmed                -> MaterialTheme.colorScheme.onSurfaceVariant
+        accentContent != null -> accentContent
+        else                  -> MaterialTheme.colorScheme.onSecondaryContainer
+    }
+
     Card(
         modifier  = modifier,
         colors    = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(0.dp),
-        shape     = RoundedCornerShape(12.dp)
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
-            modifier            = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier            = Modifier.padding(8.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
+            if (iconRes != null) {
+                Image(
+                    painter            = painterResource(id = iconRes),
+                    contentDescription = label,
+                    modifier           = Modifier.size(18.dp),
+                    contentScale       = ContentScale.Fit
+                )
+                Spacer(Modifier.height(2.dp))
+            }
+            Text(value, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = contentColor)
+            Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+// Overload B: ImageVector-icon version (used by PetDetailScreen)
+@Composable
+fun StatCard(
+    modifier  : Modifier     = Modifier,
+    icon      : ImageVector? = null,
+    value     : String,
+    label     : String,
+    iconTint  : Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    bgColor   : Color = MaterialTheme.colorScheme.surfaceVariant
+) {
+    Card(
+        modifier  = modifier,
+        colors    = CardDefaults.cardColors(containerColor = bgColor),
+        elevation = CardDefaults.cardElevation(0.dp)
+    ) {
+        Column(
+            modifier            = Modifier.padding(8.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector        = icon,
+                    contentDescription = label,
+                    tint               = iconTint,
+                    modifier           = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.height(2.dp))
+            }
             Text(
                 value,
-                fontSize   = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color      = valueColor,
-                maxLines   = 1
+                fontWeight = FontWeight.Bold,
+                fontSize   = 16.sp,
+                color      = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 label,
-                fontSize   = 10.sp,
-                fontWeight = FontWeight.Medium,
-                color      = valueColor.copy(alpha = 0.70f),
-                maxLines   = 1
+                fontSize = 10.sp,
+                color    = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
