@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PetQuest – Trainer Profile</title>
+
+    <!-- Open Graph tags so Facebook / Messenger shows a proper link preview card -->
+    <meta property="og:title"       content="PetQuest Trainer Profile" />
+    <meta property="og:description" content="Check out this trainer's live PetQuest stats!" />
+    <meta property="og:type"        content="website" />
+    <meta property="og:image"       content="https://jemjemfromyt.github.io/PetQuest/og-image.png" />
+    <meta property="og:url"         content="https://jemjemfromyt.github.io/PetQuest/share" />
+
+    <!-- Twitter card fallback -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content="PetQuest Trainer Profile" />
+    <meta name="twitter:description" content="Check out this trainer's live PetQuest stats!" />
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -53,22 +66,17 @@
 </div>
 
 <script>
-    // Read uid from ?uid=xxx query param
     const params = new URLSearchParams(window.location.search);
     const uid    = params.get("uid") || "";
 
     const deepLink = "petquest://share?uid=" + encodeURIComponent(uid);
     document.getElementById("openBtn").href = deepLink;
 
-    // Auto-redirect immediately
     if (uid) {
       window.location.href = deepLink;
-
-      // If the app isn't installed the redirect silently fails.
-      // After 2 seconds show a helpful message.
       setTimeout(function () {
         document.getElementById("status").textContent =
-          "App not installed? Search "PetQuest" in the Play Store.";
+          "App not installed? Search \"PetQuest\" in the Play Store.";
       }, 2000);
     } else {
       document.getElementById("status").textContent = "Invalid link – no profile ID found.";
