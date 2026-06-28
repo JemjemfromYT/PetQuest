@@ -106,28 +106,28 @@ fun trainerTitle(level: Int): String = when {
 // ---------------------------------------------------------------------------
 @Composable
 fun StatCard(
-    value           : String,
-    label           : String,
-    modifier        : Modifier = Modifier,
-    iconRes         : Int?     = null,
-    dimmed          : Boolean  = false,
-    accentContainer : Color?   = null,
-    accentContent   : Color?   = null
+    value          : String,
+    label          : String,
+    modifier       : Modifier = Modifier,
+    iconRes        : Int?     = null,
+    dimmed         : Boolean  = false,
+    accentContainer: Color?   = null,
+    accentContent  : Color?   = null
 ) {
     val containerColor = when {
-        dimmed                  -> MaterialTheme.colorScheme.surfaceVariant
+        dimmed              -> MaterialTheme.colorScheme.surfaceVariant
         accentContainer != null -> accentContainer
-        else                    -> MaterialTheme.colorScheme.secondaryContainer
+        else                -> MaterialTheme.colorScheme.secondaryContainer
     }
     val contentColor = when {
-        dimmed                -> MaterialTheme.colorScheme.onSurfaceVariant
+        dimmed              -> MaterialTheme.colorScheme.onSurfaceVariant
         accentContent != null -> accentContent
-        else                  -> MaterialTheme.colorScheme.onSecondaryContainer
+        else                -> MaterialTheme.colorScheme.onSecondaryContainer
     }
 
     Card(
-        modifier  = modifier,
-        colors    = CardDefaults.cardColors(containerColor = containerColor),
+        modifier = modifier,
+        colors   = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
@@ -153,12 +153,12 @@ fun StatCard(
 // Overload B: ImageVector-icon version (used by PetDetailScreen)
 @Composable
 fun StatCard(
-    modifier  : Modifier     = Modifier,
-    icon      : ImageVector? = null,
-    value     : String,
-    label     : String,
-    iconTint  : Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    bgColor   : Color = MaterialTheme.colorScheme.surfaceVariant
+    modifier : Modifier    = Modifier,
+    icon     : ImageVector? = null,
+    value    : String,
+    label    : String,
+    iconTint : Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    bgColor  : Color = MaterialTheme.colorScheme.surfaceVariant
 ) {
     Card(
         modifier  = modifier,
@@ -211,9 +211,7 @@ fun EmptyStateCard(
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
-            modifier            = Modifier
-                .fillMaxWidth()
-                .padding(32.dp),
+            modifier            = Modifier.fillMaxWidth().padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -231,10 +229,7 @@ fun EmptyStateCard(
                 textAlign  = TextAlign.Center,
                 lineHeight = 20.sp
             )
-            Button(
-                onClick = onAction,
-                shape   = RoundedCornerShape(12.dp)
-            ) {
+            Button(onClick = onAction, shape = RoundedCornerShape(12.dp)) {
                 Text(actionLabel, fontWeight = FontWeight.Bold)
             }
         }
@@ -305,9 +300,8 @@ private fun HomeStatCard(
 @Composable
 fun EventBadge(event: SeasonalEvent) {
     Surface(
-        shape    = RoundedCornerShape(6.dp),
-        color    = event.gradientStart.copy(alpha = 0.90f),
-        modifier = Modifier
+        shape = RoundedCornerShape(6.dp),
+        color = event.gradientStart.copy(alpha = 0.90f)
     ) {
         Text(
             event.emoji,
@@ -318,14 +312,14 @@ fun EventBadge(event: SeasonalEvent) {
 }
 
 // ---------------------------------------------------------------------------
-// SettingsDialog — background music + SFX toggles, persisted in SharedPreferences
+// SettingsDialog — background music + SFX toggles
 // ---------------------------------------------------------------------------
 @Composable
 private fun SettingsDialog(
     onDismiss : () -> Unit,
     context   : Context
 ) {
-    val prefs   = remember { context.getSharedPreferences("petquest_settings", Context.MODE_PRIVATE) }
+    val prefs  = remember { context.getSharedPreferences("petquest_settings", Context.MODE_PRIVATE) }
     var musicOn by remember { mutableStateOf(prefs.getBoolean("music_enabled", true)) }
     var sfxOn   by remember { mutableStateOf(prefs.getBoolean("sfx_enabled",   true)) }
 
@@ -345,29 +339,21 @@ private fun SettingsDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Icon(
                             imageVector        = if (musicOn) Icons.Default.MusicNote else Icons.Default.MusicOff,
                             contentDescription = null,
-                            tint               = if (musicOn) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint               = if (musicOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier           = Modifier.size(20.dp)
                         )
                         Column {
                             Text("Background Music", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                            Text(
-                                if (musicOn) "On" else "Off",
-                                fontSize = 12.sp,
-                                color    = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Text(if (musicOn) "On" else "Off", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Switch(
-                        checked         = musicOn,
-                        onCheckedChange = { checked ->
+                        checked          = musicOn,
+                        onCheckedChange  = { checked ->
                             musicOn = checked
                             prefs.edit().putBoolean("music_enabled", checked).apply()
                             SoundManager.musicEnabled = checked
@@ -383,24 +369,16 @@ private fun SettingsDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Icon(
                             imageVector        = if (sfxOn) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
                             contentDescription = null,
-                            tint               = if (sfxOn) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint               = if (sfxOn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier           = Modifier.size(20.dp)
                         )
                         Column {
                             Text("Sound Effects", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                            Text(
-                                if (sfxOn) "On" else "Off",
-                                fontSize = 12.sp,
-                                color    = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Text(if (sfxOn) "On" else "Off", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Switch(
@@ -428,13 +406,15 @@ private fun SettingsDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
-    val context         = LocalContext.current
-    val pets            by viewModel.allPets.collectAsState()
-    val tasks           by viewModel.todaysTasks.collectAsState()
-    val streak          by viewModel.userStreak.collectAsState()
-    val totalBondPoints by viewModel.totalBondPoints.collectAsState()
-    val userLevel       by viewModel.userLevel.collectAsState()
+    val context          = LocalContext.current
+    val pets             by viewModel.allPets.collectAsState()
+    val tasks            by viewModel.todaysTasks.collectAsState()
+    val streak           by viewModel.userStreak.collectAsState()
+    val totalBondPoints  by viewModel.totalBondPoints.collectAsState()
+    val userLevel        by viewModel.userLevel.collectAsState()
     val collectedSpecies by viewModel.collectedSpecies.collectAsState()
+    // FIX: collect achievements so they are included in every profile push
+    val allAchievements  by viewModel.allAchievements.collectAsState()
 
     // Firebase helper — stateless, safe to create here
     val firebaseRepository = remember { FirebaseRepository() }
@@ -445,10 +425,10 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     val today       = remember { todaySimpleDate() }
     val activeEvent = remember { getActiveEvent(today) }
 
-    val doneTasks    = tasks.count { it.isCompleted }
+    val doneTasks   = tasks.count { it.isCompleted }
     val streakActive = doneTasks > 0 || tasks.isEmpty()
-    val allDone      = tasks.isNotEmpty() && doneTasks == tasks.size
-    val isDark       = isSystemInDarkTheme()
+    val allDone     = tasks.isNotEmpty() && doneTasks == tasks.size
+    val isDark      = isSystemInDarkTheme()
 
     // ── 3-dot menu state ──────────────────────────────────────────────────────
     var showMenu     by remember { mutableStateOf(false) }
@@ -466,10 +446,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
     // ── Settings dialog ───────────────────────────────────────────────────────
     if (showSettings) {
-        SettingsDialog(
-            onDismiss = { showSettings = false },
-            context   = context
-        )
+        SettingsDialog(onDismiss = { showSettings = false }, context = context)
     }
 
     Scaffold(
@@ -482,8 +459,8 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     .padding(start = 16.dp, end = 4.dp, top = 14.dp, bottom = 14.dp)
             ) {
                 Row(
-                    modifier          = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier              = Modifier.fillMaxWidth(),
+                    verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
@@ -529,16 +506,13 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             }
 
                             DropdownMenu(
-                                expanded         = showMenu,
-                                onDismissRequest = { showMenu = false }
+                                expanded          = showMenu,
+                                onDismissRequest  = { showMenu = false }
                             ) {
                                 // Settings
                                 DropdownMenuItem(
                                     text = {
-                                        Row(
-                                            verticalAlignment     = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                        ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                             Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(18.dp))
                                             Text("Settings", fontSize = 14.sp)
                                         }
@@ -554,15 +528,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 // Share Profile
                                 DropdownMenuItem(
                                     text = {
-                                        Row(
-                                            verticalAlignment     = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                        ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                             if (isSharingProfile) {
-                                                CircularProgressIndicator(
-                                                    modifier    = Modifier.size(18.dp),
-                                                    strokeWidth = 2.dp
-                                                )
+                                                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                                             } else {
                                                 Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                                             }
@@ -570,29 +538,39 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         }
                                     },
                                     onClick = {
+                                        // FIX: set flag BEFORE scope.launch so the guard works immediately
+                                        // on double-tap — prevents two identical messages being sent
                                         if (isSharingProfile) return@DropdownMenuItem
                                         showMenu = false
+                                        isSharingProfile = true   // ← must be BEFORE scope.launch
                                         scope.launch {
-                                            isSharingProfile = true
                                             try {
-                                                val petCount     = pets.size
-                                                val petSummaries = pets.map { pet ->
+                                                val petCount    = pets.size
+                                                val petSummaries = pets.take(6).map { pet ->
                                                     PetSummary(
                                                         name       = pet.name,
                                                         species    = pet.type.name,
                                                         rarity     = pet.type.rarity.name,
                                                         bondLevel  = pet.bondLevel,
-                                                        isVerified = pet.isVerified
+                                                        isVerified = pet.isVerified,
+                                                        // FIX: include verified photo so Trainer Profile shows real image
+                                                        photoUri   = pet.photoUri?.toString(),
+                                                        // FIX: include virtue so Trainer Profile flip card shows correct color
+                                                        virtue     = pet.virtue.name
                                                     )
                                                 }
                                                 val profile = PublicProfile(
-                                                    trainerName  = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
-                                                    level        = userLevel,
-                                                    streak       = streak,
-                                                    bondPoints   = totalBondPoints,
-                                                    petCount     = petCount,
-                                                    speciesCount = collectedSpecies.size,
-                                                    pets         = petSummaries
+                                                    trainerName         = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
+                                                    level               = userLevel,
+                                                    streak              = streak,
+                                                    bondPoints          = totalBondPoints,
+                                                    petCount            = petCount,
+                                                    speciesCount        = collectedSpecies.size,
+                                                    pets                = petSummaries,
+                                                    // FIX: push all unlocked achievement titles
+                                                    unlockedBadgeTitles = allAchievements
+                                                        .filter { it.isUnlocked }
+                                                        .map    { it.title }
                                                 )
                                                 firebaseRepository.pushProfile(profile)
                                                 val uid = firebaseRepository.getMyUid()
@@ -603,23 +581,27 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                                                 val title     = trainerTitle(userLevel)
                                                 val titleLine = if (title.isNotEmpty()) "$title • " else ""
+
+                                                // FIX: link appears ONCE at the very end as a clean URL line
+                                                // so messaging apps show it as a preview card, not inline twice
                                                 val shareText = buildString {
-                                                    if (shareLink.isNotEmpty()) {
-                                                        append(shareLink)
-                                                        append("\n\n")
-                                                    }
                                                     appendLine("🐾 Check out my PetQuest profile!")
                                                     appendLine()
                                                     appendLine("${titleLine}Level $userLevel Trainer")
-                                                    appendLine("🔥 $streak day streak")
+                                                    if (streak > 0) appendLine("🔥 $streak day streak")
                                                     appendLine("💚 $totalBondPoints Bond Points")
-                                                    appendLine("🐕 $petCount ${if (petCount == 1) "pet" else "pets"}")
+                                                    appendLine("🐾 $petCount ${if (petCount == 1) "pet" else "pets"}")
                                                     appendLine()
-                                                    append("Join me on PetQuest and become a legendary pet trainer!")
+                                                    appendLine("Join me on PetQuest and become a legendary pet trainer!")
+                                                    if (shareLink.isNotEmpty()) {
+                                                        appendLine()
+                                                        append(shareLink)
+                                                    }
                                                 }
+
                                                 val sendIntent = Intent().apply {
                                                     action = Intent.ACTION_SEND
-                                                    putExtra(Intent.EXTRA_TEXT, shareText)
+                                                    putExtra(Intent.EXTRA_TEXT,  shareText)
                                                     putExtra(Intent.EXTRA_TITLE, "${profile.trainerName}'s PetQuest Profile")
                                                     type = "text/plain"
                                                 }
@@ -635,9 +617,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                                     appendLine("🐾 Check out my PetQuest profile!")
                                                     appendLine()
                                                     appendLine("${titleLine}Level $userLevel Trainer")
-                                                    appendLine("🔥 $streak day streak")
+                                                    if (streak > 0) appendLine("🔥 $streak day streak")
                                                     appendLine("💚 $totalBondPoints Bond Points")
-                                                    appendLine("🐕 $petCount ${if (petCount == 1) "pet" else "pets"}")
+                                                    appendLine("🐾 $petCount ${if (petCount == 1) "pet" else "pets"}")
                                                     appendLine()
                                                     append("Join me on PetQuest and become a legendary pet trainer!")
                                                 }
@@ -663,10 +645,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
         }
     ) { padding ->
         LazyColumn(
-            modifier            = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
+            modifier            = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
             contentPadding      = PaddingValues(vertical = 16.dp)
         ) {
@@ -780,8 +759,10 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     )
                                     Surface(
                                         shape = RoundedCornerShape(20.dp),
-                                        color = if (allDone) (if (isDark) Color(0xFF81C784) else Color(0xFF1B5E20)).copy(alpha = 0.12f)
-                                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                                        color = if (allDone)
+                                            (if (isDark) Color(0xFF81C784) else Color(0xFF1B5E20)).copy(alpha = 0.12f)
+                                        else
+                                            MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                                     ) {
                                         Text(
                                             "$doneTasks / ${tasks.size}",
@@ -869,23 +850,20 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                     )
 
                     Card(
-                        modifier  = Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
                             .offset(y = offsetY)
                             .alpha(if (isVerified) cardAlpha else cardAlpha * 0.65f)
                             .scale(cardScale)
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication        = null
-                            ) { navController.navigate("pet_detail/${pet.id}") },
+                            .clickable(interactionSource = interactionSource, indication = null) {
+                                navController.navigate("pet_detail/${pet.id}")
+                            },
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = if (isVerified) 4.dp else 0.dp
                         ),
-                        colors    = CardDefaults.cardColors(
-                            containerColor = if (isVerified)
-                                MaterialTheme.colorScheme.surface
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isVerified) MaterialTheme.colorScheme.surface
+                            else MaterialTheme.colorScheme.surfaceVariant
                         )
                     ) {
                         Row(
@@ -897,24 +875,17 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 modifier = Modifier
                                     .width(5.dp)
                                     .height(96.dp)
-                                    .background(
-                                        if (isVerified) accentColor
-                                        else accentColor.copy(alpha = 0.35f)
-                                    )
+                                    .background(if (isVerified) accentColor else accentColor.copy(alpha = 0.35f))
                             )
 
                             // Pet photo
                             Box(
-                                modifier         = Modifier
+                                modifier = Modifier
                                     .padding(12.dp)
                                     .size(68.dp)
                                     .then(
                                         if (hasGoldBorder)
-                                            Modifier.border(
-                                                width = 2.5.dp,
-                                                color = Color(0xFFFFD700),
-                                                shape = MaterialTheme.shapes.medium
-                                            )
+                                            Modifier.border(2.5.dp, Color(0xFFFFD700), MaterialTheme.shapes.medium)
                                         else Modifier
                                     )
                                     .clip(MaterialTheme.shapes.medium),
@@ -929,12 +900,9 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                     )
                                 } else {
                                     Box(
-                                        modifier         = Modifier
+                                        modifier = Modifier
                                             .fillMaxSize()
-                                            .background(
-                                                accentColor.copy(alpha = 0.10f),
-                                                MaterialTheme.shapes.medium
-                                            ),
+                                            .background(accentColor.copy(alpha = 0.10f), MaterialTheme.shapes.medium),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(petEmoji(pet.type.name), fontSize = 36.sp)
@@ -942,26 +910,16 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                 }
                                 if (!isVerified) {
                                     Box(
-                                        modifier         = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.45f)),
+                                        modifier         = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Icon(
-                                            imageVector        = Icons.Default.CameraAlt,
-                                            contentDescription = "Needs photo",
-                                            tint               = Color.White,
-                                            modifier           = Modifier.size(22.dp)
-                                        )
+                                        Icon(Icons.Default.CameraAlt, contentDescription = "Needs photo",
+                                            tint = Color.White, modifier = Modifier.size(22.dp))
                                     }
                                 }
                                 // EventBadge overlay
                                 if (activeEvent != null && isVerified) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .padding(2.dp)
-                                    ) {
+                                    Box(modifier = Modifier.align(Alignment.TopEnd).padding(2.dp)) {
                                         EventBadge(activeEvent)
                                     }
                                 }
@@ -969,16 +927,11 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
                             // Info column
                             Column(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(top = 10.dp, end = 12.dp, bottom = 10.dp),
+                                modifier            = Modifier.weight(1f).padding(top = 10.dp, end = 12.dp, bottom = 10.dp),
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 // Name + verified checkmark
-                                Row(
-                                    verticalAlignment     = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                                ) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                                     Text(
                                         pet.name,
                                         fontWeight = FontWeight.ExtraBold,
@@ -988,75 +941,40 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         modifier   = Modifier.weight(1f, fill = false)
                                     )
                                     if (isVerified) {
-                                        Icon(
-                                            imageVector        = Icons.Default.CheckCircle,
-                                            contentDescription = "Verified",
-                                            tint               = Color(0xFF43A047),
-                                            modifier           = Modifier.size(15.dp)
-                                        )
+                                        Icon(Icons.Default.CheckCircle, contentDescription = "Verified",
+                                            tint = Color(0xFF43A047), modifier = Modifier.size(15.dp))
                                     }
                                 }
 
                                 // Rarity chip + level
-                                Row(
-                                    verticalAlignment     = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Surface(
-                                        shape = RoundedCornerShape(6.dp),
-                                        color = accentColor.copy(alpha = 0.15f)
-                                    ) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Surface(shape = RoundedCornerShape(6.dp), color = accentColor.copy(alpha = 0.15f)) {
                                         Text(
-                                            pet.type.rarity.name.lowercase()
-                                                .replaceFirstChar { it.uppercaseChar() },
+                                            pet.type.rarity.name.lowercase().replaceFirstChar { it.uppercaseChar() },
                                             fontSize   = 11.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color      = accentColor,
                                             modifier   = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                         )
                                     }
-                                    Text(
-                                        "·",
-                                        color    = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 12.sp
-                                    )
-                                    Text(
-                                        "Lv.${pet.bondLevel}",
-                                        fontSize   = 12.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color      = MaterialTheme.colorScheme.onBackground
-                                    )
+                                    Text("·", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                                    Text("Lv.${pet.bondLevel}", fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onBackground)
                                 }
 
                                 // Bond progress bar
                                 if (isVerified) {
                                     Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(6.dp)
-                                            .clip(RoundedCornerShape(3.dp))
-                                            .background(accentColor.copy(alpha = 0.12f))
+                                        modifier = Modifier.fillMaxWidth().height(6.dp)
+                                            .clip(RoundedCornerShape(3.dp)).background(accentColor.copy(alpha = 0.12f))
                                     ) {
                                         Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth(bondProgress)
-                                                .fillMaxHeight()
-                                                .background(
-                                                    Brush.horizontalGradient(
-                                                        listOf(
-                                                            accentColor.copy(alpha = 0.70f),
-                                                            accentColor
-                                                        )
-                                                    )
-                                                )
+                                            modifier = Modifier.fillMaxWidth(bondProgress).fillMaxHeight()
+                                                .background(Brush.horizontalGradient(listOf(accentColor.copy(alpha = 0.70f), accentColor)))
                                         )
                                     }
                                 } else {
-                                    Text(
-                                        "Needs a photo",
-                                        fontSize = 11.sp,
-                                        color    = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    Text("Needs a photo", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
 
                                 // Virtue label
@@ -1067,9 +985,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         verticalAlignment     = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            pet.virtue.name
-                                                .lowercase()
-                                                .replaceFirstChar { it.uppercaseChar() },
+                                            pet.virtue.name.lowercase().replaceFirstChar { it.uppercaseChar() },
                                             fontSize = 11.sp,
                                             color    = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
