@@ -49,6 +49,7 @@ import coil.compose.AsyncImage
 import com.example.petquest.R
 import com.example.petquest.SoundManager
 import com.example.petquest.data.repository.FirebaseRepository
+import com.example.petquest.data.repository.PetSummary
 import com.example.petquest.data.repository.PublicProfile
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
@@ -574,14 +575,24 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                                         scope.launch {
                                             isSharingProfile = true
                                             try {
-                                                val petCount = pets.size
+                                                val petCount     = pets.size
+                                                val petSummaries = pets.map { pet ->
+                                                    PetSummary(
+                                                        name       = pet.name,
+                                                        species    = pet.type.name,
+                                                        rarity     = pet.type.rarity.name,
+                                                        bondLevel  = pet.bondLevel,
+                                                        isVerified = pet.isVerified
+                                                    )
+                                                }
                                                 val profile = PublicProfile(
                                                     trainerName  = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
                                                     level        = userLevel,
                                                     streak       = streak,
                                                     bondPoints   = totalBondPoints,
                                                     petCount     = petCount,
-                                                    speciesCount = collectedSpecies.size
+                                                    speciesCount = collectedSpecies.size,
+                                                    pets         = petSummaries
                                                 )
                                                 firebaseRepository.pushProfile(profile)
                                                 val uid = firebaseRepository.getMyUid()
