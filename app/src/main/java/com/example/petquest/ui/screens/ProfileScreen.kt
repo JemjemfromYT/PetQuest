@@ -37,6 +37,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -130,17 +133,35 @@ fun ProfileScreen(
         unlockedBadgeTitles = allAchievements.filter { it.isUnlocked }.map { it.title }
     )
 
-    // ── Auto-sync: push whenever pets or achievements change ────────────────
-    // Keyed on pets.size AND unlocked count — any new pet or newly-earned
-    // badge immediately triggers a fresh push so web + SharedProfileScreen
-    // always show the latest data.
+    // ── Auto-sync 1: push whenever pet count or badge count changes ────────
     LaunchedEffect(pets.size, allAchievements.count { it.isUnlocked }) {
-        kotlinx.coroutines.delay(800) // let Room DB StateFlows settle
+        kotlinx.coroutines.delay(800)
         try {
             if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
                 firebaseRepository.pushProfile(buildCurrentProfile())
             }
-        } catch (_: Exception) { /* silent — user can still share manually */ }
+        } catch (_: Exception) {}
+    }
+
+    // ── Auto-sync 2: also push every time the user RETURNS to this screen ──
+    // Covers the case where a pet was added in another screen and the user
+    // comes back — the new pet will be included automatically.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                scope.launch {
+                    kotlinx.coroutines.delay(500)
+                    try {
+                        if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
+                            firebaseRepository.pushProfile(buildCurrentProfile())
+                        }
+                    } catch (_: Exception) {}
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     fun onLevelTap() {
