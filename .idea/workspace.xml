@@ -74,8 +74,6 @@
     <list default="true" id="f947ec48-c81a-4e08-b406-47f5125a6493" name="Changes" comment="nothing">
       <change beforePath="$PROJECT_DIR$/.gradle/9.2.1/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.2.1/executionHistory/executionHistory.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/share.html" beforeDir="false" afterPath="$PROJECT_DIR$/docs/share.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -263,22 +261,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1782106353017</updated>
-    </task>
-    <task id="LOCAL-00100" summary="nothing">
-      <option name="closed" value="true" />
-      <created>1782538235509</created>
-      <option name="number" value="00100" />
-      <option name="presentableId" value="LOCAL-00100" />
-      <option name="project" value="LOCAL" />
-      <updated>1782538235510</updated>
-    </task>
-    <task id="LOCAL-00101" summary="nothing">
-      <option name="closed" value="true" />
-      <created>1782538268841</created>
-      <option name="number" value="00101" />
-      <option name="presentableId" value="LOCAL-00101" />
-      <option name="project" value="LOCAL" />
-      <updated>1782538268841</updated>
     </task>
     <task id="LOCAL-00102" summary="nothing">
       <option name="closed" value="true" />
@@ -656,7 +638,23 @@
       <option name="project" value="LOCAL" />
       <updated>1782620624237</updated>
     </task>
-    <option name="localTasksCounter" value="149" />
+    <task id="LOCAL-00149" summary="nothing">
+      <option name="closed" value="true" />
+      <created>1782621224330</created>
+      <option name="number" value="00149" />
+      <option name="presentableId" value="LOCAL-00149" />
+      <option name="project" value="LOCAL" />
+      <updated>1782621224330</updated>
+    </task>
+    <task id="LOCAL-00150" summary="nothing">
+      <option name="closed" value="true" />
+      <created>1782621459943</created>
+      <option name="number" value="00150" />
+      <option name="presentableId" value="LOCAL-00150" />
+      <option name="project" value="LOCAL" />
+      <updated>1782621459943</updated>
+    </task>
+    <option name="localTasksCounter" value="151" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
