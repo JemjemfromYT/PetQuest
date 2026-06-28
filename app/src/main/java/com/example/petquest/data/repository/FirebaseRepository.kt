@@ -5,7 +5,6 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
 
-// Summary of one pet stored inside PublicProfile
 data class PetSummary(
     val name       : String  = "",
     val species    : String  = "",
@@ -15,15 +14,16 @@ data class PetSummary(
 )
 
 data class PublicProfile(
-    val uid          : String          = "",
-    val trainerName  : String          = "",
-    val level        : Int             = 1,
-    val streak       : Int             = 0,
-    val bondPoints   : Int             = 0,
-    val petCount     : Int             = 0,
-    val speciesCount : Int             = 0,
-    val pets         : List<PetSummary> = emptyList(),
-    val updatedAt    : Long            = 0L
+    val uid                  : String       = "",
+    val trainerName          : String       = "",
+    val level                : Int          = 1,
+    val streak               : Int          = 0,
+    val bondPoints           : Int          = 0,
+    val petCount             : Int          = 0,
+    val speciesCount         : Int          = 0,
+    val pets                 : List<PetSummary> = emptyList(),
+    val unlockedBadgeTitles  : List<String> = emptyList(),
+    val updatedAt            : Long         = 0L
 )
 
 class FirebaseRepository {
