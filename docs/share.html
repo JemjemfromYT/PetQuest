@@ -5,200 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PetQuest – Trainer Profile</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg:#121212;--card:#1e1e1e;--card2:#252525;--or:#E8943A;--txm:#888;--green:#4CAF50}
+        body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+        #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100vh;width:100%}
+        .spin{width:40px;height:40px;border:4px solid #4CAF5040;border-top-color:#4CAF50;border-radius:50%;animation:spin .8s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        #load-status{font-size:14px;color:var(--txm)}
+        #error{display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:100vh;width:100%;text-align:center;padding:24px}
+        #error img{opacity:.5;margin-bottom:8px}
+        #error h2{font-size:20px;font-weight:700}
+        #errmsg{font-size:14px;color:var(--txm)}
+        #profile{display:none;width:100%;max-width:480px;padding:16px 16px 32px}
 
-        body {
-          font-family: 'Segoe UI', sans-serif;
-          background: var(--bg, #121212);
-          color: var(--or, #fff);
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-        }
+        /* Header */
+        .achhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+        .achtitle{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800}
+        .ulbadge{background:rgba(232,148,58,.15);color:var(--or);font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px}
 
-        /* ── Loading ── */
-        #loading {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          height: 100vh;
-          width: 100%;
-        }
-        .spin {
-          width: 40px; height: 40px;
-          border: 4px solid #4CAF5040;
-          border-top-color: #4CAF50;
-          border-radius: 50%;
-          animation: spin .8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        #load-status { font-size: 14px; color: #aaa; }
+        /* Level card */
+        .acat{margin-bottom:12px}
+        .acat:last-child{margin-bottom:0}
+        .acathead{display:flex;align-items:center;justify-content:space-between;padding-left:2px;margin-bottom:8px}
+        .acathead>span:first-child{font-size:14px;font-weight:700;line-height:1.3}
+        .acathead>span>span{font-size:11px;font-weight:700;color:var(--txm)}
 
-        /* ── Error ── */
-        #error {
-          display: none;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          height: 100vh;
-          width: 100%;
-          text-align: center;
-          padding: 24px;
-        }
-        #error img { opacity: .5; margin-bottom: 8px; }
-        #error h2 { font-size: 20px; font-weight: 700; }
-        #errmsg { font-size: 14px; color: #aaa; }
+        .lvcard{background:linear-gradient(135deg,#4CAF50,#2e7d32);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:12px}
+        .lvcard-icon{width:52px;height:52px;background:rgba(255,255,255,.18);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:28px}
+        .lvcard-body{flex:1}
+        .lvcard-title{font-size:22px;font-weight:800;color:#fff}
+        .lvcard-sub{font-size:11px;color:rgba(255,255,255,.75);margin-top:1px}
+        .lvbar-wrap{margin-top:7px;background:rgba(255,255,255,.22);border-radius:99px;height:6px}
+        .lvbar{height:6px;border-radius:99px;background:#fff;transition:width .4s}
 
-        /* ── Profile card ── */
-        #profile { display: none; width: 100%; max-width: 480px; padding: 16px; }
+        /* Grid stats */
+        .agrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+        .abadge{background:var(--card);border-radius:14px;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px}
+        .alk{opacity:.4}
+        .aicon{width:44px;height:44px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;margin-bottom:6px;font-size:22px}
+        .atxt{font-size:22px;font-weight:800;line-height:1.2}
+        .ast{font-size:10px;font-weight:700;letter-spacing:.4px;display:flex;align-items:center;gap:3px;margin-top:2px}
+        .ul-st{color:var(--green)}
+        .lk-st{color:var(--txm)}
 
-        .achead {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 16px;
-        }
-        .achtitle { font-size: 18px; font-weight: 800; }
-        .achead span:first-child { font-size: 14px; font-weight: 700; }
+        /* Section card */
+        .scard{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px}
+        .scard-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+        .scard-title{font-size:14px;font-weight:700}
+        .scard-sub{font-size:12px;color:var(--txm)}
+        .spbar-wrap{background:var(--card2);border-radius:99px;height:6px;margin-top:8px}
+        .spbar{height:6px;border-radius:99px;background:var(--green);transition:width .4s}
 
-        .agrid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 8px;
-          margin-bottom: 16px;
-        }
-
-        .abadge {
-          background: var(--card2, #1e1e1e);
-          border-radius: 12px;
-          padding: 12px 10px 10px;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .alk { opacity: .4; }
-        .aicon {
-          width: 48px; height: 48px;
-          border-radius: 12px;
-          background: var(--card, #252525);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 4px;
-        }
-        .aicon svg { width: 28px; height: 28px; }
-        .atxt { font-size: 11px; font-weight: 700; line-height: 1.3; }
-        .ast  { font-size: 9px; font-weight: 700; letter-spacing: .5px; display: flex; align-items: center; }
-        .ul-st { color: #4CAF50; }
-        .lk-st { color: var(--txm, #888); }
-
-        /* Level banner */
-        .lvbanner {
-          background: linear-gradient(135deg, #4CAF50, #2e7d32);
-          border-radius: 12px;
-          padding: 16px;
-          margin-bottom: 12px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .lvbanner-icon {
-          width: 52px; height: 52px;
-          background: rgba(255,255,255,.15);
-          border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
-        }
-        .lvbanner-icon svg { width: 32px; height: 32px; fill: #fff; }
-        .lvbanner-info { flex: 1; }
-        .lvbanner-title { font-size: 20px; font-weight: 800; color: #fff; }
-        .lvbanner-sub   { font-size: 11px; color: rgba(255,255,255,.75); margin-top: 2px; }
-        .lvbar-wrap { margin-top: 6px; background: rgba(255,255,255,.2); border-radius: 99px; height: 6px; }
-        .lvbar      { height: 6px; border-radius: 99px; background: #fff; transition: width .4s; }
-
-        /* Stats row */
-        .statsrow {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-          margin-bottom: 12px;
-        }
-        .statcard {
-          background: var(--card2, #1e1e1e);
-          border-radius: 12px;
-          padding: 14px;
-          text-align: center;
-        }
-        .statcard .val { font-size: 26px; font-weight: 800; }
-        .statcard .lbl { font-size: 11px; color: var(--txm, #888); margin-top: 2px; }
-
-        /* Section */
-        .section {
-          background: var(--card2, #1e1e1e);
-          border-radius: 12px;
-          padding: 14px;
-          margin-bottom: 10px;
-        }
-        .section-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-        .section-sub   { font-size: 12px; color: var(--txm, #888); }
-
-        /* Species bar */
-        .spbar-wrap { background: var(--card, #252525); border-radius: 99px; height: 6px; margin-top: 8px; }
-        .spbar      { height: 6px; border-radius: 99px; background: #4CAF50; transition: width .4s; }
-
-        /* Pets list */
-        .pet-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 8px 0;
-          border-bottom: 1px solid var(--card, #252525);
-        }
-        .pet-item:last-child { border-bottom: none; }
-        .pet-img {
-          width: 48px; height: 48px;
-          border-radius: 10px;
-          object-fit: cover;
-          background: var(--card, #252525);
-          flex-shrink: 0;
-        }
-        .pet-name { font-size: 13px; font-weight: 700; }
-        .pet-meta { font-size: 11px; color: var(--txm, #888); }
-        .pet-badge {
-          margin-left: auto;
-          font-size: 10px; font-weight: 700;
-          padding: 3px 8px;
-          border-radius: 99px;
-          background: var(--card, #252525);
-          color: var(--txm, #888);
-        }
+        /* Pets */
+        .pet-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--card2)}
+        .pet-item:last-child{border-bottom:none}
+        .pet-img{width:52px;height:52px;border-radius:10px;object-fit:cover;background:var(--card2);flex-shrink:0}
+        .pet-img-placeholder{width:52px;height:52px;border-radius:10px;background:var(--card2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px}
+        .pet-name{font-size:13px;font-weight:700}
+        .pet-meta{font-size:11px;color:var(--txm);margin-top:2px}
+        .pet-rarity{font-size:9px;font-weight:700;letter-spacing:.5px;margin-top:4px;color:var(--or)}
+        .pet-lv{margin-left:auto;font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--card2);color:var(--txm);white-space:nowrap}
 
         /* Open button */
-        .openapp {
-          margin: 8px 16px 0;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-        }
-        .openbtn {
-          display: block;
-          width: 100%;
-          background: var(--or, #4CAF50);
-          color: #fff;
-          font-size: 15px;
-          font-weight: 700;
-          text-align: center;
-          padding: 14px;
-          border-radius: 12px;
-          text-decoration: none;
-          letter-spacing: .3px;
-        }
-        .shint { font-size: 12px; color: var(--txm, #888); text-align: center; }
+        .openapp{margin:8px 0 0;display:flex;flex-direction:column;align-items:center;gap:8px}
+        .openbtn{display:block;width:100%;background:var(--green);color:#fff;font-size:15px;font-weight:700;text-align:center;padding:15px;border-radius:14px;text-decoration:none;letter-spacing:.3px}
+        .shint{font-size:12px;color:var(--txm);text-align:center}
     </style>
 </head>
 <body>
@@ -218,9 +89,12 @@
 <div id="profile"></div>
 
 <script type="module">
-    import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, doc, getDoc }
-                                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getStorage, ref, getDownloadURL }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey:            "AIzaSyDIcH9SSfX8vKBoefaohJ9MAk5nO4NxFZo",
@@ -231,127 +105,161 @@
       appId:             "1:79374020591:android:1aadf9cb300884392d101a"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+    const app     = initializeApp(firebaseConfig);
+    const db      = getFirestore(app);
+    const storage = getStorage(app);
 
-    /* ── Read uid from URL ── */
+    /* ── uid from URL – captured in outer scope ── */
     const params = new URLSearchParams(window.location.search);
-    const uid    = params.get("uid");          // ← captured in outer scope
+    const uid    = params.get("uid");
 
-    const statusEl = document.getElementById("load-status");
-    const loadEl   = document.getElementById("loading");
-    const errorEl  = document.getElementById("error");
-    const errMsg   = document.getElementById("errmsg");
-    const profileEl= document.getElementById("profile");
+    const loadEl    = document.getElementById("loading");
+    const statusEl  = document.getElementById("load-status");
+    const errorEl   = document.getElementById("error");
+    const errMsg    = document.getElementById("errmsg");
+    const profileEl = document.getElementById("profile");
 
     function showError(msg) {
-      loadEl.style.display   = "none";
-      errorEl.style.display  = "flex";
-      errMsg.textContent     = msg;
+      loadEl.style.display  = "none";
+      errorEl.style.display = "flex";
+      errMsg.textContent    = msg;
     }
 
-    if (!uid) {
-      showError("uid is not defined");
-      throw new Error("No uid in URL");
-    }
+    if (!uid) { showError("uid is not defined"); throw new Error("No uid in URL"); }
 
     statusEl.textContent = "Fetching profile…";
 
+    /* Convert gs:// path to a real HTTPS download URL.
+       If it's already an https:// URL, return it unchanged. */
+    async function resolvePhotoUrl(url) {
+      if (!url) return null;
+      if (url.startsWith("https://")) return url;
+      if (url.startsWith("gs://")) {
+        try {
+          return await getDownloadURL(ref(storage, url));
+        } catch { return null; }
+      }
+      /* relative path — treat as storage path */
+      try {
+        return await getDownloadURL(ref(storage, url));
+      } catch { return null; }
+    }
+
     try {
       const snap = await getDoc(doc(db, "profiles", uid));
-
       if (!snap.exists()) {
         showError("This trainer hasn't set up their profile yet.");
       } else {
         const data = snap.data();
-        render(data, uid);   // ← uid passed explicitly
+        const pets = Array.isArray(data.pets) ? data.pets : [];
+
+        statusEl.textContent = "Loading pet photos…";
+
+        /* Resolve all pet photo URLs in parallel */
+        const resolvedPets = await Promise.all(
+          pets.map(async (pet) => ({
+            ...pet,
+            resolvedPhoto: await resolvePhotoUrl(pet.photoUrl)
+          }))
+        );
+
+        render({ ...data, pets: resolvedPets }, uid);
       }
     } catch (e) {
       showError(e.message || "Failed to load profile.");
     }
 
-    /* ── Render ── */
-    function render(data, profileUid) {       // ← uid received as parameter
+    function render(data, profileUid) {
       loadEl.style.display    = "none";
       profileEl.style.display = "block";
 
-      const name       = data.trainerName  || "Trainer";
-      const level      = data.level        ?? 1;
-      const xp         = data.xp           ?? 0;
-      const xpNext     = data.xpToNextLevel ?? 100;
-      const bondPts    = data.bondPoints   ?? 0;
-      const pets       = Array.isArray(data.pets) ? data.pets : [];
-      const species    = data.speciesCollected ?? 0;
-      const totalSp    = 29;
-      const spPct      = Math.round((species / totalSp) * 100);
-      const lvPct      = xpNext > 0 ? Math.min(100, Math.round((xp / xpNext) * 100)) : 0;
+      const name    = data.trainerName    || "Trainer";
+      const level   = data.level          ?? 1;
+      const xp      = data.xp             ?? 0;
+      const xpNext  = data.xpToNextLevel  ?? 100;
+      const bondPts = data.bondPoints     ?? 0;
+      const pets    = Array.isArray(data.pets) ? data.pets : [];
+      const species = data.speciesCollected ?? 0;
+      const totalSp = 29;
+      const spPct   = Math.min(100, Math.round((species / totalSp) * 100));
+      const lvPct   = xpNext > 0 ? Math.min(100, Math.round((xp / xpNext) * 100)) : 0;
 
-      /* Deep link — profileUid is always the correct uid */
       const deepLink = `petquest://share?uid=${encodeURIComponent(profileUid)}`;
 
+      document.title = `${name} – PetQuest`;
+
       profileEl.innerHTML = `
-        <div class="achead">
-          <span class="achtitle">Trainer Profile</span>
+        <div class="achhead">
+          <span class="achtitle">
+            🐾 Trainer Profile
+          </span>
+          <span class="ulbadge">PetQuest</span>
         </div>
 
-        <div class="lvbanner">
-          <div class="lvbanner-icon">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2 L15 9 L22 9.5 L17 14 L18.5 21 L12 17.5 L5.5 21 L7 14 L2 9.5 L9 9 Z"/>
-            </svg>
-          </div>
-          <div class="lvbanner-info">
-            <div class="lvbanner-title">Level ${level}</div>
-            <div class="lvbanner-sub">${xp} / ${xpNext} XP to next level</div>
+        <div class="lvcard">
+          <div class="lvcard-icon">⭐</div>
+          <div class="lvcard-body">
+            <div class="lvcard-title">Level ${level}</div>
+            <div class="lvcard-sub">${xp} / ${xpNext} XP to next level</div>
             <div class="lvbar-wrap"><div class="lvbar" style="width:${lvPct}%"></div></div>
           </div>
         </div>
 
-        <div class="statsrow">
-          <div class="statcard">
-            <div class="val">${bondPts}</div>
-            <div class="lbl">Total Bond Pts</div>
+        <div class="agrid">
+          <div class="abadge">
+            <div class="aicon">🏅</div>
+            <div class="atxt">${bondPts}</div>
+            <div class="ast">
+              <span class="ul-st">●</span>
+              <span class="lk-st">Total Bond Pts</span>
+            </div>
           </div>
-          <div class="statcard">
-            <div class="val">${pets.length}</div>
-            <div class="lbl">Active Pets</div>
+          <div class="abadge">
+            <div class="aicon">🐾</div>
+            <div class="atxt">${pets.length}</div>
+            <div class="ast">
+              <span class="ul-st">●</span>
+              <span class="lk-st">Active Pets</span>
+            </div>
           </div>
         </div>
 
-        <div class="section">
-          <div class="section-title">Species Collected</div>
-          <div class="section-sub">${species} / ${totalSp}</div>
+        <div class="scard">
+          <div class="scard-head">
+            <span class="scard-title">🌿 Species Collected</span>
+            <span class="scard-sub">${species} / ${totalSp}</span>
+          </div>
           <div class="spbar-wrap">
             <div class="spbar" style="width:${spPct}%"></div>
           </div>
         </div>
 
         ${pets.length > 0 ? `
-        <div class="section">
-          <div class="section-title">My Pets (${pets.length})</div>
+        <div class="scard">
+          <div class="scard-head">
+            <span class="scard-title">My Pets (${pets.length})</span>
+          </div>
           ${pets.map(pet => `
             <div class="pet-item">
-              ${pet.photoUrl
-                ? `<img class="pet-img" src="${pet.photoUrl}" alt="${pet.name}" />`
-                : `<div class="pet-img"></div>`
+              ${pet.resolvedPhoto
+                ? `<img class="pet-img" src="${pet.resolvedPhoto}" alt="${pet.name || 'Pet'}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="pet-img-placeholder" style="display:none">🐾</div>`
+                : `<div class="pet-img-placeholder">🐾</div>`
               }
-              <div>
+              <div style="flex:1;min-width:0">
                 <div class="pet-name">${pet.name || "Unknown"}</div>
                 <div class="pet-meta">${pet.species || ""}</div>
+                ${pet.rarity ? `<div class="pet-rarity">${pet.rarity}</div>` : ""}
               </div>
-              <span class="pet-badge">Lv.${pet.level ?? 1}</span>
+              <span class="pet-lv">Lv.${pet.level ?? 1}</span>
             </div>
           `).join("")}
         </div>` : ""}
 
-        <div class="openapp" style="margin-bottom:24px;">
+        <div class="openapp">
           <a class="openbtn" href="${deepLink}">Open in PetQuest</a>
           <p class="shint">Don't have the app? Search "PetQuest" in the Play Store.</p>
         </div>
       `;
-
-      /* Trainer name in page title */
-      document.title = `${name} – PetQuest`;
     }
 </script>
 </body>
