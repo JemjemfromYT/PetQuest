@@ -36,9 +36,14 @@ class FirebaseRepository {
     private val db      = Firebase.firestore
     private val storage = Firebase.storage
 
-    // In-memory cache: local URI -> Firebase Storage download URL
+    // In-memory cache: local URI -> Firebase Storage download URL.
     // Prevents re-uploading the same photo every time pushProfile is called.
     private val photoCache = mutableMapOf<String, String>()
+
+    // Persistent URL cache keyed by "uid/petIndex" -> download URL.
+    // Survives within the app session so we never lose an already-uploaded URL
+    // even if the local content:// URI becomes inaccessible later.
+    private val savedUrlCache = mutableMapOf<String, String>()
 
     suspend fun ensureSignedIn(): String {
         if (auth.currentUser == null) {
@@ -53,17 +58,45 @@ class FirebaseRepository {
     suspend fun pushProfile(profile: PublicProfile) {
         val uid = ensureSignedIn()
 
-        // For each pet, upload local photo to Firebase Storage if not already a web URL.
-        // This makes pet photos visible on the share.html web page.
+        // ── Step 1: Fetch whatever is already stored in Firestore ────────────
+        // This is the key fix: if an upload fails later, we fall back to the
+        // URL that's already saved rather than overwriting it with null.
+        val existingPets: List<PetSummary> = try {
+            db.collection("profiles")
+                .document(uid)
+                .get()
+                .await()
+                .toObject(PublicProfile::class.java)
+                ?.pets
+                ?: emptyList()
+        } catch (_: Exception) {
+            emptyList()
+        }
+
+        // Also populate savedUrlCache from what Firestore already has,
+        // so future calls (within the same session) don't need a round-trip.
+        existingPets.forEachIndexed { index, pet ->
+            val url = pet.photoUri
+            if (url != null && url.startsWith("https://")) {
+                savedUrlCache["$uid/$index"] = url
+            }
+        }
+
+        // ── Step 2: Upload any new local photos and build the updated list ───
         val petsWithWebUrls = profile.pets.mapIndexed { index, pet ->
-            val uri = pet.photoUri
+            val uri      = pet.photoUri
+            val cacheKey = "$uid/$index"
+
             when {
-                // Already a web URL — nothing to do
-                uri != null && uri.startsWith("https://") -> pet
+                // Already a Firebase Storage URL — nothing to do, just cache it
+                uri != null && uri.startsWith("https://") -> {
+                    savedUrlCache[cacheKey] = uri
+                    pet
+                }
 
                 // Local Android URI (content:// or file://) — upload to Storage
                 uri != null && uri != "admin_verified" -> {
-                    val downloadUrl = try {
+                    val downloadUrl: String? = try {
                         // Return cached URL if we already uploaded this URI this session
                         photoCache.getOrPut(uri) {
                             val safeKey = pet.name.lowercase()
@@ -75,16 +108,30 @@ class FirebaseRepository {
                             storageRef.downloadUrl.await().toString()
                         }
                     } catch (_: Exception) {
-                        null // If upload fails, show emoji fallback on web
+                        // Upload failed (e.g. content:// URI expired between sessions).
+                        // CRITICAL FIX: fall back to the URL we already have stored —
+                        // either from the in-session cache or from Firestore.
+                        // Do NOT overwrite with null.
+                        savedUrlCache[cacheKey]
                     }
+
+                    // Cache the URL we ended up with so future syncs don't re-upload
+                    if (downloadUrl != null) savedUrlCache[cacheKey] = downloadUrl
+
                     pet.copy(photoUri = downloadUrl)
                 }
 
-                // "admin_verified" or null — no real photo to upload
-                else -> pet.copy(photoUri = null)
+                // "admin_verified" string or null — pet has no uploadable local photo.
+                // CRITICAL FIX: if we previously uploaded a photo for this pet slot,
+                // preserve that URL instead of saving null.
+                else -> {
+                    val preserved = savedUrlCache[cacheKey]
+                    pet.copy(photoUri = preserved)
+                }
             }
         }
 
+        // ── Step 3: Write the merged profile to Firestore ───────────────────
         db.collection("profiles")
             .document(uid)
             .set(

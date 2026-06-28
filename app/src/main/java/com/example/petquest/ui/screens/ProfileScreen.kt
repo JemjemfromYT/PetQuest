@@ -1,14 +1,3 @@
-// ============================================================
-// FILE: app/src/main/java/com/example/petquest/ui/screens/ProfileScreen.kt
-//
-// CHANGES vs GitHub v4:
-//   1. Share ALWAYS launches — Firebase failure no longer silently kills it
-//   2. Link is at the END of the share text so it's visible in all apps
-//   3. isSyncing banner during background photo upload
-//   4. SyncBanner composable added at bottom
-//   5. Fallback to generic share link if Firebase sign-in is unavailable
-// ============================================================
-
 package com.example.petquest.ui.screens
 
 import android.Manifest
@@ -131,7 +120,6 @@ fun ProfileScreen(
     var isSharingProfile by remember { mutableStateOf(false) }
     var isSyncing        by remember { mutableStateOf(false) }
 
-    // ── Helper: build current PublicProfile from live state ──────────────────
     fun buildCurrentProfile() = PublicProfile(
         trainerName         = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
         level               = userLevel,
@@ -153,7 +141,6 @@ fun ProfileScreen(
         unlockedBadgeTitles = allAchievements.filter { it.isUnlocked }.map { it.title }
     )
 
-    // ── Auto-sync 1: push whenever pet count or badge count changes ────────
     LaunchedEffect(pets.size, allAchievements.count { it.isUnlocked }) {
         kotlinx.coroutines.delay(800)
         if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
@@ -167,7 +154,6 @@ fun ProfileScreen(
         }
     }
 
-    // ── Auto-sync 2: also push every time the user RETURNS to this screen ──
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -240,10 +226,9 @@ fun ProfileScreen(
     }
 
     // ── Share profile ─────────────────────────────────────────────────────────
-    // KEY FIX: share ALWAYS launches even if Firebase fails.
-    // Firebase photo upload is attempted first (best-effort); if it fails or
-    // sign-in hasn't completed, we fall back to the generic share page URL.
-    // The link is placed at the END of the message so it's visible in all apps.
+    // FIX: The link is ALWAYS at the end of the message so every messaging app
+    // (WhatsApp, Messenger, Telegram) makes it clickable. Firebase photo upload
+    // runs first (best-effort) but a failure never blocks the share from going out.
     val shareProfile: () -> Unit = {
         if (!isSharingProfile) {
             scope.launch {
@@ -251,8 +236,6 @@ fun ProfileScreen(
                 try {
                     val profile = buildCurrentProfile()
 
-                    // Best-effort: upload photos so the share page shows them.
-                    // We do NOT let this failure block the share.
                     var uid: String? = null
                     try {
                         firebaseRepository.pushProfile(profile)
@@ -267,15 +250,16 @@ fun ProfileScreen(
                         "https://jemjemfromyt.github.io/PetQuest/share.html"
                     }
 
-                    // Link at the END so messaging apps don't hide it behind a preview
+                    val petWord = if (profile.petCount != 1) "pets" else "pet"
                     val shareText = buildString {
-                        append("🐾 Check out my PetQuest profile!\n")
+                        appendLine("🐾 Check out my PetQuest profile!")
                         append("Level ${profile.level} Trainer")
                         if (profile.streak > 0) append(" • 🔥 ${profile.streak} day streak")
-                        append("\n")
+                        appendLine()
                         append("💚 ${profile.bondPoints} Bond Points")
-                        append(" • 🐾 ${profile.petCount} pet${if (profile.petCount != 1) "s" else ""}")
-                        append("\n\n")
+                        append(" • 🐾 ${profile.petCount} $petWord")
+                        appendLine()
+                        appendLine()
                         append(shareLink)
                     }
 
@@ -382,7 +366,6 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // ── Sync banner — visible during background photo upload ──────────
             item {
                 AnimatedVisibility(
                     visible = isSyncing,
@@ -393,7 +376,6 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Trainer level card ────────────────────────────────────────────
             item {
                 Card(
                     modifier  = Modifier.fillMaxWidth(),
@@ -509,7 +491,6 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Stats row ─────────────────────────────────────────────────────
             item {
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
@@ -564,10 +545,8 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Event Badges ──────────────────────────────────────────────────
             item { EventBadgesSection(eventBadges = eventBadges) }
 
-            // ── Species collection card ───────────────────────────────────────
             item {
                 Card(
                     modifier  = Modifier.fillMaxWidth().clickable { onNavigateToCollection() },
@@ -638,7 +617,6 @@ fun ProfileScreen(
                 }
             }
 
-            // ── My Pets heading ───────────────────────────────────────────────
             item {
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
@@ -652,7 +630,6 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Pet grid ─────────────────────────────────────────────────────
             if (pets.isEmpty()) {
                 item {
                     EmptyStateCard(
@@ -684,7 +661,6 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Settings ──────────────────────────────────────────────────────
             item {
                 SettingsCard(
                     notificationsEnabled = notificationsEnabled,
@@ -700,9 +676,9 @@ fun ProfileScreen(
     }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Sync Banner — pulsing strip while photos upload to Firebase in the background
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Sync Banner
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SyncBanner() {
@@ -734,18 +710,18 @@ private fun SyncBanner() {
                 color       = Color(0xFFE65100)
             )
             Text(
-                text       = "Syncing photos to share link…",
-                fontSize   = 13.sp,
-                fontWeight = FontWeight.SemiBold,
-                color      = Color(0xFFE65100)
+                "Syncing photos to share link...",
+                fontSize   = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color      = Color(0xFFBF360C)
             )
         }
     }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // Event Badges Section
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun EventBadgesSection(eventBadges: List<AchievementEntity>) {
@@ -855,9 +831,9 @@ private fun EventBadgeChip(
     }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // Settings Card
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SettingsCard(
@@ -947,9 +923,9 @@ private fun formatTime(hour: Int, minute: Int): String {
     return String.format(Locale.getDefault(), "%d:%02d %s", h12, minute, amPm)
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // Flippable Pet Collection Card
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
@@ -998,9 +974,9 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
     }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // Front face
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
@@ -1107,9 +1083,9 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
     }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 // Back face
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
@@ -1219,3 +1195,4 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
         }
     }
 }
+
