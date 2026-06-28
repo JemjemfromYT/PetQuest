@@ -137,53 +137,6 @@ fun StatCard(
     }
 }
 
-@Composable
-fun HomeStatCard(
-    iconRes        : Int,
-    value          : String,
-    label          : String,
-    modifier       : Modifier = Modifier,
-    dimmed         : Boolean  = false,
-    containerColor : Color    = MaterialTheme.colorScheme.surfaceVariant,
-    valueColor     : Color    = MaterialTheme.colorScheme.onBackground
-) {
-    Card(
-        modifier  = modifier,
-        colors    = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(0.dp),
-        shape     = RoundedCornerShape(12.dp)
-    ) {
-        Column(
-            modifier            = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
-                .alpha(if (dimmed) 0.45f else 1f),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter            = painterResource(iconRes),
-                contentDescription = null,
-                modifier           = Modifier.size(22.dp),
-                contentScale       = ContentScale.Fit
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                value,
-                fontSize   = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color      = valueColor,
-                maxLines   = 1
-            )
-            Text(
-                label,
-                fontSize   = 10.sp,
-                fontWeight = FontWeight.Medium,
-                color      = valueColor.copy(alpha = 0.70f)
-            )
-        }
-    }
-}
-
 // ---------------------------------------------------------------------------
 // EmptyStateCard — shared helper
 // ---------------------------------------------------------------------------
@@ -197,57 +150,138 @@ fun EmptyStateCard(
 ) {
     Card(
         modifier  = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(0.dp),
-        colors    = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
-            modifier            = Modifier.fillMaxWidth().padding(24.dp),
+            modifier            = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Image(
-                painter            = painterResource(imageRes),
-                contentDescription = null,
-                modifier           = Modifier.size(96.dp),
+                painter            = painterResource(id = imageRes),
+                contentDescription = title,
+                modifier           = Modifier.size(80.dp),
                 contentScale       = ContentScale.Fit
             )
-            Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+            Text(title, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, textAlign = TextAlign.Center)
             Text(
                 description,
-                fontSize  = 13.sp,
-                color     = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                fontSize   = 14.sp,
+                color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign  = TextAlign.Center,
+                lineHeight = 20.sp
             )
-            Button(onClick = onAction) { Text(actionLabel) }
+            Button(
+                onClick = onAction,
+                shape   = RoundedCornerShape(12.dp)
+            ) {
+                Text(actionLabel, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
 
-fun rarityAccentColor(rarityName: String): Color = when (rarityName.uppercase()) {
-    "COMMON"    -> Color(0xFF78909C)
-    "UNCOMMON"  -> Color(0xFF43A047)
-    "RARE"      -> Color(0xFF1E88E5)
-    "EPIC"      -> Color(0xFF8E24AA)
-    "LEGENDARY" -> Color(0xFFFFB300)
-    else        -> Color(0xFF78909C)
+// ---------------------------------------------------------------------------
+// Rarity color helper
+// ---------------------------------------------------------------------------
+@Composable
+fun rarityAccentColor(rarityName: String): Color = when (rarityName) {
+    "COMMON"   -> Color(0xFF9E9E9E)
+    "UNCOMMON" -> MaterialTheme.colorScheme.secondary
+    "RARE"     -> MaterialTheme.colorScheme.primary
+    else       -> MaterialTheme.colorScheme.error
 }
 
 // ---------------------------------------------------------------------------
-// SettingsDialog
+// HomeStatCard — internal helper (used only in this file)
 // ---------------------------------------------------------------------------
 @Composable
-fun SettingsDialog(onDismiss: () -> Unit, context: Context) {
+private fun HomeStatCard(
+    iconRes        : Int,
+    value          : String,
+    label          : String,
+    containerColor : Color,
+    valueColor     : Color,
+    dimmed         : Boolean  = false,
+    modifier       : Modifier = Modifier
+) {
+    Card(
+        modifier  = modifier,
+        colors    = CardDefaults.cardColors(
+            containerColor = if (dimmed) containerColor.copy(alpha = 0.45f) else containerColor
+        ),
+        elevation = CardDefaults.cardElevation(0.dp)
+    ) {
+        Column(
+            modifier            = Modifier.padding(10.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Image(
+                painter            = painterResource(id = iconRes),
+                contentDescription = label,
+                modifier           = Modifier.size(18.dp),
+                contentScale       = ContentScale.Fit,
+                alpha              = if (dimmed) 0.4f else 1f
+            )
+            Text(
+                value,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize   = 17.sp,
+                color      = if (dimmed) valueColor.copy(alpha = 0.40f) else valueColor
+            )
+            Text(
+                label,
+                fontSize = 10.sp,
+                color    = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EventBadge — tiny overlay shown on pet cards during an active event
+// ---------------------------------------------------------------------------
+@Composable
+fun EventBadge(event: SeasonalEvent) {
+    Surface(
+        shape    = RoundedCornerShape(6.dp),
+        color    = event.gradientStart.copy(alpha = 0.90f),
+        modifier = Modifier
+    ) {
+        Text(
+            event.emoji,
+            fontSize = 12.sp,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+        )
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SettingsDialog — background music + SFX toggles, persisted in SharedPreferences
+// ---------------------------------------------------------------------------
+@Composable
+private fun SettingsDialog(
+    onDismiss : () -> Unit,
+    context   : Context
+) {
     val prefs   = remember { context.getSharedPreferences("petquest_settings", Context.MODE_PRIVATE) }
     var musicOn by remember { mutableStateOf(prefs.getBoolean("music_enabled", true)) }
     var sfxOn   by remember { mutableStateOf(prefs.getBoolean("sfx_enabled",   true)) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Settings", fontWeight = FontWeight.Bold) },
-        text  = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Default.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Text("Settings", fontWeight = FontWeight.ExtraBold)
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 // Background music row
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
@@ -438,7 +472,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             }
 
                             DropdownMenu(
-                                expanded        = showMenu,
+                                expanded         = showMenu,
                                 onDismissRequest = { showMenu = false }
                             ) {
                                 // Settings
