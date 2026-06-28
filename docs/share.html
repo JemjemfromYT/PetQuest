@@ -191,7 +191,7 @@
               return;
             }
 
-            render(snap.data());
+            render(snap.data(), uid);
 
           } catch (e) {
             if (e.message === "__timeout__") {
@@ -211,7 +211,7 @@
           return uri && (uri.startsWith("http://") || uri.startsWith("https://"));
         }
 
-        function render(d) {
+        function render(d, uid) {
           document.getElementById("loading").style.display = "none";
           const root = document.getElementById("profile");
           root.style.display = "block";
