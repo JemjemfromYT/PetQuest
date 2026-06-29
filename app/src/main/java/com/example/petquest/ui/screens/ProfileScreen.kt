@@ -30,6 +30,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -1099,15 +1101,16 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
                                 modifier           = Modifier.size(14.dp)
                             )
                         }
-                        // Tier badge icon — animates opacity for tier 3+
-                        val tierIcon = when (tier) {
-                            1 -> "✦"; 2 -> "💎"; 3 -> "⭐"; 4 -> "🌟"; 5 -> "👑"; else -> null
-                        }
-                        if (tierIcon != null) {
-                            Text(
-                                text     = tierIcon,
-                                fontSize = 11.sp,
-                                color    = lvColor.copy(alpha = if (tier >= 3) pulseAlpha else 1f)
+                        // Tier badge icon — Material Icon, no emoji
+                        if (tier >= 1) {
+                            val tierVecIcon = if (tier >= 5) Icons.Default.EmojiEvents
+                            else if (tier >= 4) Icons.Default.AutoAwesome
+                            else Icons.Default.Star
+                            Icon(
+                                imageVector        = tierVecIcon,
+                                contentDescription = null,
+                                tint               = lvColor.copy(alpha = if (tier >= 3) pulseAlpha else 1f),
+                                modifier           = Modifier.size(12.dp)
                             )
                         }
                     }
