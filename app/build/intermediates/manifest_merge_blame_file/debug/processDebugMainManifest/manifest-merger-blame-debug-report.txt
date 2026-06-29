@@ -52,7 +52,7 @@
 28
 29    <application
 29-->C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:11:5-51:19
-30        android:name="com.JemjemfroYT.petquest.PetQuestApplication"
+30        android:name="com.example.petquest.PetQuestApplication"
 30-->C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:12:9-44
 31        android:allowBackup="true"
 31-->C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:13:9-35
@@ -72,7 +72,7 @@
 39-->C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:18:9-46
 40        <activity
 40-->C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:20:9-39:20
-41            android:name="com.JemjemfroYT.petquest.MainActivity"
+41            android:name="com.example.petquest.MainActivity"
 41-->C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:21:13-41
 42            android:exported="true"
 42-->C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:22:13-36

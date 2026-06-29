@@ -222,7 +222,7 @@ MERGED from [com.google.android.odml:image:1.0.0-beta1] C:\Users\almar\.gradle\c
 		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:18:9-46
 	android:name
 		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:12:9-44
-activity#com.JemjemfroYT.petquest.MainActivity
+activity#com.example.petquest.MainActivity
 ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:20:9-39:20
 	android:screenOrientation
 		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:23:13-49

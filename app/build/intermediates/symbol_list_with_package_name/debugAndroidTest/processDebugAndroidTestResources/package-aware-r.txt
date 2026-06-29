@@ -1,4 +1,4 @@
-com.JemjemfroYT.petquest.test
+com.example.petquest.test
 attr alpha
 attr font
 attr fontProviderAuthority

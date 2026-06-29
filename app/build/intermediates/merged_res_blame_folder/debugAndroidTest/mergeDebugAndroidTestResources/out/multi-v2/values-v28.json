@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.JemjemfroYT.petquest.test.app-mergeDebugAndroidTestResources-34:/values-v28/values-v28.xml",
+            "outputFile": "com.example.petquest.test.app-mergeDebugAndroidTestResources-34:/values-v28/values-v28.xml",
             "map": [
                 {
                     "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\3b7999a9cde71a1596b0d861bff021a2\\workspace\\transformed\\core-1.5.0\\res\\values-v28\\values.xml",

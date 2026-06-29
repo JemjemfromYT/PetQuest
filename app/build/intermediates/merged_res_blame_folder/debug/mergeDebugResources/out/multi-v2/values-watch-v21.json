@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.JemjemfroYT.petquest.app-mergeDebugResources-82:/values-watch-v21/values-watch-v21.xml",
+            "outputFile": "com.example.petquest.app-mergeDebugResources-82:/values-watch-v21/values-watch-v21.xml",
             "map": [
                 {
                     "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\1ef5797f67d63d840a2d473575600619\\workspace\\transformed\\appcompat-1.6.1\\res\\values-watch-v21\\values-watch-v21.xml",

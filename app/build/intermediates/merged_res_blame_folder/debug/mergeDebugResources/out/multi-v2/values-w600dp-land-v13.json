@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.JemjemfroYT.petquest.app-mergeDebugResources-82:/values-w600dp-land-v13/values-w600dp-land-v13.xml",
+            "outputFile": "com.example.petquest.app-mergeDebugResources-82:/values-w600dp-land-v13/values-w600dp-land-v13.xml",
             "map": [
                 {
                     "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\ca6441b2167f2f1941fae93a7fcc3888\\workspace\\transformed\\material-1.12.0\\res\\values-w600dp-land-v13\\values-w600dp-land-v13.xml",

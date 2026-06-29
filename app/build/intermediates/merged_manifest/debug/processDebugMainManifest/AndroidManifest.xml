@@ -27,7 +27,7 @@
     <uses-permission android:name="com.JemjemfromYT.petquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 
     <application
-        android:name="com.JemjemfroYT.petquest.PetQuestApplication"
+        android:name="com.example.petquest.PetQuestApplication"
         android:allowBackup="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:debuggable="true"
@@ -38,7 +38,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PetQuest" >
         <activity
-            android:name="com.JemjemfroYT.petquest.MainActivity"
+            android:name="com.example.petquest.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
