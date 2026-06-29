@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.petquest"
+    namespace = "com.JemjemfroYT.petquest"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.petquest"
+        applicationId = "com.JemjemfromYT.petquest"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
