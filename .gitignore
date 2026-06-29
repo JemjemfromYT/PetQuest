@@ -1,0 +1,20 @@
+# Local machine files — never commit these
+local.properties
+
+# Firebase config — contains API keys
+google-services.json
+
+# Build outputs
+/build
+/app/build
+*.apk
+*.aab
+
+# Android Studio
+/.idea
+/.gradle
+*.iml
+
+# Keystore — VERY important, never commit this
+*.jks
+*.keystore
