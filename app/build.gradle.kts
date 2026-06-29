@@ -1,10 +1,5 @@
 // app/build.gradle.kts  (the one INSIDE the app/ folder)
 // HOW TO APPLY: Open app/build.gradle.kts → Ctrl+A → Delete → Paste this → Sync Now
-// CHANGES:
-//   - Removed id("com.google.gms.google-services") plugin
-//   - Removed all Firebase dependencies (auth, firestore, storage, coroutines-play-services)
-//   - Added OkHttp for Supabase REST API calls (lightweight, no extra setup needed)
-//   Gson was already in your project — that stays.
 
 plugins {
     alias(libs.plugins.android.application)
@@ -28,7 +23,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -84,8 +80,6 @@ dependencies {
 
     implementation("com.google.mlkit:image-labeling:17.0.9")
 
-    // Supabase networking — replaces Firebase
-    // OkHttp makes HTTP calls to Supabase REST API (no extra setup, no plugins needed)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     implementation("com.google.guava:guava:32.1.3-android")

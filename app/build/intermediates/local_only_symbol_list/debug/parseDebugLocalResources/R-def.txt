@@ -46,6 +46,7 @@ font nunito_medium
 font nunito_regular
 font nunito_semibold
 mipmap ic_launcher
+mipmap ic_launcher_foreground
 mipmap ic_launcher_round
 raw bg_music
 raw sfx_level_up
