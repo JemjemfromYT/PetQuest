@@ -43,7 +43,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -80,6 +82,7 @@ fun ProfileScreen(
     onNavigateToCollection : () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val haptic  = LocalHapticFeedback.current
 
     val pets                 by viewModel.allPets.collectAsState()
     val userLevel            by viewModel.userLevel.collectAsState()
@@ -166,23 +169,27 @@ fun ProfileScreen(
     var hiddenTapB     by remember { mutableIntStateOf(0) }   // taps on Active Pets label
     var hiddenStepMs   by remember { mutableLongStateOf(0L) } // time step-1 started
 
-    fun onBondLabelTap() {
+    fun onBondCardTap() {
         val now = System.currentTimeMillis()
-        // Reset if timed out or already past step 1
-        if (hiddenStep == 1 && now - hiddenStepMs > 8000L) {
+        // Reset if timed out while waiting for step 2
+        if (hiddenStep == 1 && now - hiddenStepMs > 12000L) {
             hiddenStep = 0; hiddenTapA = 0; hiddenTapB = 0
         }
         if (hiddenStep == 0) {
             hiddenTapA++
             if (hiddenTapA == 1) hiddenStepMs = System.currentTimeMillis()
-            if (hiddenTapA >= 3) { hiddenStep = 1; hiddenTapA = 0 }
+            if (hiddenTapA >= 3) {
+                hiddenStep = 1; hiddenTapA = 0
+                // Silent haptic pulse — you feel it, nobody sees it
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            }
         }
     }
 
-    fun onActivePetsLabelTap() {
+    fun onActivePetsCardTap() {
         val now = System.currentTimeMillis()
         if (hiddenStep != 1) return
-        if (now - hiddenStepMs > 8000L) {
+        if (now - hiddenStepMs > 12000L) {
             hiddenStep = 0; hiddenTapA = 0; hiddenTapB = 0; return
         }
         hiddenTapB++
@@ -483,7 +490,7 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Card(
-                        modifier  = Modifier.weight(1f),
+                        modifier  = Modifier.weight(1f).clickable { onBondCardTap() },
                         elevation = CardDefaults.cardElevation(2.dp),
                         colors    = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
                     ) {
@@ -501,13 +508,12 @@ fun ProfileScreen(
                                 "Total Bond Pts",
                                 fontSize   = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color      = Color(0xFF2E7D32),
-                                modifier   = Modifier.clickable { onBondLabelTap() }
+                                color      = Color(0xFF2E7D32)
                             )
                         }
                     }
                     Card(
-                        modifier  = Modifier.weight(1f),
+                        modifier  = Modifier.weight(1f).clickable { onActivePetsCardTap() },
                         elevation = CardDefaults.cardElevation(2.dp),
                         colors    = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5))
                     ) {
@@ -525,8 +531,7 @@ fun ProfileScreen(
                                 "Active Pets",
                                 fontSize   = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color      = Color(0xFF6A1B9A),
-                                modifier   = Modifier.clickable { onActivePetsLabelTap() }
+                                color      = Color(0xFF6A1B9A)
                             )
                         }
                     }
