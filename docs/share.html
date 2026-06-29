@@ -1,7 +1,5 @@
 <!DOCTYPE html>
-<!-- docs/share.html — REPLACE the existing file in your GitHub repo's docs/ folder -->
-<!-- CHANGE: Replaced Firebase JS SDK with Supabase JS SDK                          -->
-<!-- Photos are now real https:// URLs from Supabase Storage — no base64 needed     -->
+<!-- docs/share.html — replace in your GitHub repo's docs/ folder -->
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -10,88 +8,140 @@
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
         :root{
-            --bg:#121212;--card:#1e1e1e;--card2:#252525;
-            --or:#FF8C42;--txm:#888;--green:#4CAF50
+            --bg:#0f1525;--card:#1a2035;--card2:#141b2d;
+            --or:#f97316;--or2:#fb923c;--txm:#94a3b8;
         }
-        body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center}
 
+        /* Loading */
         #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100vh;width:100%}
-        .spin{width:40px;height:40px;border:4px solid rgba(255,140,66,.3);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite}
+        .spin{width:40px;height:40px;border:4px solid rgba(249,115,22,.3);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
         #load-status{font-size:14px;color:var(--txm)}
 
+        /* Error */
         #error{display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:100vh;width:100%;text-align:center;padding:24px}
         #error h2{font-size:20px;font-weight:700}
         #errmsg{font-size:14px;color:var(--txm)}
 
         #profile{display:none;width:100%;max-width:480px;padding-bottom:40px}
 
-        .topbar{background:linear-gradient(90deg,#FF8C42,#FFB77A);padding:14px 16px;display:flex;align-items:center;gap:10px}
-        .topbar-title{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.3px}
+        /* Header */
+        .topbar{background:linear-gradient(135deg,var(--or),var(--or2));padding:18px 20px}
+        .topbar-title{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.2px}
 
-        .wrap{padding:10px 12px 0}
-
-        .trainer-hero{display:flex;align-items:center;gap:16px;padding:18px 16px;background:var(--card)}
-        .trainer-avatar{width:72px;height:72px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle,#FFB77A,#FF8C42);display:flex;align-items:center;justify-content:center;font-size:32px}
-        .trainer-name{font-size:22px;font-weight:800}
+        /* Trainer hero */
+        .trainer-hero{background:var(--card2);padding:20px;display:flex;align-items:center;gap:16px;margin-bottom:12px;position:relative}
+        .trainer-avatar{width:64px;height:64px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--or),var(--or2));display:flex;align-items:center;justify-content:center;position:relative}
+        .trainer-avatar img{width:30px;height:30px;object-fit:contain;filter:brightness(0) invert(1)}
+        .trainer-lvbadge{position:absolute;bottom:-2px;right:-2px;background:#7c3aed;color:#fff;border-radius:50%;width:22px;height:22px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--card2)}
+        .trainer-name{font-size:22px;font-weight:800;color:#fff}
         .trainer-sub{font-size:13px;color:var(--txm);margin-top:3px}
 
-        .lvcard{background:linear-gradient(135deg,#FF8C42,#FFB77A);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:16px;margin-bottom:10px}
-        .lvcard-icon{width:54px;height:54px;background:rgba(255,255,255,.22);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:30px}
+        /* Content wrap */
+        .wrap{padding:0 14px;display:flex;flex-direction:column;gap:12px}
+
+        /* Level card */
+        .lvcard{background:linear-gradient(135deg,var(--or),#ea580c);border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:16px}
+        .lvcard-icon{width:52px;height:52px;background:rgba(255,255,255,.22);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .lvcard-icon img{width:26px;height:26px;object-fit:contain;filter:brightness(0) invert(1)}
         .lvcard-body{flex:1}
-        .lvcard-title{font-size:28px;font-weight:900;color:#fff;letter-spacing:-.5px}
-        .lvcard-sub{font-size:12px;color:rgba(255,255,255,.8);margin-top:2px;font-weight:600}
-        .lvbar-wrap{margin-top:8px;background:rgba(255,255,255,.25);border-radius:99px;height:6px}
+        .lvcard-title{font-size:28px;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.1}
+        .lvcard-sub{font-size:12px;color:rgba(255,255,255,.85);margin-top:4px;margin-bottom:10px;display:flex;justify-content:space-between}
+        .lvbar-wrap{background:rgba(255,255,255,.25);border-radius:99px;height:6px}
         .lvbar{height:6px;border-radius:99px;background:#fff;transition:width .5s}
 
-        .agrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-        .abadge{border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;gap:2px}
-        .abadge.bond{background:#E8F5E9}.abadge.pets{background:#F3E5F5}
+        /* Stats */
+        .agrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .abadge{border-radius:14px;padding:18px 16px}
+        .abadge.bond{background:#e8fdf0}
+        .abadge.pets{background:#f3e8ff}
         .atxt{font-size:28px;font-weight:900}
-        .abadge.bond .atxt{color:#1B5E20}.abadge.pets .atxt{color:#4A148C}
-        .albl{font-size:12px;font-weight:600}
-        .abadge.bond .albl{color:#2E7D32}.abadge.pets .albl{color:#6A1B9A}
+        .abadge.bond .atxt{color:#16a34a}
+        .abadge.pets .atxt{color:#7c3aed}
+        .albl{font-size:13px;font-weight:600;margin-top:4px}
+        .abadge.bond .albl{color:#15803d}
+        .abadge.pets .albl{color:#6d28d9}
 
-        .scard{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px}
-        .scard-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-        .scard-title{font-size:14px;font-weight:700}
-        .scard-sub{font-size:12px;color:var(--txm)}
-        .scard-empty{font-size:12px;color:var(--txm);line-height:1.6}
+        /* Streak */
+        .streak-card{background:#fff1f2;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:12px}
+        .streak-icon{width:28px;height:28px;object-fit:contain}
+        .streak-title{color:#be123c;font-weight:800;font-size:17px}
+        .streak-sub{color:#e11d48;font-size:13px;margin-top:2px}
 
-        .sp-card{background:linear-gradient(135deg,#2E7D32,#4CAF50);border-radius:14px;padding:14px 16px;margin-bottom:10px}
-        .sp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-        .sp-title{font-size:14px;font-weight:700;color:#fff}
-        .sp-count{font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px}
+        /* Event Badges */
+        .badges-card{background:#fef9f0;border-radius:16px;padding:16px}
+        .badges-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+        .badges-head-left{display:flex;align-items:center;gap:8px}
+        .badges-head-left img{width:18px;height:18px;object-fit:contain}
+        .badges-head-title{font-size:16px;font-weight:800;color:#1c1917}
+        .badges-count{background:var(--or);color:#fff;border-radius:50%;width:24px;height:24px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+        .badges-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .badge-item{background:#fffbf5;border:1px solid #fed7aa;border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px}
+        .badge-item-emoji{font-size:22px;line-height:1}
+        .badge-item-name{color:#c2410c;font-weight:700;font-size:12px;line-height:1.3}
+        .badge-item-type{color:#9ca3af;font-size:11px;margin-top:1px}
+        .badges-empty{font-size:12px;color:#92400e;line-height:1.6}
+
+        /* Species */
+        .sp-card{background:linear-gradient(135deg,#14532d,#166534);border-radius:14px;padding:16px 18px}
+        .sp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+        .sp-head-left{display:flex;align-items:center;gap:8px}
+        .sp-head-left img{width:18px;height:18px;object-fit:contain;filter:brightness(0) invert(1)}
+        .sp-title{font-size:15px;font-weight:800;color:#fff}
+        .sp-count{font-size:13px;font-weight:700;color:#fff;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:99px}
         .spbar-wrap{background:rgba(255,255,255,.25);border-radius:99px;height:6px}
         .spbar{height:6px;border-radius:99px;background:#fff;transition:width .5s}
 
-        .pets-title{font-size:16px;font-weight:700;margin-bottom:10px;padding:0 2px}
-        .pets-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-        .pet-card{background:var(--card);border-radius:14px;overflow:hidden}
+        /* Pets */
+        .pets-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:4px}
+        .pets-hint{font-size:13px;color:var(--txm);margin-bottom:12px}
+        .pets-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+        /* Flip card */
+        .flip-wrap{perspective:1000px;height:220px;cursor:pointer}
+        .flip-inner{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
+        .flip-wrap.flipped .flip-inner{transform:rotateY(180deg)}
+        .flip-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;overflow:hidden}
+        .flip-back{transform:rotateY(180deg)}
+
+        /* Pet card front */
+        .pet-front{background:var(--card);display:flex;flex-direction:column}
         .pet-photo{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--card2)}
         .pet-photo-placeholder{width:100%;aspect-ratio:1;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:48px}
-        .pet-rarity-bar{height:5px;width:100%}
-        .pet-info{padding:10px}
-        .pet-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .pet-row{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
-        .pet-rarity-chip{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px}
-        .pet-lv{font-size:12px;font-weight:800;color:var(--green)}
+        .pet-rarity-bar{height:5px;width:100%;flex-shrink:0}
+        .pet-info{padding:10px 12px 12px}
+        .pet-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
+        .pet-row{display:flex;align-items:center;justify-content:space-between}
+        .pet-rarity-chip{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
+        .pet-lv{font-size:13px;font-weight:800}
 
-        .ach-card{background:#FFF8E1;border-radius:14px;padding:14px;margin-bottom:10px}
+        /* Pet card back (virtue) */
+        .pet-back{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;position:relative;overflow:hidden}
+        .pet-back::before{content:'';position:absolute;width:160px;height:160px;border-radius:50%;border:1px solid rgba(255,255,255,.15);top:50%;left:50%;transform:translate(-50%,-50%)}
+        .virtue-icon-small{position:absolute;top:10px;left:12px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center}
+        .virtue-icon-small img{width:16px;height:16px;object-fit:contain}
+        .virtue-img{width:80px;height:80px;object-fit:contain;margin-bottom:16px;filter:drop-shadow(0 0 12px rgba(255,255,255,.2))}
+        .virtue-status{color:rgba(255,255,255,.7);font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+        .virtue-title{color:#fff;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+
+        /* Achievements */
+        .ach-card{background:#FFF8E1;border-radius:16px;padding:16px}
         .ach-head{display:flex;align-items:center;gap:6px;margin-bottom:10px}
-        .ach-head-title{font-size:14px;font-weight:800;color:#5D4037;flex:1}
-        .ach-count-badge{font-size:11px;font-weight:800;padding:2px 10px;border-radius:99px;background:rgba(249,168,37,.22);color:#F9A825}
+        .ach-head img{width:18px;height:18px;object-fit:contain}
+        .ach-head-title{font-size:15px;font-weight:800;color:#5D4037;flex:1}
+        .ach-count-badge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px;background:rgba(249,168,37,.22);color:#F9A825}
         .ach-empty{font-size:12px;color:#888;line-height:1.6}
         .ach-cat-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;margin-bottom:6px;margin-top:10px}
         .ach-cat-label:first-child{margin-top:0}
         .ach-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
         .ach-chip{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:6px 10px;border-radius:10px}
-
         .divider{height:1px;background:rgba(0,0,0,.08);margin:10px 0}
 
+        /* CTA */
         .cta-footer{background:var(--card);border-radius:14px;padding:18px;text-align:center}
-        .cta-msg{font-size:14px;font-weight:700;margin-bottom:14px;color:#aaa}
-        .openbtn{display:block;width:100%;background:#4CAF50;color:#fff;font-size:16px;font-weight:800;text-align:center;padding:16px;border-radius:14px;text-decoration:none;letter-spacing:.2px}
+        .cta-msg{font-size:14px;font-weight:600;margin-bottom:14px;color:#aaa}
+        .openbtn{display:block;width:100%;background:#4CAF50;color:#fff;font-size:16px;font-weight:800;text-align:center;padding:16px;border-radius:14px;text-decoration:none}
         .shint{font-size:12px;color:var(--txm);margin-top:10px}
     </style>
 </head>
@@ -109,28 +159,30 @@
 <div id="profile"></div>
 
 <script>
-    // ── FILL THESE IN — same values as in SupabaseRepository.kt ──────────────
     const SUPABASE_URL      = 'https://aktoowoflxvniphzgpvx.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrdG9vd29mbHh2bmlwaHpncHZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NjU2NTQsImV4cCI6MjA5ODI0MTY1NH0.5YQ1E3F6aQK_gcBSGaQATherncEY4m1Diqio-sUwMMw';
-    // ─────────────────────────────────────────────────────────────────────────
 
-    const loadEl   = document.getElementById('loading');
-    const statusEl = document.getElementById('load-status');
-    const errorEl  = document.getElementById('error');
-    const errMsg   = document.getElementById('errmsg');
-    const profileEl= document.getElementById('profile');
+    const ICON_BASE  = 'https://jemjemfromyt.github.io/PetQuest/icons/';
+    const VIRTUE_BASE= 'https://raw.githubusercontent.com/JemjemfromYT/PetQuest/master/app/src/main/res/drawable/';
 
-    function showError(msg) {
-        loadEl.style.display  = 'none';
-        errorEl.style.display = 'flex';
-        errMsg.textContent    = msg;
-    }
+    const VIRTUE_CFG = {
+        wisdom:     { img: VIRTUE_BASE+'wisdom.png',     gradient:'linear-gradient(135deg,#1a3a7c,#2563eb)' },
+        courage:    { img: VIRTUE_BASE+'courage.png',    gradient:'linear-gradient(135deg,#7f1d1d,#b91c1c)' },
+        diligence:  { img: VIRTUE_BASE+'diligence.png',  gradient:'linear-gradient(135deg,#78490a,#d97706)' },
+        temperance: { img: VIRTUE_BASE+'temperance.png', gradient:'linear-gradient(135deg,#064e3b,#059669)' },
+        compassion: { img: VIRTUE_BASE+'compassion.png', gradient:'linear-gradient(135deg,#831843,#ec4899)' },
+    };
+    const VIRTUE_FALLBACK = ['wisdom','diligence','temperance','compassion','courage'];
 
-    const params = new URLSearchParams(window.location.search);
-    const uid    = params.get('uid');
-    if (!uid) { showError('No trainer ID in link.'); throw new Error('No uid'); }
+    const KNOWN_EVENT_BADGES = new Set([
+        'New Year Celebrant','Beloved Keeper','Lucky Lantern Holder',
+        'Easter Hatchling','Sun Keeper','Pumpkin Master','Festive Keeper'
+    ]);
+    const EVENT_BADGE_EMOJI = {
+        'New Year Celebrant':'🎊','Beloved Keeper':'💝','Lucky Lantern Holder':'🏮',
+        'Easter Hatchling':'🐣','Sun Keeper':'☀️','Pumpkin Master':'🎃','Festive Keeper':'🎄'
+    };
 
-    // ── Achievement categories (mirrors SharedProfileScreen.kt) ──────────────
     const ACHIEV_CATEGORIES = [
         { label:'First Steps',    icon:'🐾', color:'#2E7D32', bg:'rgba(46,125,50,.10)',
           titles:['First Pet','First Verification','Pet Lover','Own 5 Pets','Own 10 Pets','Verify 3 Pets','Verify 5 Pets','Verify 10 Pets'] },
@@ -148,72 +200,64 @@
           titles:['Species Collector','Animal Explorer','Master Explorer','Rarity Hunter','Epic Tamer'] },
     ];
 
-    const KNOWN_EVENT_BADGE_TITLES = new Set([
-        'New Year Celebrant','Beloved Keeper','Lucky Lantern Holder',
-        'Easter Hatchling','Sun Keeper','Pumpkin Master','Festive Keeper'
-    ]);
-    const EVENT_BADGE_EMOJI = {
-        'New Year Celebrant':'🎊','Beloved Keeper':'💝','Lucky Lantern Holder':'🏮',
-        'Easter Hatchling':'🐣','Sun Keeper':'☀️','Pumpkin Master':'🎃','Festive Keeper':'🎄'
-    };
-
     function rarityColor(r) {
         switch((r||'').toUpperCase()) {
             case 'COMMON':    return '#9E9E9E';
-            case 'UNCOMMON':  return '#4CAF50';
-            case 'RARE':      return '#2196F3';
-            case 'EPIC':      return '#9C27B0';
-            case 'LEGENDARY': return '#FF8C42';
+            case 'UNCOMMON':  return '#22c55e';
+            case 'RARE':      return '#3b82f6';
+            case 'EPIC':      return '#a855f7';
+            case 'LEGENDARY': return '#f97316';
             default:          return '#9E9E9E';
         }
     }
 
-    function speciesEmoji(s) {
-        switch((s||'').toUpperCase()) {
-            case 'DOG': return '🐶'; case 'CAT': return '🐱'; case 'RABBIT': return '🐰';
-            case 'HAMSTER': return '🐹'; case 'BIRD': return '🐦'; case 'FISH': return '🐟';
-            case 'TURTLE': return '🐢'; case 'SNAKE': return '🐍'; case 'LIZARD': return '🦎';
-            case 'PARROT': return '🦜'; case 'HEDGEHOG': return '🦔'; case 'FOX': return '🦊';
-            case 'WOLF': return '🐺'; case 'BEAR': return '🐻'; case 'PANDA': return '🐼';
-            case 'LION': return '🦁'; case 'TIGER': return '🐯'; case 'MONKEY': return '🐒';
-            case 'HORSE': return '🐴'; case 'COW': return '🐄'; default: return '🐾';
-        }
+    function bondInfo(bondLevel) {
+        const lv = bondLevel ?? 1;
+        if (lv >= 20) return { status:'Bonded', title:'GUARDIAN' };
+        if (lv >= 5)  return { status:'Loyal',  title:'FRIEND' };
+        return              { status:'New',    title:'COMPANION' };
     }
 
-    // ── Fetch profile from Supabase REST API ─────────────────────────────────
-    // Supabase REST is just regular HTTP — no SDK needed in the browser.
-    // GET /rest/v1/profiles?uid=eq.{uid}&select=*
-    // with the anon key in the header — that's all it takes.
+    function speciesEmoji(s) {
+        const m={'DOG':'🐶','CAT':'🐱','RABBIT':'🐰','HAMSTER':'🐹','BIRD':'🐦',
+                 'FISH':'🐟','TURTLE':'🐢','SNAKE':'🐍','LIZARD':'🦎','PARROT':'🦜',
+                 'HEDGEHOG':'🦔','FOX':'🦊','HORSE':'🐴','COW':'🐄'};
+        return m[(s||'').toUpperCase()] || '🐾';
+    }
+
+    const loadEl    = document.getElementById('loading');
+    const statusEl  = document.getElementById('load-status');
+    const errorEl   = document.getElementById('error');
+    const errMsg    = document.getElementById('errmsg');
+    const profileEl = document.getElementById('profile');
+
+    function showError(msg) {
+        loadEl.style.display  = 'none';
+        errorEl.style.display = 'flex';
+        errMsg.textContent    = msg;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const uid    = params.get('uid');
+    if (!uid) { showError('No trainer ID in link.'); throw new Error('No uid'); }
 
     async function fetchProfile(uid) {
         const res = await fetch(
             `${SUPABASE_URL}/rest/v1/profiles?uid=eq.${encodeURIComponent(uid)}&select=*`,
-            {
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Content-Type': 'application/json'
-                }
-            }
+            { headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'} }
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const rows = await res.json();
         return rows && rows.length > 0 ? rows[0] : null;
     }
 
-    // ── Main ─────────────────────────────────────────────────────────────────
-
     (async () => {
         try {
             statusEl.textContent = 'Fetching profile…';
             const data = await fetchProfile(uid);
-
-            if (!data) {
-                showError("This trainer hasn't set up their profile yet.");
-                return;
-            }
-
+            if (!data) { showError("This trainer hasn't set up their profile yet."); return; }
             render(data, uid);
-        } catch (e) {
+        } catch(e) {
             showError(e.message || 'Failed to load profile.');
         }
     })();
@@ -222,18 +266,14 @@
         loadEl.style.display    = 'none';
         profileEl.style.display = 'block';
 
-        // Field names match the Supabase table columns (snake_case)
-        const name         = data.trainer_name   || 'Trainer';
-        const level        = data.level          ?? 1;
-        const bondPoints   = data.bond_points    ?? 0;
-        const petCount     = data.pet_count      ?? 0;
-        const speciesCount = data.species_count  ?? 0;
+        const name         = data.trainer_name  || 'Trainer';
+        const level        = data.level         ?? 1;
+        const bondPoints   = data.bond_points   ?? 0;
+        const petCount     = data.pet_count     ?? 0;
+        const speciesCount = data.species_count ?? 0;
+        const streak       = data.streak        ?? 0;
         const totalSpecies = 29;
-        const streak       = data.streak         ?? 0;
 
-        // pets is a JSONB array — Supabase returns it as a JS array directly
-        // Each pet object has camelCase keys (photoUri, bondLevel, isVerified, etc.)
-        // because that's how we stored them from the Android app via Gson
         const pets = Array.isArray(data.pets) ? data.pets : [];
 
         const kpInLevel = bondPoints % 100;
@@ -242,41 +282,59 @@
 
         const allBadgeTitles = Array.isArray(data.unlocked_badge_titles) ? data.unlocked_badge_titles : [];
         const badgeSet       = new Set(allBadgeTitles);
-        const eventBadges    = allBadgeTitles.filter(t => KNOWN_EVENT_BADGE_TITLES.has(t));
+        const eventBadges    = allBadgeTitles.filter(t => KNOWN_EVENT_BADGES.has(t));
 
         const groupedAchievs = ACHIEV_CATEGORIES
             .map(cat => ({ cat, earned: cat.titles.filter(t => badgeSet.has(t)) }))
             .filter(g => g.earned.length > 0);
-        const totalUnlocked = groupedAchievs.reduce((n, g) => n + g.earned.length, 0);
+        const totalUnlocked = groupedAchievs.reduce((n,g) => n + g.earned.length, 0);
 
         document.title = `${name} – PetQuest`;
 
-        // ── Pet cards ────────────────────────────────────────────────────────
-        // photoUri is now a real https:// Supabase Storage URL — just use it in <img src>
-        // For backwards compatibility, data:image/jpeg;base64,... also works in <img src>
+        // ── Pet cards with flip ───────────────────────────────────────────────
         const petsHtml = pets.length === 0 ? '' : `
             <div class="pets-title">My Pets (${petCount})</div>
+            <div class="pets-hint">Tap a card to see its virtue</div>
             <div class="pets-grid">
-                ${pets.map(pet => {
-                    const rc    = rarityColor(pet.rarity);
-                    const emoji = speciesEmoji(pet.species);
-                    const photo = pet.photoUri;
-                    const rarity = pet.rarity
+                ${pets.map((pet, idx) => {
+                    const rc      = rarityColor(pet.rarity);
+                    const emoji   = speciesEmoji(pet.species);
+                    const photo   = pet.photoUri;
+                    const rarity  = pet.rarity
                         ? pet.rarity.charAt(0).toUpperCase() + pet.rarity.slice(1).toLowerCase()
                         : '';
+                    const bond    = bondInfo(pet.bondLevel);
+                    const vKey    = (pet.virtue||'').toLowerCase();
+                    const vc      = VIRTUE_CFG[vKey] || VIRTUE_CFG[VIRTUE_FALLBACK[idx % VIRTUE_FALLBACK.length]];
+                    const lvColor = pet.rarity?.toUpperCase() === 'RARE' ? '#60a5fa'
+                                  : pet.rarity?.toUpperCase() === 'EPIC' ? '#c084fc'
+                                  : pet.rarity?.toUpperCase() === 'LEGENDARY' ? '#fb923c'
+                                  : '#f59e0b';
                     return `
-                    <div class="pet-card">
-                        ${photo
-                            ? `<img class="pet-photo" src="${photo}" alt="${pet.name || 'Pet'}"
-                                   onerror="this.outerHTML='<div class=\\'pet-photo-placeholder\\'>${emoji}</div>'">`
-                            : `<div class="pet-photo-placeholder">${emoji}</div>`
-                        }
-                        <div class="pet-rarity-bar" style="background:${rc}"></div>
-                        <div class="pet-info">
-                            <div class="pet-name">${pet.name || 'Unknown'}</div>
-                            <div class="pet-row">
-                                <span class="pet-rarity-chip" style="background:${rc}22;color:${rc}">${rarity}</span>
-                                <span class="pet-lv">Lv.${pet.bondLevel ?? 1}</span>
+                    <div class="flip-wrap" onclick="this.classList.toggle('flipped')" id="flip-${idx}">
+                        <div class="flip-inner">
+                            <!-- FRONT -->
+                            <div class="flip-face pet-front">
+                                ${photo
+                                    ? `<img class="pet-photo" src="${photo}" alt="${pet.name||'Pet'}"
+                                           onerror="this.outerHTML='<div class=\\'pet-photo-placeholder\\'>${emoji}</div>'">`
+                                    : `<div class="pet-photo-placeholder">${emoji}</div>`
+                                }
+                                <div class="pet-rarity-bar" style="background:${rc}"></div>
+                                <div class="pet-info">
+                                    <div class="pet-name">${pet.name||'Unknown'}</div>
+                                    <div class="pet-row">
+                                        <span class="pet-rarity-chip" style="background:${rc}22;color:${rc}">${rarity}</span>
+                                        <span class="pet-lv" style="color:${lvColor}">Lv.${pet.bondLevel??1}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- BACK (virtue) -->
+                            <div class="flip-face flip-back pet-back" style="background:${vc.gradient}">
+                                <div class="virtue-icon-small"><img src="${vc.img}" alt="virtue"></div>
+                                <img class="virtue-img" src="${vc.img}" alt="virtue">
+                                <div class="virtue-status">${bond.status}</div>
+                                <div class="virtue-title">${bond.title}</div>
                             </div>
                         </div>
                     </div>`;
@@ -284,17 +342,43 @@
             </div>
         `;
 
-        // ── Achievements ─────────────────────────────────────────────────────
+        // ── Event Badges ──────────────────────────────────────────────────────
+        const eventHtml = `
+            <div class="badges-card">
+                <div class="badges-head">
+                    <div class="badges-head-left">
+                        <img src="${ICON_BASE}trophy.png" alt="badges">
+                        <span class="badges-head-title">Event Badges</span>
+                    </div>
+                    ${eventBadges.length > 0 ? `<div class="badges-count">${eventBadges.length}</div>` : ''}
+                </div>
+                ${eventBadges.length > 0
+                    ? `<div class="badges-grid">
+                        ${eventBadges.map(b => `
+                            <div class="badge-item">
+                                <span class="badge-item-emoji">${EVENT_BADGE_EMOJI[b]||'🏅'}</span>
+                                <div>
+                                    <div class="badge-item-name">${b}</div>
+                                    <div class="badge-item-type">Seasonal</div>
+                                </div>
+                            </div>`).join('')}
+                       </div>`
+                    : `<p class="badges-empty">No event badges yet.<br>Complete seasonal challenges to earn exclusive badges.</p>`
+                }
+            </div>
+        `;
+
+        // ── Achievements ──────────────────────────────────────────────────────
         const achHtml = `
             <div class="ach-card">
                 <div class="ach-head">
-                    <span>🏆</span>
+                    <img src="${ICON_BASE}trophy.png" alt="achievements">
                     <span class="ach-head-title">Achievements</span>
                     ${totalUnlocked > 0 ? `<span class="ach-count-badge">${totalUnlocked} unlocked</span>` : ''}
                 </div>
                 ${groupedAchievs.length === 0
                     ? `<p class="ach-empty">No achievements unlocked yet.<br>Complete tasks and care for your pets to earn badges!</p>`
-                    : groupedAchievs.map((g, i) => `
+                    : groupedAchievs.map((g,i) => `
                         ${i > 0 ? '<div class="divider"></div>' : ''}
                         <div class="ach-cat-label" style="color:${g.cat.color}">${g.cat.icon} ${g.cat.label}</div>
                         <div class="ach-chips">
@@ -307,14 +391,27 @@
             </div>
         `;
 
-        // ── Full page render ─────────────────────────────────────────────────
+        // ── Streak ────────────────────────────────────────────────────────────
+        const streakHtml = streak > 0 ? `
+            <div class="streak-card">
+                <img class="streak-icon" src="${ICON_BASE}flame.png" alt="streak">
+                <div>
+                    <div class="streak-title">${streak} Day Streak</div>
+                    <div class="streak-sub">Consistent trainer — logging in every day!</div>
+                </div>
+            </div>
+        ` : '';
+
         const deepLink = `petquest://share?uid=${encodeURIComponent(profileUid)}`;
 
         profileEl.innerHTML = `
             <div class="topbar"><span class="topbar-title">Trainer Profile</span></div>
 
             <div class="trainer-hero">
-                <div class="trainer-avatar">🐾</div>
+                <div class="trainer-avatar">
+                    <img src="${ICON_BASE}paw.png" alt="paw">
+                    <div class="trainer-lvbadge">${level}</div>
+                </div>
                 <div>
                     <div class="trainer-name">${name}</div>
                     <div class="trainer-sub">PetQuest Trainer</div>
@@ -324,30 +421,37 @@
             <div class="wrap">
 
                 <div class="lvcard">
-                    <div class="lvcard-icon">🐾</div>
+                    <div class="lvcard-icon"><img src="${ICON_BASE}paw.png" alt="paw"></div>
                     <div class="lvcard-body">
                         <div class="lvcard-title">Level ${level}</div>
-                        <div class="lvcard-sub">KP to next level &nbsp; ${kpInLevel} / 100</div>
+                        <div class="lvcard-sub">
+                            <span>KP to next level</span>
+                            <span>${kpInLevel} / 100</span>
+                        </div>
                         <div class="lvbar-wrap"><div class="lvbar" style="width:${lvPct}%"></div></div>
                     </div>
                 </div>
 
                 <div class="agrid">
-                    <div class="abadge bond"><div class="atxt">${bondPoints}</div><div class="albl">Total Bond Pts</div></div>
-                    <div class="abadge pets"><div class="atxt">${petCount}</div><div class="albl">Active Pets</div></div>
+                    <div class="abadge bond">
+                        <div class="atxt">${bondPoints.toLocaleString()}</div>
+                        <div class="albl">Total Bond Pts</div>
+                    </div>
+                    <div class="abadge pets">
+                        <div class="atxt">${petCount}</div>
+                        <div class="albl">Active Pets</div>
+                    </div>
                 </div>
 
-                <div class="scard">
-                    <div class="scard-head"><span class="scard-title">🏆 Event Badges</span></div>
-                    ${eventBadges.length > 0
-                        ? eventBadges.map(b => `<span style="display:inline-flex;align-items:center;gap:6px;background:#2d2d2d;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;margin:3px">${EVENT_BADGE_EMOJI[b]||'🏅'} ${b}</span>`).join('')
-                        : `<p class="scard-empty">No event badges earned yet.<br>Complete seasonal event challenges to earn exclusive badges.</p>`
-                    }
-                </div>
+                ${streakHtml}
+                ${eventHtml}
 
                 <div class="sp-card">
                     <div class="sp-head">
-                        <span class="sp-title">🌿 Species Collected</span>
+                        <div class="sp-head-left">
+                            <img src="${ICON_BASE}explore.png" alt="species">
+                            <span class="sp-title">Species Collected</span>
+                        </div>
                         <span class="sp-count">${speciesCount} / ${totalSpecies}</span>
                     </div>
                     <div class="spbar-wrap"><div class="spbar" style="width:${spPct}%"></div></div>
@@ -357,7 +461,7 @@
                 ${achHtml}
 
                 <div class="cta-footer">
-                    <p class="cta-msg">🐾 Get PetQuest to start your own journey!</p>
+                    <p class="cta-msg">Get PetQuest to start your own journey!</p>
                     <a class="openbtn" href="${deepLink}">Open in PetQuest</a>
                     <p class="shint">Don't have the app? Search "PetQuest" in the Play Store.</p>
                 </div>
