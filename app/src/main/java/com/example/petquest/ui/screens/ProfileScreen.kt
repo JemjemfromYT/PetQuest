@@ -29,7 +29,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -112,9 +111,6 @@ fun ProfileScreen(
         allAchievements.filter { it.isUnlocked && it.title in EVENT_BADGE_TITLES }
     }
 
-    var tapCount      by remember { mutableIntStateOf(0) }
-    var lastTapMs     by remember { mutableLongStateOf(0L) }
-    var showAdminHint by remember { mutableStateOf(false) }
 
     val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
@@ -162,19 +158,37 @@ fun ProfileScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    fun onLevelTap() {
+    // ── Hidden admin sequence state (silent, zero visual feedback) ──────────────
+    // Step 1: tap "Total Bond Pts" label 3x  →  Step 2: tap "Active Pets" label 3x
+    // Must complete both steps within 8 seconds. No hint is ever shown.
+    var hiddenStep     by remember { mutableIntStateOf(0) }   // 0 = idle, 1 = step-1 in progress
+    var hiddenTapA     by remember { mutableIntStateOf(0) }   // taps on Bond Pts label
+    var hiddenTapB     by remember { mutableIntStateOf(0) }   // taps on Active Pets label
+    var hiddenStepMs   by remember { mutableLongStateOf(0L) } // time step-1 started
+
+    fun onBondLabelTap() {
         val now = System.currentTimeMillis()
-        if (now - lastTapMs > 3000L) tapCount = 0
-        tapCount++
-        lastTapMs = now
-        if (tapCount >= 5) { tapCount = 0; onAdminClick() }
-        else if (tapCount >= 3) showAdminHint = true
+        // Reset if timed out or already past step 1
+        if (hiddenStep == 1 && now - hiddenStepMs > 8000L) {
+            hiddenStep = 0; hiddenTapA = 0; hiddenTapB = 0
+        }
+        if (hiddenStep == 0) {
+            hiddenTapA++
+            if (hiddenTapA == 1) hiddenStepMs = System.currentTimeMillis()
+            if (hiddenTapA >= 3) { hiddenStep = 1; hiddenTapA = 0 }
+        }
     }
 
-    LaunchedEffect(showAdminHint) {
-        if (showAdminHint) {
-            kotlinx.coroutines.delay(1500)
-            showAdminHint = false
+    fun onActivePetsLabelTap() {
+        val now = System.currentTimeMillis()
+        if (hiddenStep != 1) return
+        if (now - hiddenStepMs > 8000L) {
+            hiddenStep = 0; hiddenTapA = 0; hiddenTapB = 0; return
+        }
+        hiddenTapB++
+        if (hiddenTapB >= 3) {
+            hiddenStep = 0; hiddenTapA = 0; hiddenTapB = 0
+            onAdminClick()
         }
     }
 
@@ -334,13 +348,7 @@ fun ProfileScreen(
                                 )
                             }
                         }
-                        IconButton(onClick = onAdminClick) {
-                            Icon(
-                                Icons.Default.Build,
-                                contentDescription = "Admin",
-                                tint               = Color.White.copy(alpha = 0.85f)
-                            )
-                        }
+
                     }
                 }
             }
@@ -398,7 +406,7 @@ fun ProfileScreen(
 
                             Spacer(Modifier.width(16.dp))
 
-                            Column(modifier = Modifier.weight(1f).clickable { onLevelTap() }) {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Row(
                                     verticalAlignment     = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -426,14 +434,6 @@ fun ProfileScreen(
                                             )
                                         }
                                     }
-                                }
-
-                                if (showAdminHint) {
-                                    Text(
-                                        "Keep tapping...",
-                                        fontSize = 10.sp,
-                                        color    = Color.White.copy(alpha = 0.70f)
-                                    )
                                 }
 
                                 Spacer(Modifier.height(10.dp))
@@ -501,7 +501,8 @@ fun ProfileScreen(
                                 "Total Bond Pts",
                                 fontSize   = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color      = Color(0xFF2E7D32)
+                                color      = Color(0xFF2E7D32),
+                                modifier   = Modifier.clickable { onBondLabelTap() }
                             )
                         }
                     }
@@ -524,7 +525,8 @@ fun ProfileScreen(
                                 "Active Pets",
                                 fontSize   = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color      = Color(0xFF6A1B9A)
+                                color      = Color(0xFF6A1B9A),
+                                modifier   = Modifier.clickable { onActivePetsLabelTap() }
                             )
                         }
                     }
