@@ -62,7 +62,7 @@ import com.example.petquest.data.model.PetEntity
 import com.example.petquest.data.model.PetType
 import com.example.petquest.data.model.Rarity
 import com.example.petquest.data.model.Virtue
-import com.example.petquest.data.repository.FirebaseRepository
+import com.example.petquest.data.repository.SupabaseRepository
 import com.example.petquest.data.repository.PetSummary
 import com.example.petquest.data.repository.PublicProfile
 import com.example.petquest.ui.VirtueConfig
@@ -75,7 +75,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ProfileScreen(
     viewModel              : PetQuestViewModel,
-    firebaseRepository     : FirebaseRepository,
+    supabaseRepository     : SupabaseRepository,
     onAddPetClick          : () -> Unit,
     onAdminClick           : () -> Unit,
     onNavigateToCollection : () -> Unit = {}
@@ -224,7 +224,7 @@ fun ProfileScreen(
                     // fails or times out, the uid is already known and the link
                     // will always point to the correct profile page.
                     var uid: String? = null
-                    try { uid = firebaseRepository.ensureSignedIn() } catch (_: Exception) {}
+                    try { uid = supabaseRepository.ensureSignedIn() } catch (_: Exception) {}
 
                     // STEP 2: Upload photos + push to Firestore in viewModelScope
                     // (not cancelled if user dismisses the share sheet mid-upload).
