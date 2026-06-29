@@ -24,6 +24,7 @@
 //      - Old data:image/jpeg;base64,... strings (from the old Firebase era) → decoded to Bitmap
 //      THIS IS THE BUG FIX: AsyncImage cannot load data: URIs natively.
 //      Both web page and Trainer Profile now show real photos.
+//   3. Added tab navigation: 🐾 My Pets | 🏆 Achievements | 🎉 Events
 
 package com.example.petquest.ui.screens
 
@@ -372,7 +373,7 @@ private fun SpErrorState(onRetry: () -> Unit) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main profile content
+// Main profile content — tabbed layout
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -408,6 +409,9 @@ private fun SpProfileContent(profile: PublicProfile) {
         spring(dampingRatio = Spring.DampingRatioMediumBouncy), label = "slide"
     )
 
+    // ── Tab state ─────────────────────────────────────────────────────────────
+    var selectedTab by remember { mutableIntStateOf(0) }
+
     LazyColumn(
         modifier            = Modifier
             .fillMaxSize()
@@ -415,8 +419,13 @@ private fun SpProfileContent(profile: PublicProfile) {
         contentPadding      = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // ── Trainer header ─────────────────────────────────────────────────────
         item { SpTrainerHeader(profile) }
+
+        // ── Level card ─────────────────────────────────────────────────────────
         item { SpLevelCard(level = profile.level, xpInLevel = xpInLevel, xpProgress = xpProgress) }
+
+        // ── Bond Pts + Active Pets stats ───────────────────────────────────────
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 SpStatCard(Modifier.weight(1f), "${profile.bondPoints}", "Total Bond Pts",
@@ -426,10 +435,13 @@ private fun SpProfileContent(profile: PublicProfile) {
                     Color(0xFF4A148C), Color(0xFFF3E5F5))
             }
         }
+
+        // ── Streak banner (always visible when streak > 0) ─────────────────────
         if (profile.streak > 0) {
             item { SpStreakBanner(profile.streak) }
         }
-        item { SpEventBadgesSection(eventBadges) }
+
+        // ── Species collected (always visible) ─────────────────────────────────
         item {
             SpSpeciesCard(
                 collected       = profile.speciesCount,
@@ -437,19 +449,92 @@ private fun SpProfileContent(profile: PublicProfile) {
                 speciesProgress = speciesProgress
             )
         }
-        if (profile.pets.isNotEmpty()) {
-            item {
-                // SYNC: count live-filtered verified pets, NOT stale DB pet_count
-                Text("My Pets (${profile.pets.count { it.isVerified }})", fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp))
-            }
-            item { SpPetsGrid(profile.pets) }
-        }
-        item { SpAchievementsSection(groupedAchievs) }
+
+        // ── Tab row ────────────────────────────────────────────────────────────
         item {
-            Text("🐾 Get PetQuest to start your own journey!",
-                fontSize  = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp))
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor   = MaterialTheme.colorScheme.surface,
+                contentColor     = MaterialTheme.colorScheme.primary
+            ) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick  = { selectedTab = 0 },
+                    text     = { Text("🐾 My Pets", fontSize = 12.sp, maxLines = 1) }
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick  = { selectedTab = 1 },
+                    text     = { Text("🏆 Achievements", fontSize = 12.sp, maxLines = 1) }
+                )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick  = { selectedTab = 2 },
+                    text     = { Text("🎉 Events", fontSize = 12.sp, maxLines = 1) }
+                )
+            }
+        }
+
+        // ── Tab content ────────────────────────────────────────────────────────
+        item {
+            when (selectedTab) {
+
+                // ── 🐾 My Pets ─────────────────────────────────────────────────
+                0 -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        // SYNC: count live-filtered verified pets, NOT stale DB pet_count
+                        Text(
+                            "My Pets (${profile.pets.count { it.isVerified }})",
+                            fontSize   = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier   = Modifier.padding(horizontal = 4.dp)
+                        )
+                        if (profile.pets.none { it.isVerified }) {
+                            Card(
+                                modifier  = Modifier.fillMaxWidth(),
+                                colors    = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            ) {
+                                Box(
+                                    modifier         = Modifier.fillMaxWidth().padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        "No pets to show yet.",
+                                        fontSize  = 13.sp,
+                                        color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        } else {
+                            SpPetsGrid(profile.pets)
+                        }
+                    }
+                }
+
+                // ── 🏆 Achievements ────────────────────────────────────────────
+                1 -> {
+                    SpAchievementsSection(groupedAchievs)
+                }
+
+                // ── 🎉 Events ──────────────────────────────────────────────────
+                2 -> {
+                    SpEventBadgesSection(eventBadges)
+                }
+            }
+        }
+
+        // ── Footer promo ───────────────────────────────────────────────────────
+        item {
+            Text(
+                "🐾 Get PetQuest to start your own journey!",
+                fontSize  = 13.sp,
+                color     = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier  = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            )
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -938,11 +1023,6 @@ private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
         pet.bondLevel >= 10 -> "Loyal Friend"
         pet.bondLevel >= 5  -> "Trusted Companion"
         else                -> "New Companion"
-    }
-
-    val tierBgColor = when (tier) {
-        1 -> Color(0xFFB0BEC5); 2 -> Color(0xFF1565C0); 3 -> Color(0xFFFFB300)
-        4 -> Color(0xFF7B1FA2); else -> Color(0xFFBF360C)
     }
 
     Card(

@@ -51,9 +51,13 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -61,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -90,6 +95,83 @@ import com.example.petquest.viewmodel.PetQuestViewModel
 import com.example.petquest.worker.ReminderWorker
 import java.util.Locale
 import kotlinx.coroutines.launch
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Achievement categories (mirrors SharedProfileScreen — keep in sync)
+// ─────────────────────────────────────────────────────────────────────────────
+
+private data class PsAchievCategoryDef(
+    val label  : String,
+    val icon   : ImageVector,
+    val color  : Color,
+    val titles : List<String>
+)
+
+private val PS_ACHIEV_CATEGORIES = listOf(
+    PsAchievCategoryDef(
+        label  = "First Steps",
+        icon   = Icons.Default.Pets,
+        color  = Color(0xFF2E7D32),
+        titles = listOf(
+            "First Pet", "First Verification", "Pet Lover",
+            "Own 5 Pets", "Own 10 Pets",
+            "Verify 3 Pets", "Verify 5 Pets", "Verify 10 Pets"
+        )
+    ),
+    PsAchievCategoryDef(
+        label  = "Streak",
+        icon   = Icons.Default.Whatshot,
+        color  = Color(0xFFE65100),
+        titles = listOf(
+            "3-Day Streak", "7-Day Streak", "14-Day Streak",
+            "30-Day Streak", "60-Day Streak", "100-Day Streak"
+        )
+    ),
+    PsAchievCategoryDef(
+        label  = "Tasks",
+        icon   = Icons.Default.CheckCircle,
+        color  = Color(0xFF1565C0),
+        titles = listOf(
+            "Complete 10 Tasks", "Complete 25 Tasks", "Complete 50 Tasks",
+            "Complete 100 Tasks", "Complete 250 Tasks", "Complete 500 Tasks"
+        )
+    ),
+    PsAchievCategoryDef(
+        label  = "Bond Points",
+        icon   = Icons.Default.Star,
+        color  = Color(0xFFF9A825),
+        titles = listOf(
+            "Earn 100 Bond Points", "Earn 250 Bond Points", "Earn 500 Bond Points",
+            "Earn 1000 Bond Points", "Earn 2500 Bond Points", "Earn 5000 Bond Points"
+        )
+    ),
+    PsAchievCategoryDef(
+        label  = "Pet Bond Level",
+        icon   = Icons.Default.EmojiEvents,
+        color  = Color(0xFF6A1B9A),
+        titles = listOf(
+            "Bond Master", "Bond Veteran", "Level 10 Companion",
+            "Virtue Master", "Dedicated Caregiver", "Elite Trainer"
+        )
+    ),
+    PsAchievCategoryDef(
+        label  = "Trainer Level",
+        icon   = Icons.Default.Stars,
+        color  = Color(0xFFBF360C),
+        titles = listOf(
+            "Reach Level 10", "Reach Level 20", "Reach Level 30", "Reach Level 50"
+        )
+    ),
+    PsAchievCategoryDef(
+        label  = "Species & Rarity",
+        icon   = Icons.Default.Explore,
+        color  = Color(0xFF00695C),
+        titles = listOf(
+            "Species Collector", "Animal Explorer", "Master Explorer",
+            "Rarity Hunter", "Epic Tamer"
+        )
+    )
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,10 +216,24 @@ fun ProfileScreen(
         allAchievements.filter { it.isUnlocked && it.title in EVENT_BADGE_TITLES }
     }
 
+    val regularBadgeTitles: Set<String> = remember(allAchievements) {
+        allAchievements.filter { it.isUnlocked && it.title !in EVENT_BADGE_TITLES }
+            .map { it.title }.toSet()
+    }
+
+    val groupedAchievs: List<Pair<PsAchievCategoryDef, List<String>>> = remember(regularBadgeTitles) {
+        PS_ACHIEV_CATEGORIES.mapNotNull { cat ->
+            val earned = cat.titles.filter { it in regularBadgeTitles }
+            if (earned.isEmpty()) null else cat to earned
+        }
+    }
 
     val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
     var isSyncing        by remember { mutableStateOf(false) }
+
+    // ── Tab state ─────────────────────────────────────────────────────────────
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     fun buildCurrentProfile() = PublicProfile(
         trainerName         = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
@@ -261,14 +357,10 @@ fun ProfileScreen(
                     val profile = buildCurrentProfile()
 
                     // STEP 1: Sign in FIRST to lock in the uid.
-                    // This is separate from photo upload — even if the upload
-                    // fails or times out, the uid is already known and the link
-                    // will always point to the correct profile page.
                     var uid: String? = null
                     try { uid = supabaseRepository.ensureSignedIn() } catch (_: Exception) {}
 
                     // STEP 2: Upload photos + push to Firestore in viewModelScope
-                    // (not cancelled if user dismisses the share sheet mid-upload).
                     viewModel.syncProfileToFirebase()
 
                     val shareLink = if (uid != null) {
@@ -375,7 +467,6 @@ fun ProfileScreen(
                                 )
                             }
                         }
-
                     }
                 }
             }
@@ -387,6 +478,7 @@ fun ProfileScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
+            // ── Sync banner ────────────────────────────────────────────────────
             item {
                 AnimatedVisibility(
                     visible = isSyncing,
@@ -397,6 +489,7 @@ fun ProfileScreen(
                 }
             }
 
+            // ── Level card ─────────────────────────────────────────────────────
             item {
                 Card(
                     modifier  = Modifier.fillMaxWidth(),
@@ -504,6 +597,7 @@ fun ProfileScreen(
                 }
             }
 
+            // ── Bond Pts + Active Pets (admin tap targets preserved) ───────────
             item {
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
@@ -558,8 +652,37 @@ fun ProfileScreen(
                 }
             }
 
-            item { EventBadgesSection(eventBadges = eventBadges) }
+            // ── Streak banner (always visible when streak > 0) ─────────────────
+            if (userStreak > 0) {
+                item {
+                    Card(
+                        modifier  = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        colors    = CardDefaults.cardColors(containerColor = Color(0xFFFBE9E7))
+                    ) {
+                        Row(
+                            modifier              = Modifier.fillMaxWidth().padding(14.dp),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(Icons.Default.Whatshot, null,
+                                tint     = Color(0xFFE64A19),
+                                modifier = Modifier.size(28.dp))
+                            Column {
+                                Text("$userStreak Day Streak",
+                                    fontSize   = 16.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color      = Color(0xFFBF360C))
+                                Text("Consistent trainer — logging in every day!",
+                                    fontSize = 11.sp,
+                                    color    = Color(0xFFE64A19).copy(alpha = 0.75f))
+                            }
+                        }
+                    }
+                }
+            }
 
+            // ── Species collected (always visible, navigates to collection) ────
             item {
                 Card(
                     modifier  = Modifier.fillMaxWidth().clickable { onNavigateToCollection() },
@@ -630,50 +753,102 @@ fun ProfileScreen(
                 }
             }
 
+            // ── Tab row ────────────────────────────────────────────────────────
             item {
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment     = Alignment.CenterVertically
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor   = MaterialTheme.colorScheme.surface,
+                    contentColor     = MaterialTheme.colorScheme.primary
                 ) {
-                    Text("My Pets (${verifiedPets.size})", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    FilledTonalIconButton(onClick = onAddPetClick, modifier = Modifier.size(36.dp)) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Pet", modifier = Modifier.size(18.dp))
-                    }
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick  = { selectedTab = 0 },
+                        text     = { Text("🐾 My Pets", fontSize = 12.sp, maxLines = 1) }
+                    )
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick  = { selectedTab = 1 },
+                        text     = { Text("🏆 Achievements", fontSize = 12.sp, maxLines = 1) }
+                    )
+                    Tab(
+                        selected = selectedTab == 2,
+                        onClick  = { selectedTab = 2 },
+                        text     = { Text("🎉 Events", fontSize = 12.sp, maxLines = 1) }
+                    )
                 }
             }
 
-            if (verifiedPets.isEmpty()) {
-                item {
-                    EmptyStateCard(
-                        imageRes    = R.drawable.empty_collection,
-                        title       = "No Pets Yet",
-                        description = "Tap + to add your first pet.",
-                        actionLabel = "Add a Pet",
-                        onAction    = onAddPetClick
-                    )
-                }
-            } else {
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        verifiedPets.chunked(2).forEach { rowPets ->
+            // ── Tab content ────────────────────────────────────────────────────
+            item {
+                when (selectedTab) {
+
+                    // ── 🐾 My Pets ─────────────────────────────────────────────
+                    0 -> {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Row(
-                                modifier              = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                modifier              = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment     = Alignment.CenterVertically
                             ) {
-                                rowPets.forEach { pet ->
-                                    PetCollectionCard(
-                                        pet      = pet,
-                                        modifier = Modifier.weight(1f).fillMaxHeight()
+                                Text(
+                                    "My Pets (${verifiedPets.size})",
+                                    fontSize   = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                FilledTonalIconButton(
+                                    onClick  = onAddPetClick,
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Add,
+                                        contentDescription = "Add Pet",
+                                        modifier           = Modifier.size(18.dp)
                                     )
                                 }
-                                if (rowPets.size == 1) Spacer(modifier = Modifier.weight(1f))
+                            }
+
+                            if (verifiedPets.isEmpty()) {
+                                EmptyStateCard(
+                                    imageRes    = R.drawable.empty_collection,
+                                    title       = "No Pets Yet",
+                                    description = "Tap + to add your first pet.",
+                                    actionLabel = "Add a Pet",
+                                    onAction    = onAddPetClick
+                                )
+                            } else {
+                                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    verifiedPets.chunked(2).forEach { rowPets ->
+                                        Row(
+                                            modifier              = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            rowPets.forEach { pet ->
+                                                PetCollectionCard(
+                                                    pet      = pet,
+                                                    modifier = Modifier.weight(1f).fillMaxHeight()
+                                                )
+                                            }
+                                            if (rowPets.size == 1) Spacer(modifier = Modifier.weight(1f))
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
+
+                    // ── 🏆 Achievements ────────────────────────────────────────
+                    1 -> {
+                        PsAchievementsSection(groupedAchievs)
+                    }
+
+                    // ── 🎉 Events ──────────────────────────────────────────────
+                    2 -> {
+                        EventBadgesSection(eventBadges = eventBadges)
+                    }
                 }
             }
 
+            // ── Settings card (always below tabs) ─────────────────────────────
             item {
                 SettingsCard(
                     notificationsEnabled = notificationsEnabled,
@@ -685,6 +860,122 @@ fun ProfileScreen(
             }
 
             item { Spacer(Modifier.height(8.dp)) }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Achievements section (own profile — mirrors SharedProfileScreen)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun PsAchievementsSection(grouped: List<Pair<PsAchievCategoryDef, List<String>>>) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors    = CardDefaults.cardColors(
+            containerColor = if (grouped.isNotEmpty()) Color(0xFFFFF8E1)
+            else MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier            = Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    Icons.Default.EmojiEvents,
+                    null,
+                    tint     = if (grouped.isNotEmpty()) Color(0xFFF9A825)
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    "Achievements",
+                    fontSize   = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = if (grouped.isNotEmpty()) Color(0xFF5D4037)
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (grouped.isNotEmpty()) {
+                    val totalCount = grouped.sumOf { it.second.size }
+                    Spacer(Modifier.weight(1f))
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color(0xFFF9A825).copy(alpha = 0.20f)
+                    ) {
+                        Text(
+                            "$totalCount unlocked",
+                            modifier   = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            fontSize   = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = Color(0xFFF9A825)
+                        )
+                    }
+                }
+            }
+
+            if (grouped.isEmpty()) {
+                Text(
+                    "No achievements unlocked yet.\nComplete tasks and care for your pets to earn badges!",
+                    fontSize   = 12.sp,
+                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 17.sp
+                )
+            } else {
+                grouped.forEachIndexed { index, (category, titles) ->
+                    PsAchievCategoryRow(category, titles)
+                    if (index < grouped.lastIndex) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PsAchievCategoryRow(category: PsAchievCategoryDef, titles: List<String>) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(category.icon, null, tint = category.color, modifier = Modifier.size(14.dp))
+            Text(category.label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = category.color)
+        }
+        titles.chunked(2).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { title ->
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape    = RoundedCornerShape(10.dp),
+                        color    = category.color.copy(alpha = 0.10f)
+                    ) {
+                        Row(
+                            modifier              = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(category.icon, null, tint = category.color, modifier = Modifier.size(14.dp))
+                            Text(
+                                title,
+                                fontSize   = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color      = category.color,
+                                maxLines   = 2,
+                                overflow   = TextOverflow.Ellipsis,
+                                lineHeight = 13.sp,
+                                modifier   = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
+            }
         }
     }
 }
@@ -1403,5 +1694,3 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
         }
     }
 }
-
-
