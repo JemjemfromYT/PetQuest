@@ -1,22 +1,16 @@
-// ============================================================
-// FILE: app/build.gradle.kts  (COMPLETE FILE — replace fully)
-//
-// CHANGES FROM PREVIOUS VERSION:
-//   Added firebase-storage-ktx so pet photos can be uploaded
-//   to Firebase Storage and shown on the share.html web page.
-//
-// HOW TO APPLY:
-//   Open app/build.gradle.kts in Android Studio
-//   Select All (Ctrl+A), Delete, paste this entire file
-//   Click "Sync Now" in the yellow banner that appears
-// ============================================================
+// app/build.gradle.kts  (the one INSIDE the app/ folder)
+// HOW TO APPLY: Open app/build.gradle.kts → Ctrl+A → Delete → Paste this → Sync Now
+// CHANGES:
+//   - Removed id("com.google.gms.google-services") plugin
+//   - Removed all Firebase dependencies (auth, firestore, storage, coroutines-play-services)
+//   - Added OkHttp for Supabase REST API calls (lightweight, no extra setup needed)
+//   Gson was already in your project — that stays.
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.ksp)
-    id("com.google.gms.google-services")
 }
 
 android {
@@ -81,7 +75,6 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
-
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     val cameraxVersion = "1.3.4"
@@ -91,12 +84,9 @@ dependencies {
 
     implementation("com.google.mlkit:image-labeling:17.0.9")
 
-    // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-storage-ktx")   // ← ADDED
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
+    // Supabase networking — replaces Firebase
+    // OkHttp makes HTTP calls to Supabase REST API (no extra setup, no plugins needed)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     implementation("com.google.guava:guava:32.1.3-android")
     implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")

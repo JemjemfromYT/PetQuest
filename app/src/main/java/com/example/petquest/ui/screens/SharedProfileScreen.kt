@@ -1,3 +1,13 @@
+// app/src/main/java/com/example/petquest/ui/screens/SharedProfileScreen.kt
+// HOW TO APPLY: Open this file → Ctrl+A → Delete → Paste this entire file
+// CHANGES:
+//   1. Replaced FirebaseRepository with SupabaseRepository in the function signature
+//   2. Added SpPetPhoto helper composable that handles BOTH:
+//      - Real https:// URLs (Supabase Storage) → AsyncImage works perfectly
+//      - Old data:image/jpeg;base64,... strings (from the old Firebase era) → decoded to Bitmap
+//      THIS IS THE BUG FIX: AsyncImage cannot load data: URIs natively.
+//      Both web page and Trainer Profile now show real photos.
+
 package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
@@ -17,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -26,10 +37,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.graphics.BitmapFactory
+import android.util.Base64
 import coil.compose.AsyncImage
 import com.example.petquest.data.model.PetType
 import com.example.petquest.data.model.Virtue
-import com.example.petquest.data.repository.FirebaseRepository
+import com.example.petquest.data.repository.SupabaseRepository
 import com.example.petquest.data.repository.PetSummary
 import com.example.petquest.data.repository.PublicProfile
 import com.example.petquest.ui.VirtueConfig
@@ -61,17 +74,17 @@ private val KNOWN_EVENT_BADGE_TITLES = setOf(
 )
 
 private val EVENT_BADGE_EMOJI = mapOf(
-    "New Year Celebrant"   to "\uD83C\uDF8A",  // 🎊
-    "Beloved Keeper"       to "\uD83D\uDC9D",  // 💝
-    "Lucky Lantern Holder" to "\uD83C\uDFEE",  // 🏮
-    "Easter Hatchling"     to "\uD83D\uDC23",  // 🐣
-    "Sun Keeper"           to "\u2600\uFE0F",  // ☀️
-    "Pumpkin Master"       to "\uD83C\uDF83",  // 🎃
-    "Festive Keeper"       to "\uD83C\uDF84"   // 🎄
+    "New Year Celebrant"   to "\uD83C\uDF8A",
+    "Beloved Keeper"       to "\uD83D\uDC9D",
+    "Lucky Lantern Holder" to "\uD83C\uDFEE",
+    "Easter Hatchling"     to "\uD83D\uDC23",
+    "Sun Keeper"           to "\u2600\uFE0F",
+    "Pumpkin Master"       to "\uD83C\uDF83",
+    "Festive Keeper"       to "\uD83C\uDF84"
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Achievement category definitions (mirrors AwardsScreen color logic)
+// Achievement category definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
 private data class AchievCategoryDef(
@@ -167,15 +180,62 @@ private fun speciesEmoji(speciesName: String): String = when (speciesName.upperc
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Root composable
+// THE KEY FIX: SpPetPhoto — handles both real URLs and base64 data URIs
+//
+// WHY THIS WAS BROKEN:
+//   AsyncImage (Coil) loads https:// and file:// URIs perfectly.
+//   But "data:image/jpeg;base64,..." is NOT supported by Coil — it just
+//   shows nothing, which is exactly why you saw blank spaces.
+//
+// THE FIX:
+//   If the photoUri starts with "data:", we manually decode the base64
+//   into a Bitmap and draw it with Image().
+//   If it's a real https:// URL (new Supabase photos), AsyncImage works fine.
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun SpPetPhoto(photoUri: String, name: String, modifier: Modifier = Modifier) {
+    if (photoUri.startsWith("data:image")) {
+        // Decode base64 data URI into a Bitmap — cached with remember so it
+        // only decodes once per unique URI, not on every recomposition.
+        val bitmap = remember(photoUri) {
+            try {
+                val base64Part = photoUri.substringAfter("base64,")
+                val bytes      = Base64.decode(base64Part, Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+            } catch (e: Exception) {
+                null
+            }
+        }
+        if (bitmap != null) {
+            Image(
+                bitmap             = bitmap,
+                contentDescription = "$name photo",
+                modifier           = modifier,
+                contentScale       = ContentScale.Crop
+            )
+        }
+    } else {
+        // Real https:// URL (Supabase Storage) — AsyncImage handles this perfectly
+        AsyncImage(
+            model              = photoUri,
+            contentDescription = "$name photo",
+            modifier           = modifier,
+            contentScale       = ContentScale.Crop
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Root composable — now accepts SupabaseRepository instead of FirebaseRepository
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SharedProfileScreen(
-    uid                : String,
-    firebaseRepository : FirebaseRepository,
-    onBackClick        : () -> Unit
+    uid                  : String,
+    supabaseRepository   : SupabaseRepository,
+    onBackClick          : () -> Unit
 ) {
     var state by remember { mutableStateOf<SharedProfileState>(SharedProfileState.Loading) }
     val scope = rememberCoroutineScope()
@@ -184,7 +244,7 @@ fun SharedProfileScreen(
         scope.launch {
             state = SharedProfileState.Loading
             try {
-                val profile = firebaseRepository.fetchProfile(uid)
+                val profile = supabaseRepository.fetchProfile(uid)
                 state = if (profile != null) SharedProfileState.Success(profile)
                 else SharedProfileState.NotFound
             } catch (e: Exception) {
@@ -299,7 +359,7 @@ private fun SpErrorState(onRetry: () -> Unit) {
 private fun SpProfileContent(profile: PublicProfile) {
     val totalSpecies = PetType.entries.size
 
-    val xpInLevel      = profile.bondPoints % 100
+    val xpInLevel = profile.bondPoints % 100
     val xpProgress by animateFloatAsState(
         targetValue   = xpInLevel / 100f,
         animationSpec = tween(900, easing = FastOutSlowInEasing),
@@ -335,14 +395,8 @@ private fun SpProfileContent(profile: PublicProfile) {
         contentPadding      = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-
-        // ── Avatar + name ─────────────────────────────────────────────────────
         item { SpTrainerHeader(profile) }
-
-        // ── Level card ────────────────────────────────────────────────────────
         item { SpLevelCard(level = profile.level, xpInLevel = xpInLevel, xpProgress = xpProgress) }
-
-        // ── Stats row ─────────────────────────────────────────────────────────
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 SpStatCard(Modifier.weight(1f), "${profile.bondPoints}", "Total Bond Pts",
@@ -351,16 +405,10 @@ private fun SpProfileContent(profile: PublicProfile) {
                     Color(0xFF4A148C), Color(0xFFF3E5F5))
             }
         }
-
-        // ── Day Streak ────────────────────────────────────────────────────────
         if (profile.streak > 0) {
             item { SpStreakBanner(profile.streak) }
         }
-
-        // ── Event Badges ──────────────────────────────────────────────────────
         item { SpEventBadgesSection(eventBadges) }
-
-        // ── Species Collected ─────────────────────────────────────────────────
         item {
             SpSpeciesCard(
                 collected       = profile.speciesCount,
@@ -368,8 +416,6 @@ private fun SpProfileContent(profile: PublicProfile) {
                 speciesProgress = speciesProgress
             )
         }
-
-        // ── My Pets (flippable) ───────────────────────────────────────────────
         if (profile.pets.isNotEmpty()) {
             item {
                 Text("My Pets (${profile.petCount})", fontSize = 16.sp,
@@ -377,11 +423,7 @@ private fun SpProfileContent(profile: PublicProfile) {
             }
             item { SpPetsGrid(profile.pets) }
         }
-
-        // ── Achievements ──────────────────────────────────────────────────────
         item { SpAchievementsSection(groupedAchievs) }
-
-        // ── Footer ────────────────────────────────────────────────────────────
         item {
             Text("🐾 Get PetQuest to start your own journey!",
                 fontSize  = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -582,7 +624,7 @@ private fun SpSpeciesCard(collected: Int, total: Int, speciesProgress: Float) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Pets grid — flippable cards using PetSummary
+// Pets grid
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -601,7 +643,7 @@ private fun SpPetsGrid(pets: List<PetSummary>) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flippable pet card — tappable, shows photo on front and virtue on back
+// Flippable pet card
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -632,15 +674,12 @@ private fun SpFlippablePetCard(pet: PetSummary, modifier: Modifier = Modifier) {
             }
             .clickable { flipped = !flipped }
     ) {
-        // Back face (virtue gradient)
         Box(modifier = Modifier.graphicsLayer {
             rotationY = 180f
             alpha     = if (rotation > 90f) 1f else 0f
         }) {
             SpPetCardBack(pet = pet, rarityColor = rarityColor)
         }
-
-        // Front face (photo or emoji)
         Box(modifier = Modifier.graphicsLayer {
             alpha = if (rotation <= 90f) 1f else 0f
         }) {
@@ -650,7 +689,7 @@ private fun SpFlippablePetCard(pet: PetSummary, modifier: Modifier = Modifier) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Front face — shows real photo if available, emoji otherwise
+// Front face — FIXED: now uses SpPetPhoto which handles data: URIs and real URLs
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -659,7 +698,6 @@ private fun SpPetCardFront(pet: PetSummary, rarityColor: Color) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            // Rarity top stripe
             Box(modifier = Modifier.fillMaxWidth().height(5.dp).background(
                 Brush.horizontalGradient(listOf(rarityColor, rarityColor.copy(alpha = 0.45f)))))
 
@@ -667,19 +705,19 @@ private fun SpPetCardFront(pet: PetSummary, rarityColor: Color) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(6.dp)) {
 
-                // Photo or emoji
                 Box(modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(MaterialTheme.shapes.small),
                     contentAlignment = Alignment.TopEnd) {
+
                     if (!pet.photoUri.isNullOrBlank()) {
-                        // Real verified photo
-                        AsyncImage(
-                            model              = pet.photoUri,
-                            contentDescription = "${pet.name} photo",
-                            modifier           = Modifier.fillMaxSize(),
-                            contentScale       = ContentScale.Crop
+                        // FIXED: use SpPetPhoto instead of AsyncImage directly
+                        // This correctly handles data:image/jpeg;base64,... URIs
+                        // AND real https:// Supabase Storage URLs
+                        SpPetPhoto(
+                            photoUri = pet.photoUri,
+                            name     = pet.name,
+                            modifier = Modifier.fillMaxSize()
                         )
                     } else {
-                        // Emoji fallback
                         Box(modifier = Modifier.fillMaxSize()
                             .background(rarityColor.copy(alpha = 0.08f)),
                             contentAlignment = Alignment.Center) {
@@ -713,12 +751,12 @@ private fun SpPetCardFront(pet: PetSummary, rarityColor: Color) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Back face — virtue gradient + companion title, mirrors ProfileScreen's PetCardBack
+// Back face
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
-    val virtue = try { Virtue.valueOf(pet.virtue.uppercase()) } catch (_: Exception) { Virtue.WISDOM }
+    val virtue     = try { Virtue.valueOf(pet.virtue.uppercase()) } catch (_: Exception) { Virtue.WISDOM }
     val virtueInfo = VirtueConfig[virtue]
 
     val (gradStart, gradMid, gradEnd) = when (virtue) {
@@ -735,19 +773,16 @@ private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
         Box(modifier = Modifier.fillMaxSize()
             .background(Brush.verticalGradient(listOf(gradStart, gradMid, gradEnd)))) {
 
-            // Faint emblem background
             Image(painter = painterResource(virtueInfo.emblemRes), contentDescription = null,
                 modifier = Modifier.size(140.dp).align(Alignment.Center).graphicsLayer { alpha = 0.13f },
                 contentScale = ContentScale.Fit)
 
-            // Small emblem badge top-left
             Box(modifier = Modifier.align(Alignment.TopStart).padding(9.dp)
                 .background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(20.dp)).padding(7.dp)) {
                 Image(painter = painterResource(virtueInfo.emblemRes), contentDescription = virtue.name,
                     modifier = Modifier.size(16.dp))
             }
 
-            // Companion title
             val earnedTitle = when {
                 pet.bondLevel >= 50 -> "Eternal Companion"
                 pet.bondLevel >= 40 -> "Soul Bonded"

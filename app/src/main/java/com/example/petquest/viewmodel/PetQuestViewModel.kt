@@ -1,8 +1,6 @@
-// ============================================================
-// FILE: app/src/main/java/com/example/petquest/viewmodel/PetQuestViewModel.kt
-// CHANGES: Added FirebaseRepository + getCurrentUserUid() + syncProfileToFirebase()
-// Everything else is UNCHANGED from your original file.
-// ============================================================
+// app/src/main/java/com/example/petquest/viewmodel/PetQuestViewModel.kt
+// HOW TO APPLY: Open this file → Ctrl+A → Delete → Paste this entire file
+// CHANGES: Replaced FirebaseRepository with SupabaseRepository
 
 package com.example.petquest.viewmodel
 
@@ -25,29 +23,16 @@ data class LevelUpEvent(
 
 class PetQuestViewModel(
     private val petRepository: PetRepository,
-    private val prefsRepository: UserPreferencesRepository
+    private val prefsRepository: UserPreferencesRepository,
+    private val supabaseRepository: SupabaseRepository
 ) : ViewModel() {
 
-    // ─── Firebase (for share link photo sync) ─────────────────────────────────
-    private val firebaseRepository = FirebaseRepository()
+    fun getCurrentUserUid(): String? = supabaseRepository.getMyUid()
 
-    /** Returns the current user's Firebase UID, or null if not signed in. */
-    fun getCurrentUserUid(): String? = firebaseRepository.getMyUid()
-
-    /**
-     * Builds the PublicProfile from current local data and pushes it to Firestore.
-     * For each pet that has a local content:// photo URI, this will also upload
-     * the photo to Firebase Storage so the share-link web page and
-     * SharedProfileScreen can display the real photo instead of an emoji.
-     *
-     * Call this:
-     *   - On Profile screen ON_RESUME (already wired in ProfileScreen.kt)
-     *   - When the user taps the Share button (already wired in ProfileScreen.kt)
-     */
     fun syncProfileToFirebase() {
         viewModelScope.launch {
             try {
-                val uid        = firebaseRepository.ensureSignedIn()
+                val uid        = supabaseRepository.ensureSignedIn()
                 val pets       = allPets.value
                 val total      = totalBondPoints.value
                 val level      = userLevel.value
@@ -57,17 +42,16 @@ class PetQuestViewModel(
                     .filter { it.isUnlocked }
                     .map { it.title }
 
-                // Use the first pet's name as the trainer name (matches ProfileScreen logic)
                 val trainerName = pets.firstOrNull()?.name ?: "Trainer"
 
-                val petSummaries = pets.take(6).mapIndexed { index, pet ->
+                val petSummaries = pets.take(6).map { pet ->
                     PetSummary(
                         name       = pet.name,
                         species    = pet.type.name.uppercase(),
                         rarity     = pet.type.rarity.name.uppercase(),
                         bondLevel  = pet.bondLevel,
                         isVerified = pet.isVerified,
-                        photoUri   = pet.photoUri,   // FirebaseRepository will upload if content://
+                        photoUri   = pet.photoUri,
                         virtue     = pet.virtue.name.uppercase()
                     )
                 }
@@ -84,7 +68,7 @@ class PetQuestViewModel(
                     unlockedBadgeTitles = badgeTitles
                 )
 
-                firebaseRepository.pushProfile(profile)
+                supabaseRepository.pushProfile(profile)
                 Log.d("PetQuestVM", "syncProfileToFirebase: pushed profile for uid=$uid")
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "syncProfileToFirebase error", e)
@@ -604,10 +588,11 @@ class PetQuestViewModel(
 
 class PetQuestViewModelFactory(
     private val petRepository: PetRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val supabaseRepository: SupabaseRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        return PetQuestViewModel(petRepository, userPreferencesRepository) as T
+        return PetQuestViewModel(petRepository, userPreferencesRepository, supabaseRepository) as T
     }
 }

@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- docs/share.html — REPLACE the existing file in your GitHub repo's docs/ folder -->
+<!-- CHANGE: Replaced Firebase JS SDK with Supabase JS SDK                          -->
+<!-- Photos are now real https:// URLs from Supabase Storage — no base64 needed     -->
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -12,94 +15,56 @@
         }
         body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center}
 
-        /* Loading */
         #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100vh;width:100%}
         .spin{width:40px;height:40px;border:4px solid rgba(255,140,66,.3);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
         #load-status{font-size:14px;color:var(--txm)}
 
-        /* Error */
         #error{display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:100vh;width:100%;text-align:center;padding:24px}
         #error h2{font-size:20px;font-weight:700}
         #errmsg{font-size:14px;color:var(--txm)}
 
         #profile{display:none;width:100%;max-width:480px;padding-bottom:40px}
 
-        /* ── Orange gradient header bar — matches app ── */
-        .topbar{
-            background:linear-gradient(90deg,#FF8C42,#FFB77A);
-            padding:14px 16px;
-            display:flex;align-items:center;gap:10px;
-        }
+        .topbar{background:linear-gradient(90deg,#FF8C42,#FFB77A);padding:14px 16px;display:flex;align-items:center;gap:10px}
         .topbar-title{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.3px}
 
         .wrap{padding:10px 12px 0}
 
-        /* ── Trainer hero ── */
-        .trainer-hero{
-            display:flex;align-items:center;gap:16px;
-            padding:18px 16px;background:var(--card);
-        }
-        .trainer-avatar{
-            width:72px;height:72px;border-radius:50%;flex-shrink:0;
-            background:radial-gradient(circle,#FFB77A,#FF8C42);
-            display:flex;align-items:center;justify-content:center;
-            font-size:32px;
-        }
+        .trainer-hero{display:flex;align-items:center;gap:16px;padding:18px 16px;background:var(--card)}
+        .trainer-avatar{width:72px;height:72px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle,#FFB77A,#FF8C42);display:flex;align-items:center;justify-content:center;font-size:32px}
         .trainer-name{font-size:22px;font-weight:800}
         .trainer-sub{font-size:13px;color:var(--txm);margin-top:3px}
 
-        /* ── Level card — orange gradient matching app ── */
-        .lvcard{
-            background:linear-gradient(135deg,#FF8C42,#FFB77A);
-            border-radius:14px;padding:18px 16px;
-            display:flex;align-items:center;gap:16px;margin-bottom:10px;
-        }
-        .lvcard-icon{
-            width:54px;height:54px;background:rgba(255,255,255,.22);
-            border-radius:12px;display:flex;align-items:center;justify-content:center;
-            flex-shrink:0;font-size:30px;
-        }
+        .lvcard{background:linear-gradient(135deg,#FF8C42,#FFB77A);border-radius:14px;padding:18px 16px;display:flex;align-items:center;gap:16px;margin-bottom:10px}
+        .lvcard-icon{width:54px;height:54px;background:rgba(255,255,255,.22);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:30px}
         .lvcard-body{flex:1}
         .lvcard-title{font-size:28px;font-weight:900;color:#fff;letter-spacing:-.5px}
         .lvcard-sub{font-size:12px;color:rgba(255,255,255,.8);margin-top:2px;font-weight:600}
         .lvbar-wrap{margin-top:8px;background:rgba(255,255,255,.25);border-radius:99px;height:6px}
         .lvbar{height:6px;border-radius:99px;background:#fff;transition:width .5s}
 
-        /* ── Stat cards — pastel like the app ── */
         .agrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
         .abadge{border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;gap:2px}
-        .abadge.bond{background:#E8F5E9}
-        .abadge.pets{background:#F3E5F5}
+        .abadge.bond{background:#E8F5E9}.abadge.pets{background:#F3E5F5}
         .atxt{font-size:28px;font-weight:900}
-        .abadge.bond .atxt{color:#1B5E20}
-        .abadge.pets .atxt{color:#4A148C}
+        .abadge.bond .atxt{color:#1B5E20}.abadge.pets .atxt{color:#4A148C}
         .albl{font-size:12px;font-weight:600}
-        .abadge.bond .albl{color:#2E7D32}
-        .abadge.pets .albl{color:#6A1B9A}
+        .abadge.bond .albl{color:#2E7D32}.abadge.pets .albl{color:#6A1B9A}
 
-        /* ── Section card ── */
         .scard{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px}
         .scard-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
         .scard-title{font-size:14px;font-weight:700}
         .scard-sub{font-size:12px;color:var(--txm)}
         .scard-empty{font-size:12px;color:var(--txm);line-height:1.6}
 
-        /* ── Species bar — green card ── */
-        .sp-card{
-            background:linear-gradient(135deg,#2E7D32,#4CAF50);
-            border-radius:14px;padding:14px 16px;margin-bottom:10px;
-        }
+        .sp-card{background:linear-gradient(135deg,#2E7D32,#4CAF50);border-radius:14px;padding:14px 16px;margin-bottom:10px}
         .sp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
         .sp-title{font-size:14px;font-weight:700;color:#fff}
-        .sp-count{
-            font-size:12px;font-weight:700;color:#fff;
-            background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px;
-        }
+        .sp-count{font-size:12px;font-weight:700;color:#fff;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:99px}
         .spbar-wrap{background:rgba(255,255,255,.25);border-radius:99px;height:6px}
         .spbar{height:6px;border-radius:99px;background:#fff;transition:width .5s}
 
-        /* ── Pets section (no card wrapper — like app) ── */
         .pets-title{font-size:16px;font-weight:700;margin-bottom:10px;padding:0 2px}
         .pets-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
         .pet-card{background:var(--card);border-radius:14px;overflow:hidden}
@@ -112,39 +77,21 @@
         .pet-rarity-chip{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px}
         .pet-lv{font-size:12px;font-weight:800;color:var(--green)}
 
-        /* ── Achievements — cream card like the app ── */
         .ach-card{background:#FFF8E1;border-radius:14px;padding:14px;margin-bottom:10px}
         .ach-head{display:flex;align-items:center;gap:6px;margin-bottom:10px}
         .ach-head-title{font-size:14px;font-weight:800;color:#5D4037;flex:1}
-        .ach-count-badge{
-            font-size:11px;font-weight:800;padding:2px 10px;border-radius:99px;
-            background:rgba(249,168,37,.22);color:#F9A825;
-        }
+        .ach-count-badge{font-size:11px;font-weight:800;padding:2px 10px;border-radius:99px;background:rgba(249,168,37,.22);color:#F9A825}
         .ach-empty{font-size:12px;color:#888;line-height:1.6}
-        .ach-cat-label{
-            display:flex;align-items:center;gap:6px;
-            font-size:11px;font-weight:700;margin-bottom:6px;margin-top:10px;
-        }
+        .ach-cat-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;margin-bottom:6px;margin-top:10px}
         .ach-cat-label:first-child{margin-top:0}
         .ach-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
-        .ach-chip{
-            display:flex;align-items:center;gap:5px;
-            font-size:10px;font-weight:700;
-            padding:6px 10px;border-radius:10px;
-        }
+        .ach-chip{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;padding:6px 10px;border-radius:10px}
 
-        /* Divider */
         .divider{height:1px;background:rgba(0,0,0,.08);margin:10px 0}
 
-        /* ── Footer CTA ── */
         .cta-footer{background:var(--card);border-radius:14px;padding:18px;text-align:center}
         .cta-msg{font-size:14px;font-weight:700;margin-bottom:14px;color:#aaa}
-        .openbtn{
-            display:block;width:100%;background:#4CAF50;color:#fff;
-            font-size:16px;font-weight:800;text-align:center;
-            padding:16px;border-radius:14px;text-decoration:none;
-            letter-spacing:.2px;
-        }
+        .openbtn{display:block;width:100%;background:#4CAF50;color:#fff;font-size:16px;font-weight:800;text-align:center;padding:16px;border-radius:14px;text-decoration:none;letter-spacing:.2px}
         .shint{font-size:12px;color:var(--txm);margin-top:10px}
     </style>
 </head>
@@ -155,257 +102,216 @@
     <p>Loading trainer profile...</p>
     <p id="load-status"></p>
 </div>
-
 <div id="error">
     <h2>Profile not found</h2>
     <div id="errmsg"></div>
 </div>
-
 <div id="profile"></div>
 
-<script type="module">
-    import { initializeApp }
-        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, getDoc }
-        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getStorage, ref, getDownloadURL }
-        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+<script>
+    // ── FILL THESE IN — same values as in SupabaseRepository.kt ──────────────
+    const SUPABASE_URL      = 'https://YOUR_PROJECT.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+    // ─────────────────────────────────────────────────────────────────────────
 
-    const firebaseConfig = {
-        apiKey:            "AIzaSyDIcH9SSfX8vKBoefaohJ9MAk5nO4NxFZo",
-        authDomain:        "pet-quest-5f2eb.firebaseapp.com",
-        projectId:         "pet-quest-5f2eb",
-        storageBucket:     "pet-quest-5f2eb.firebasestorage.app",
-        messagingSenderId: "79374020591",
-        appId:             "1:79374020591:android:1aadf9cb300884392d101a"
-    };
-
-    const app     = initializeApp(firebaseConfig);
-    const db      = getFirestore(app);
-    const storage = getStorage(app);
-
-    /* uid from URL — captured in outer scope so render() always has it */
-    const params = new URLSearchParams(window.location.search);
-    const uid    = params.get("uid");
-
-    const loadEl    = document.getElementById("loading");
-    const statusEl  = document.getElementById("load-status");
-    const errorEl   = document.getElementById("error");
-    const errMsg    = document.getElementById("errmsg");
-    const profileEl = document.getElementById("profile");
+    const loadEl   = document.getElementById('loading');
+    const statusEl = document.getElementById('load-status');
+    const errorEl  = document.getElementById('error');
+    const errMsg   = document.getElementById('errmsg');
+    const profileEl= document.getElementById('profile');
 
     function showError(msg) {
-        loadEl.style.display  = "none";
-        errorEl.style.display = "flex";
+        loadEl.style.display  = 'none';
+        errorEl.style.display = 'flex';
         errMsg.textContent    = msg;
     }
 
-    if (!uid) { showError("uid is not defined"); throw new Error("No uid in URL"); }
+    const params = new URLSearchParams(window.location.search);
+    const uid    = params.get('uid');
+    if (!uid) { showError('No trainer ID in link.'); throw new Error('No uid'); }
 
-    /* Resolve gs:// or relative Storage paths to HTTPS download URL */
-    async function resolveUrl(url) {
-        if (!url) return null;
-        if (url.startsWith("https://") || url.startsWith("data:")) return url;
-        try { return await getDownloadURL(ref(storage, url)); } catch { return null; }
-    }
-
-    /* Species emoji fallback — mirrors Kotlin speciesEmoji() */
-    function speciesEmoji(s) {
-        switch((s||"").toUpperCase()) {
-            case "DOG":      return "🐶";
-            case "CAT":      return "🐱";
-            case "RABBIT":   return "🐰";
-            case "HAMSTER":  return "🐹";
-            case "BIRD":     return "🐦";
-            case "FISH":     return "🐟";
-            case "TURTLE":   return "🐢";
-            case "SNAKE":    return "🐍";
-            case "LIZARD":   return "🦎";
-            case "PARROT":   return "🦜";
-            case "HEDGEHOG": return "🦔";
-            case "FOX":      return "🦊";
-            case "WOLF":     return "🐺";
-            case "BEAR":     return "🐻";
-            case "PANDA":    return "🐼";
-            case "LION":     return "🦁";
-            case "TIGER":    return "🐯";
-            case "MONKEY":   return "🐒";
-            case "HORSE":    return "🐴";
-            case "COW":      return "🐄";
-            default:         return "🐾";
-        }
-    }
-
-    /*
-     * Achievement categories — exact mirror of ACHIEV_CATEGORIES in SharedProfileScreen.kt
-     * Each category has a label, icon emoji, hex color, and the titles it contains.
-     */
+    // ── Achievement categories (mirrors SharedProfileScreen.kt) ──────────────
     const ACHIEV_CATEGORIES = [
-        { label:"First Steps",    icon:"🐾", color:"#2E7D32", bg:"rgba(46,125,50,.10)",
-          titles:["First Pet","First Verification","Pet Lover","Own 5 Pets","Own 10 Pets","Verify 3 Pets","Verify 5 Pets","Verify 10 Pets"] },
-        { label:"Streak",         icon:"🔥", color:"#E65100", bg:"rgba(230,81,0,.10)",
-          titles:["3-Day Streak","7-Day Streak","14-Day Streak","30-Day Streak","60-Day Streak","100-Day Streak"] },
-        { label:"Tasks",          icon:"✅", color:"#1565C0", bg:"rgba(21,101,192,.10)",
-          titles:["Complete 10 Tasks","Complete 25 Tasks","Complete 50 Tasks","Complete 100 Tasks","Complete 250 Tasks","Complete 500 Tasks"] },
-        { label:"Bond Points",    icon:"⭐", color:"#F9A825", bg:"rgba(249,168,37,.10)",
-          titles:["Earn 100 Bond Points","Earn 250 Bond Points","Earn 500 Bond Points","Earn 1000 Bond Points","Earn 2500 Bond Points","Earn 5000 Bond Points"] },
-        { label:"Pet Bond Level", icon:"🏆", color:"#6A1B9A", bg:"rgba(106,27,154,.10)",
-          titles:["Bond Master","Bond Veteran","Level 10 Companion","Virtue Master","Dedicated Caregiver","Elite Trainer"] },
-        { label:"Trainer Level",  icon:"🌟", color:"#BF360C", bg:"rgba(191,54,12,.10)",
-          titles:["Reach Level 10","Reach Level 20","Reach Level 30","Reach Level 50"] },
-        { label:"Species & Rarity",icon:"🧭",color:"#00695C", bg:"rgba(0,105,92,.10)",
-          titles:["Species Collector","Animal Explorer","Master Explorer","Rarity Hunter","Epic Tamer"] },
+        { label:'First Steps',    icon:'🐾', color:'#2E7D32', bg:'rgba(46,125,50,.10)',
+          titles:['First Pet','First Verification','Pet Lover','Own 5 Pets','Own 10 Pets','Verify 3 Pets','Verify 5 Pets','Verify 10 Pets'] },
+        { label:'Streak',         icon:'🔥', color:'#E65100', bg:'rgba(230,81,0,.10)',
+          titles:['3-Day Streak','7-Day Streak','14-Day Streak','30-Day Streak','60-Day Streak','100-Day Streak'] },
+        { label:'Tasks',          icon:'✅', color:'#1565C0', bg:'rgba(21,101,192,.10)',
+          titles:['Complete 10 Tasks','Complete 25 Tasks','Complete 50 Tasks','Complete 100 Tasks','Complete 250 Tasks','Complete 500 Tasks'] },
+        { label:'Bond Points',    icon:'⭐', color:'#F9A825', bg:'rgba(249,168,37,.10)',
+          titles:['Earn 100 Bond Points','Earn 250 Bond Points','Earn 500 Bond Points','Earn 1000 Bond Points','Earn 2500 Bond Points','Earn 5000 Bond Points'] },
+        { label:'Pet Bond Level', icon:'🏆', color:'#6A1B9A', bg:'rgba(106,27,154,.10)',
+          titles:['Bond Master','Bond Veteran','Level 10 Companion','Virtue Master','Dedicated Caregiver','Elite Trainer'] },
+        { label:'Trainer Level',  icon:'🌟', color:'#BF360C', bg:'rgba(191,54,12,.10)',
+          titles:['Reach Level 10','Reach Level 20','Reach Level 30','Reach Level 50'] },
+        { label:'Species & Rarity',icon:'🧭',color:'#00695C', bg:'rgba(0,105,92,.10)',
+          titles:['Species Collector','Animal Explorer','Master Explorer','Rarity Hunter','Epic Tamer'] },
     ];
 
-    /* Known event badge titles — exact mirror of ALL_SEASONAL_EVENTS.badgeTitle in EventsScreen.kt */
     const KNOWN_EVENT_BADGE_TITLES = new Set([
-        "New Year Celebrant","Beloved Keeper","Lucky Lantern Holder",
-        "Easter Hatchling","Sun Keeper","Pumpkin Master","Festive Keeper"
+        'New Year Celebrant','Beloved Keeper','Lucky Lantern Holder',
+        'Easter Hatchling','Sun Keeper','Pumpkin Master','Festive Keeper'
     ]);
-
-    /* Emoji per event badge — mirrors SeasonalEvent.badgeEmoji in EventsScreen.kt */
     const EVENT_BADGE_EMOJI = {
-        "New Year Celebrant":   "🎊",
-        "Beloved Keeper":       "💝",
-        "Lucky Lantern Holder": "🏮",
-        "Easter Hatchling":     "🐣",
-        "Sun Keeper":           "☀️",
-        "Pumpkin Master":       "🎃",
-        "Festive Keeper":       "🎄"
+        'New Year Celebrant':'🎊','Beloved Keeper':'💝','Lucky Lantern Holder':'🏮',
+        'Easter Hatchling':'🐣','Sun Keeper':'☀️','Pumpkin Master':'🎃','Festive Keeper':'🎄'
     };
 
-    /* Rarity → color */
     function rarityColor(r) {
-        switch((r||"").toUpperCase()) {
-            case "COMMON":    return "#9E9E9E";
-            case "UNCOMMON":  return "#4CAF50";
-            case "RARE":      return "#2196F3";
-            case "EPIC":      return "#9C27B0";
-            case "LEGENDARY": return "#FF8C42";
-            default:          return "#9E9E9E";
+        switch((r||'').toUpperCase()) {
+            case 'COMMON':    return '#9E9E9E';
+            case 'UNCOMMON':  return '#4CAF50';
+            case 'RARE':      return '#2196F3';
+            case 'EPIC':      return '#9C27B0';
+            case 'LEGENDARY': return '#FF8C42';
+            default:          return '#9E9E9E';
         }
     }
 
-    statusEl.textContent = "Fetching profile…";
-
-    try {
-        const snap = await getDoc(doc(db, "profiles", uid));
-        if (!snap.exists()) {
-            showError("This trainer hasn't set up their profile yet.");
-        } else {
-            const data = snap.data();
-            const pets = Array.isArray(data.pets) ? data.pets : [];
-
-            statusEl.textContent = "Loading pet photos…";
-
-            /* Resolve all pet photos — field is photoUri (from PetSummary) */
-            const resolvedPets = await Promise.all(
-                pets.map(async pet => ({
-                    ...pet,
-                    resolvedPhoto: await resolveUrl(pet.photoUri || null)
-                }))
-            );
-
-            render({ ...data, pets: resolvedPets }, uid);
+    function speciesEmoji(s) {
+        switch((s||'').toUpperCase()) {
+            case 'DOG': return '🐶'; case 'CAT': return '🐱'; case 'RABBIT': return '🐰';
+            case 'HAMSTER': return '🐹'; case 'BIRD': return '🐦'; case 'FISH': return '🐟';
+            case 'TURTLE': return '🐢'; case 'SNAKE': return '🐍'; case 'LIZARD': return '🦎';
+            case 'PARROT': return '🦜'; case 'HEDGEHOG': return '🦔'; case 'FOX': return '🦊';
+            case 'WOLF': return '🐺'; case 'BEAR': return '🐻'; case 'PANDA': return '🐼';
+            case 'LION': return '🦁'; case 'TIGER': return '🐯'; case 'MONKEY': return '🐒';
+            case 'HORSE': return '🐴'; case 'COW': return '🐄'; default: return '🐾';
         }
-    } catch (e) {
-        showError(e.message || "Failed to load profile.");
     }
+
+    // ── Fetch profile from Supabase REST API ─────────────────────────────────
+    // Supabase REST is just regular HTTP — no SDK needed in the browser.
+    // GET /rest/v1/profiles?uid=eq.{uid}&select=*
+    // with the anon key in the header — that's all it takes.
+
+    async function fetchProfile(uid) {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/profiles?uid=eq.${encodeURIComponent(uid)}&select=*`,
+            {
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        return rows && rows.length > 0 ? rows[0] : null;
+    }
+
+    // ── Main ─────────────────────────────────────────────────────────────────
+
+    (async () => {
+        try {
+            statusEl.textContent = 'Fetching profile…';
+            const data = await fetchProfile(uid);
+
+            if (!data) {
+                showError("This trainer hasn't set up their profile yet.");
+                return;
+            }
+
+            render(data, uid);
+        } catch (e) {
+            showError(e.message || 'Failed to load profile.');
+        }
+    })();
 
     function render(data, profileUid) {
-        loadEl.style.display    = "none";
-        profileEl.style.display = "block";
+        loadEl.style.display    = 'none';
+        profileEl.style.display = 'block';
 
-        /* ── Field names from FirebaseRepository / PublicProfile ── */
-        const name         = data.trainerName   || "Trainer";
+        // Field names match the Supabase table columns (snake_case)
+        const name         = data.trainer_name   || 'Trainer';
         const level        = data.level          ?? 1;
-        const bondPoints   = data.bondPoints     ?? 0;
-        const petCount     = data.petCount       ?? data.pets?.length ?? 0;
-        const speciesCount = data.speciesCount   ?? 0;
+        const bondPoints   = data.bond_points    ?? 0;
+        const petCount     = data.pet_count      ?? 0;
+        const speciesCount = data.species_count  ?? 0;
         const totalSpecies = 29;
         const streak       = data.streak         ?? 0;
-        const pets         = Array.isArray(data.pets) ? data.pets : [];
 
-        /* XP = bondPoints % 100 (mirrors Kotlin: val xpInLevel = profile.bondPoints % 100) */
+        // pets is a JSONB array — Supabase returns it as a JS array directly
+        // Each pet object has camelCase keys (photoUri, bondLevel, isVerified, etc.)
+        // because that's how we stored them from the Android app via Gson
+        const pets = Array.isArray(data.pets) ? data.pets : [];
+
         const kpInLevel = bondPoints % 100;
         const lvPct     = Math.round((kpInLevel / 100) * 100);
         const spPct     = Math.min(100, Math.round((speciesCount / totalSpecies) * 100));
 
-        /* ── unlockedBadgeTitles drives BOTH event badges and achievements ── */
-        const allBadgeTitles = Array.isArray(data.unlockedBadgeTitles) ? data.unlockedBadgeTitles : [];
+        const allBadgeTitles = Array.isArray(data.unlocked_badge_titles) ? data.unlocked_badge_titles : [];
         const badgeSet       = new Set(allBadgeTitles);
         const eventBadges    = allBadgeTitles.filter(t => KNOWN_EVENT_BADGE_TITLES.has(t));
-        const regularBadges  = allBadgeTitles.filter(t => !KNOWN_EVENT_BADGE_TITLES.has(t));
 
-        /* Group achievements by category — same logic as SharedProfileScreen */
         const groupedAchievs = ACHIEV_CATEGORIES
             .map(cat => ({ cat, earned: cat.titles.filter(t => badgeSet.has(t)) }))
             .filter(g => g.earned.length > 0);
-
         const totalUnlocked = groupedAchievs.reduce((n, g) => n + g.earned.length, 0);
 
-        const deepLink = `petquest://share?uid=${encodeURIComponent(profileUid)}`;
         document.title = `${name} – PetQuest`;
 
-        /* ── Pet cards HTML ── */
-        const petsHtml = pets.length === 0 ? "" : `
+        // ── Pet cards ────────────────────────────────────────────────────────
+        // photoUri is now a real https:// Supabase Storage URL — just use it in <img src>
+        // For backwards compatibility, data:image/jpeg;base64,... also works in <img src>
+        const petsHtml = pets.length === 0 ? '' : `
             <div class="pets-title">My Pets (${petCount})</div>
             <div class="pets-grid">
                 ${pets.map(pet => {
-                    const rc  = rarityColor(pet.rarity);
+                    const rc    = rarityColor(pet.rarity);
                     const emoji = speciesEmoji(pet.species);
+                    const photo = pet.photoUri;
+                    const rarity = pet.rarity
+                        ? pet.rarity.charAt(0).toUpperCase() + pet.rarity.slice(1).toLowerCase()
+                        : '';
                     return `
                     <div class="pet-card">
-                        ${pet.resolvedPhoto
-                            ? `<img class="pet-photo" src="${pet.resolvedPhoto}" alt="${pet.name||'Pet'}"
-                                   onerror="this.outerHTML='<div class=\\'pet-photo-placeholder\\'>${emoji}</div>'" />`
+                        ${photo
+                            ? `<img class="pet-photo" src="${photo}" alt="${pet.name || 'Pet'}"
+                                   onerror="this.outerHTML='<div class=\\'pet-photo-placeholder\\'>${emoji}</div>'">`
                             : `<div class="pet-photo-placeholder">${emoji}</div>`
                         }
                         <div class="pet-rarity-bar" style="background:${rc}"></div>
                         <div class="pet-info">
-                            <div class="pet-name">${pet.name || "Unknown"}</div>
+                            <div class="pet-name">${pet.name || 'Unknown'}</div>
                             <div class="pet-row">
-                                <span class="pet-rarity-chip"
-                                      style="background:${rc}22;color:${rc}">
-                                    ${(pet.rarity||"").charAt(0)+(pet.rarity||"").slice(1).toLowerCase()}
-                                </span>
+                                <span class="pet-rarity-chip" style="background:${rc}22;color:${rc}">${rarity}</span>
                                 <span class="pet-lv">Lv.${pet.bondLevel ?? 1}</span>
                             </div>
                         </div>
                     </div>`;
-                }).join("")}
+                }).join('')}
             </div>
         `;
 
-        /* ── Achievements HTML ── */
+        // ── Achievements ─────────────────────────────────────────────────────
         const achHtml = `
             <div class="ach-card">
                 <div class="ach-head">
                     <span>🏆</span>
                     <span class="ach-head-title">Achievements</span>
-                    ${totalUnlocked > 0 ? `<span class="ach-count-badge">${totalUnlocked} unlocked</span>` : ""}
+                    ${totalUnlocked > 0 ? `<span class="ach-count-badge">${totalUnlocked} unlocked</span>` : ''}
                 </div>
                 ${groupedAchievs.length === 0
                     ? `<p class="ach-empty">No achievements unlocked yet.<br>Complete tasks and care for your pets to earn badges!</p>`
                     : groupedAchievs.map((g, i) => `
-                        ${i > 0 ? '<div class="divider"></div>' : ""}
-                        <div class="ach-cat-label" style="color:${g.cat.color}">
-                            ${g.cat.icon} ${g.cat.label}
-                        </div>
+                        ${i > 0 ? '<div class="divider"></div>' : ''}
+                        <div class="ach-cat-label" style="color:${g.cat.color}">${g.cat.icon} ${g.cat.label}</div>
                         <div class="ach-chips">
                             ${g.earned.map(t => `
                                 <div class="ach-chip" style="background:${g.cat.bg};color:${g.cat.color}">
                                     ${g.cat.icon} ${t}
-                                </div>`).join("")}
-                        </div>`).join("")
+                                </div>`).join('')}
+                        </div>`).join('')
                 }
             </div>
         `;
 
+        // ── Full page render ─────────────────────────────────────────────────
+        const deepLink = `petquest://share?uid=${encodeURIComponent(profileUid)}`;
+
         profileEl.innerHTML = `
-            <div class="topbar">
-                <span class="topbar-title">Trainer Profile</span>
-            </div>
+            <div class="topbar"><span class="topbar-title">Trainer Profile</span></div>
 
             <div class="trainer-hero">
                 <div class="trainer-avatar">🐾</div>
@@ -427,23 +333,15 @@
                 </div>
 
                 <div class="agrid">
-                    <div class="abadge bond">
-                        <div class="atxt">${bondPoints}</div>
-                        <div class="albl">Total Bond Pts</div>
-                    </div>
-                    <div class="abadge pets">
-                        <div class="atxt">${petCount}</div>
-                        <div class="albl">Active Pets</div>
-                    </div>
+                    <div class="abadge bond"><div class="atxt">${bondPoints}</div><div class="albl">Total Bond Pts</div></div>
+                    <div class="abadge pets"><div class="atxt">${petCount}</div><div class="albl">Active Pets</div></div>
                 </div>
 
                 <div class="scard">
-                    <div class="scard-head">
-                        <span class="scard-title">🏆 Event Badges</span>
-                    </div>
+                    <div class="scard-head"><span class="scard-title">🏆 Event Badges</span></div>
                     ${eventBadges.length > 0
-                        ? eventBadges.map(b => `<span style="display:inline-flex;align-items:center;gap:6px;background:#2d2d2d;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;margin:3px">${EVENT_BADGE_EMOJI[b]||"🏅"} ${b}</span>`).join("")
-                        : `<p class="scard-empty">No event badges earned yet.<br>Complete seasonal event challenges to earn exclusive badges that display here.</p>`
+                        ? eventBadges.map(b => `<span style="display:inline-flex;align-items:center;gap:6px;background:#2d2d2d;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;margin:3px">${EVENT_BADGE_EMOJI[b]||'🏅'} ${b}</span>`).join('')
+                        : `<p class="scard-empty">No event badges earned yet.<br>Complete seasonal event challenges to earn exclusive badges.</p>`
                     }
                 </div>
 
@@ -452,13 +350,10 @@
                         <span class="sp-title">🌿 Species Collected</span>
                         <span class="sp-count">${speciesCount} / ${totalSpecies}</span>
                     </div>
-                    <div class="spbar-wrap">
-                        <div class="spbar" style="width:${spPct}%"></div>
-                    </div>
+                    <div class="spbar-wrap"><div class="spbar" style="width:${spPct}%"></div></div>
                 </div>
 
                 ${petsHtml}
-
                 ${achHtml}
 
                 <div class="cta-footer">
