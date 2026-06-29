@@ -1,3 +1,13 @@
+// app/src/main/java/com/example/petquest/MainActivity.kt
+// HOW TO APPLY: Open this file → Ctrl+A → Delete → Paste this entire file
+// CHANGES from original:
+//   1. PetQuestViewModelFactory now receives app.supabaseRepository (was missing)
+//   2. SharedProfileScreen call: firebaseRepository → supabaseRepository
+//   3. ProfileScreen call: firebaseRepository → supabaseRepository
+//
+// ⚠️ IMPORTANT: You MUST also delete FirebaseRepository.kt before building!
+//    Right-click FirebaseRepository.kt → Delete → OK
+
 package com.example.petquest
 
 import android.content.Context
@@ -47,7 +57,8 @@ class MainActivity : ComponentActivity() {
                     val vm: PetQuestViewModel = viewModel(
                         factory = PetQuestViewModelFactory(
                             app.petRepository,
-                            app.userPreferencesRepository
+                            app.userPreferencesRepository,
+                            app.supabaseRepository          // FIX 1: was missing
                         )
                     )
 
@@ -139,11 +150,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("shared_profile/{uid}") { back ->
-                            val uid = back.arguments?.getString("uid") ?: ""
+                            val uid  = back.arguments?.getString("uid") ?: ""
                             val app2 = LocalContext.current.applicationContext as PetQuestApplication
                             SharedProfileScreen(
                                 uid                = uid,
-                                firebaseRepository = app2.firebaseRepository,
+                                supabaseRepository = app2.supabaseRepository,  // FIX 2
                                 onBackClick        = { nav.navigateUp() }
                             )
                         }
@@ -263,7 +274,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 4 -> EventsScreen(viewModel = viewModel)
                 5 -> ProfileScreen(
                     viewModel              = viewModel,
-                    firebaseRepository     = (LocalContext.current.applicationContext as PetQuestApplication).firebaseRepository,
+                    supabaseRepository     = (LocalContext.current.applicationContext as PetQuestApplication).supabaseRepository,  // FIX 3
                     onAddPetClick          = { outerNav.navigate("add_more_pet") },
                     onAdminClick           = { outerNav.navigate("admin") },
                     onNavigateToCollection = { tab = 2 }
