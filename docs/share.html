@@ -116,13 +116,10 @@
         .pet-rarity-chip{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
         .pet-lv{font-size:13px;font-weight:800}
 
-        /* Pet card back (virtue) */
-        .pet-back{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;position:relative;overflow:hidden}
-        .pet-back::before{content:'';position:absolute;width:160px;height:160px;border-radius:50%;border:1px solid rgba(255,255,255,.15);top:50%;left:50%;transform:translate(-50%,-50%)}
-        .virtue-icon-small{position:absolute;top:10px;left:12px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center}
-        .virtue-icon-small img{width:16px;height:16px;object-fit:contain}
-        .virtue-img{width:80px;height:80px;object-fit:contain;margin-bottom:16px;filter:drop-shadow(0 0 12px rgba(255,255,255,.2))}
-        .virtue-status{color:rgba(255,255,255,.7);font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+        /* Pet card back (virtue) — clean, no circle, no level */
+        .pet-back{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;overflow:hidden}
+        .virtue-img{width:88px;height:88px;object-fit:contain;margin-bottom:18px;filter:drop-shadow(0 0 14px rgba(255,255,255,.2))}
+        .virtue-status{color:rgba(255,255,255,.7);font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
         .virtue-title{color:#fff;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
 
         /* Achievements */
@@ -329,9 +326,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- BACK (virtue) -->
+                            <!-- BACK (virtue) — clean: just icon + status + title -->
                             <div class="flip-face flip-back pet-back" style="background:${vc.gradient}">
-                                <div class="virtue-icon-small"><img src="${vc.img}" alt="virtue"></div>
                                 <img class="virtue-img" src="${vc.img}" alt="virtue">
                                 <div class="virtue-status">${bond.status}</div>
                                 <div class="virtue-title">${bond.title}</div>
