@@ -88,6 +88,7 @@ fun ProfileScreen(
     val haptic  = LocalHapticFeedback.current
 
     val pets                 by viewModel.allPets.collectAsState()
+    val verifiedPets          = pets.filter { it.isVerified }
     val userLevel            by viewModel.userLevel.collectAsState()
     val totalBondPoints      by viewModel.totalBondPoints.collectAsState()
     val collectedSpecies     by viewModel.collectedSpecies.collectAsState()
@@ -127,9 +128,9 @@ fun ProfileScreen(
         level               = userLevel,
         streak              = userStreak,
         bondPoints          = totalBondPoints,
-        petCount            = pets.size,
+        petCount            = verifiedPets.size,
         speciesCount        = speciesCount,
-        pets                = pets.take(6).map { pet ->
+        pets                = verifiedPets.take(6).map { pet ->
             PetSummary(
                 name       = pet.name,
                 species    = pet.type.name,
@@ -525,7 +526,7 @@ fun ProfileScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                "${pets.size}",
+                                "${verifiedPets.size}",
                                 fontSize   = 24.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color      = Color(0xFF4A148C)
@@ -619,14 +620,14 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    Text("My Pets (${pets.size})", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("My Pets (${verifiedPets.size})", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     FilledTonalIconButton(onClick = onAddPetClick, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.Add, contentDescription = "Add Pet", modifier = Modifier.size(18.dp))
                     }
                 }
             }
 
-            if (pets.isEmpty()) {
+            if (verifiedPets.isEmpty()) {
                 item {
                     EmptyStateCard(
                         imageRes    = R.drawable.empty_collection,
@@ -639,7 +640,7 @@ fun ProfileScreen(
             } else {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        pets.chunked(2).forEach { rowPets ->
+                        verifiedPets.chunked(2).forEach { rowPets ->
                             Row(
                                 modifier              = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -1099,18 +1100,6 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
                                 contentDescription = "Verified",
                                 tint               = MaterialTheme.colorScheme.primary,
                                 modifier           = Modifier.size(14.dp)
-                            )
-                        }
-                        // Tier badge icon — Material Icon, no emoji
-                        if (tier >= 1) {
-                            val tierVecIcon = if (tier >= 5) Icons.Default.EmojiEvents
-                            else if (tier >= 4) Icons.Default.AutoAwesome
-                            else Icons.Default.Star
-                            Icon(
-                                imageVector        = tierVecIcon,
-                                contentDescription = null,
-                                tint               = lvColor.copy(alpha = if (tier >= 3) pulseAlpha else 1f),
-                                modifier           = Modifier.size(12.dp)
                             )
                         }
                     }

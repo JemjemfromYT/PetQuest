@@ -633,7 +633,7 @@ private fun SpSpeciesCard(collected: Int, total: Int, speciesProgress: Float) {
 @Composable
 private fun SpPetsGrid(pets: List<PetSummary>) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        pets.chunked(2).forEach { row ->
+        pets.filter { it.isVerified }.chunked(2).forEach { row ->
             Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 row.forEach { pet ->
@@ -803,17 +803,6 @@ private fun SpPetCardFront(pet: PetSummary, rarityColor: Color) {
                                 contentDescription = "Verified",
                                 tint               = MaterialTheme.colorScheme.primary,
                                 modifier           = Modifier.size(14.dp)
-                            )
-                        }
-                        if (tier >= 1) {
-                            val tierVecIcon = if (tier >= 5) Icons.Default.EmojiEvents
-                            else if (tier >= 4) Icons.Default.AutoAwesome
-                            else Icons.Default.Star
-                            Icon(
-                                imageVector        = tierVecIcon,
-                                contentDescription = null,
-                                tint               = lvColor.copy(alpha = if (tier >= 3) pulseAlpha else 1f),
-                                modifier           = Modifier.size(12.dp)
                             )
                         }
                     }
