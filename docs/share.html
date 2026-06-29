@@ -327,7 +327,9 @@
                         : '';
                     const bond    = bondInfo(pet.bondLevel);
                     const vKey    = (pet.virtue||'').toLowerCase();
-                    const vc      = VIRTUE_CFG[vKey] || VIRTUE_CFG[VIRTUE_FALLBACK[idx % VIRTUE_FALLBACK.length]];
+                    const vc           = VIRTUE_CFG[vKey] || VIRTUE_CFG[VIRTUE_FALLBACK[idx % VIRTUE_FALLBACK.length]];
+                    const resolvedVirtue = vKey || VIRTUE_FALLBACK[idx % VIRTUE_FALLBACK.length];
+                    const virtueLabel    = resolvedVirtue.charAt(0).toUpperCase() + resolvedVirtue.slice(1);
                     const lvColor = pet.rarity?.toUpperCase() === 'RARE' ? '#60a5fa'
                                   : pet.rarity?.toUpperCase() === 'EPIC' ? '#c084fc'
                                   : pet.rarity?.toUpperCase() === 'LEGENDARY' ? '#fb923c'
@@ -355,7 +357,7 @@
                             <div class="flip-face flip-back pet-back" style="background:${vc.gradient}">
                                 <img class="virtue-img" src="${vc.img}" alt="virtue">
                                 <div class="virtue-status">${bond.status}</div>
-                                <div class="virtue-title">${bond.title}</div>
+                                <div class="virtue-title">${virtueLabel}</div>
                             </div>
                         </div>
                     </div>`;
