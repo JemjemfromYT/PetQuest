@@ -1041,24 +1041,7 @@ private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
                 )
             }
 
-            // Level tier badge — top-right (tier 1+)
-            if (tier >= 1) {
-                val tierLabel = when (tier) {
-                    1, 2 -> "LV.${pet.bondLevel}"
-                    3    -> "★ LV.${pet.bondLevel}"
-                    4    -> "★ LV.${pet.bondLevel}"
-                    else -> "★ LV.${pet.bondLevel}"
-                }
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(9.dp)
-                        .background(tierBgColor.copy(alpha = 0.85f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(tierLabel, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
-                }
-            }
+            // Level shown on front card — back stays clean, aura rings show progress
 
             // Title — bottom gradient overlay
             Column(

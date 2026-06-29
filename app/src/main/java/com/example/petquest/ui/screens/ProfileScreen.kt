@@ -1336,37 +1336,7 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 )
             }
 
-            // ── Level tier badge — top-right (tier 1+) ────────────────────────
-            if (tier >= 1) {
-                val tierLabel = when (tier) {
-                    1 -> "LV.${pet.bondLevel}"
-                    2 -> "LV.${pet.bondLevel}"
-                    3 -> "★ LV.${pet.bondLevel}"
-                    4 -> "🌟 LV.${pet.bondLevel}"
-                    else -> "👑 LV.${pet.bondLevel}"
-                }
-                val tierBg = when (tier) {
-                    1 -> Color(0xFFB0BEC5)
-                    2 -> Color(0xFF1565C0)
-                    3 -> Color(0xFFFFB300)
-                    4 -> Color(0xFF7B1FA2)
-                    else -> Color(0xFFBF360C)
-                }
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(9.dp)
-                        .background(tierBg.copy(alpha = 0.85f), shape = RoundedCornerShape(12.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        tierLabel,
-                        fontSize   = 9.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = Color.White
-                    )
-                }
-            }
+            // Level shown on front card — back stays clean, aura rings show progress
 
             // ── Title text — bottom center ─────────────────────────────────────
             val earnedTitle: String = when {
