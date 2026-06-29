@@ -1,3 +1,20 @@
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  ⚠️  SYNC CONTRACT — READ BEFORE EDITING  ⚠️                                ║
+// ║                                                                              ║
+// ║  This file (in-app public Trainer Profile view) must stay in sync with:     ║
+// ║    • ProfileScreen.kt  → Profile tab (owner's own view + buildCurrentProfile║
+// ║    • docs/share.html   → WEBSITE Trainer Profile (GitHub Pages)             ║
+// ║                                                                              ║
+// ║  RULES — if you change one, update ALL THREE:                               ║
+// ║   1. Only VERIFIED pets shown: SpPetsGrid filters pet.isVerified === true   ║
+// ║   2. Pet count shown = verifiedPets count (from stored profile petCount)    ║
+// ║   3. Card FRONT: photo/avatar + rarity bar + name + rarity chip + Lv.N     ║
+// ║         — NO tier star icon on the front card                               ║
+// ║   4. Card BACK: virtue image + bond status text + virtue title (GUARDIAN/   ║
+// ║         FRIEND/COMPANION) — NO LV.XX badge; aura/ring animations stay      ║
+// ║   5. Data comes from Firebase via ProfileScreen.buildCurrentProfile()       ║
+// ║         which already filters verifiedPets — SpPetsGrid double-filters too  ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
 // app/src/main/java/com/example/petquest/ui/screens/SharedProfileScreen.kt
 // HOW TO APPLY: Open this file → Ctrl+A → Delete → Paste this entire file
 // CHANGES:

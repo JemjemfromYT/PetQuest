@@ -1,5 +1,27 @@
 <!DOCTYPE html>
-<!-- docs/share.html — replace in your GitHub repo's docs/ folder -->
+<!--
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ⚠️  SYNC CONTRACT — READ BEFORE EDITING  ⚠️                                ║
+║                                                                              ║
+║  This file is the WEBSITE version of the Trainer Profile.                   ║
+║  It must stay 100% in sync with the app's Trainer Profile views:            ║
+║    • ProfileScreen.kt  → Profile tab (owner's own profile)                  ║
+║    • SharedProfileScreen.kt → shared/public Trainer Profile view            ║
+║                                                                              ║
+║  RULES — if you change one, change all:                                     ║
+║   1. ONLY verified pets are shown (isVerified === true / pet.isVerified)     ║
+║   2. Pet count header = verified-only count                                  ║
+║   3. Card FRONT:  photo (or species emoji) + rarity bar + name + rarity      ║
+║         chip + Lv.N  — NO tier star or level badge                           ║
+║   4. Card BACK:   virtue image (large) + bond status + virtue title          ║
+║         — NO LV.XX badge on back; animated aura/rings are app-only           ║
+║   5. Bond status / title thresholds must match bondInfo() in this file       ║
+║         and the app's earnedTitle / bondStatus logic in SharedProfileScreen  ║
+║   6. Achievements categories & titles must match ACHIEV_CATEGORIES here      ║
+║         and the app's achievement definitions                                ║
+║   7. Species-collected count and total (29) must match PetType.entries.size ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -271,7 +293,10 @@
         const streak       = data.streak        ?? 0;
         const totalSpecies = 29;
 
-        const pets = Array.isArray(data.pets) ? data.pets : [];
+        // ── SYNC: only verified pets are shown, matching ProfileScreen.kt / SharedProfileScreen.kt ──
+        const allPets      = Array.isArray(data.pets) ? data.pets : [];
+        const pets         = allPets.filter(p => p.isVerified === true);
+        const verifiedCount = pets.length;   // use live-filtered count, not stored pet_count
 
         const kpInLevel = bondPoints % 100;
         const lvPct     = Math.round((kpInLevel / 100) * 100);
@@ -290,7 +315,7 @@
 
         // ── Pet cards with flip ───────────────────────────────────────────────
         const petsHtml = pets.length === 0 ? '' : `
-            <div class="pets-title">My Pets (${petCount})</div>
+            <div class="pets-title">My Pets (${verifiedCount})</div>
             <div class="pets-hint">Tap a card to see its virtue</div>
             <div class="pets-grid">
                 ${pets.map((pet, idx) => {
@@ -434,7 +459,7 @@
                         <div class="albl">Total Bond Pts</div>
                     </div>
                     <div class="abadge pets">
-                        <div class="atxt">${petCount}</div>
+                        <div class="atxt">${verifiedCount}</div>
                         <div class="albl">Active Pets</div>
                     </div>
                 </div>
