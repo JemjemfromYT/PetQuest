@@ -572,6 +572,29 @@ class PetQuestViewModel(
         }
     }
 
+    fun adminUnlockAllEventRewards(events: List<Pair<String, String>>) {
+        viewModelScope.launch {
+            try {
+                events.forEach { (title, description) ->
+                    petRepository.insertAchievementIfAbsent(
+                        AchievementEntity(title = title, description = description)
+                    )
+                }
+                delay(300)
+                // Re-read and unlock anything still locked
+                events.forEach { (title, _) ->
+                    val target = allAchievements.value.find { it.title == title }
+                    if (target != null && !target.isUnlocked) {
+                        petRepository.unlockAchievement(target.id)
+                    }
+                }
+                checkAndUnlockAchievements()
+            } catch (e: Exception) {
+                Log.e("PetQuestVM", "adminUnlockAllEvents error", e)
+            }
+        }
+    }
+
     fun adminVerifyAllPets() {
         viewModelScope.launch {
             try {

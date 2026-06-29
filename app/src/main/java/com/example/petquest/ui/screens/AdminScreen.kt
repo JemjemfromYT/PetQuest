@@ -15,6 +15,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.petquest.viewmodel.PetQuestViewModel
+import com.example.petquest.ui.screens.ALL_SEASONAL_EVENTS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -246,6 +247,23 @@ fun AdminScreen(viewModel: PetQuestViewModel, onBackClick: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Verify All Pets")
+                }
+            }
+
+            // ── Events section ────────────────────────────────────────────
+            item { AdminSectionHeader("Events") }
+
+            item {
+                Button(
+                    onClick = {
+                        viewModel.adminUnlockAllEventRewards(
+                            ALL_SEASONAL_EVENTS.map { it.badgeTitle to "Badge earned during ${it.name}" }
+                        )
+                        showSnack("All ${ALL_SEASONAL_EVENTS.size} event badges unlocked!")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Unlock All Event Rewards (${ALL_SEASONAL_EVENTS.size})")
                 }
             }
 
