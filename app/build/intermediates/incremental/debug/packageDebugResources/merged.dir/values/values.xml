@@ -8,11 +8,5 @@
     <color name="teal_700">#FF018786</color>
     <color name="white">#FFFFFFFF</color>
     <string name="app_name">Pet Quest</string>
-    <string name="gcm_defaultSenderId" translatable="false">79374020591</string>
-    <string name="google_api_key" translatable="false">AIzaSyDIcH9SSfX8vKBoefaohJ9MAk5nO4NxFZo</string>
-    <string name="google_app_id" translatable="false">1:79374020591:android:1aadf9cb300884392d101a</string>
-    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDIcH9SSfX8vKBoefaohJ9MAk5nO4NxFZo</string>
-    <string name="google_storage_bucket" translatable="false">pet-quest-5f2eb.firebasestorage.app</string>
-    <string name="project_id" translatable="false">pet-quest-5f2eb</string>
     <style name="Theme.PetQuest" parent="Theme.MaterialComponents.DayNight.NoActionBar"/>
 </resources>

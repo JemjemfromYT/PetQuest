@@ -38,12 +38,6 @@ raw sfx_streak
 raw sfx_tap
 raw sfx_task_complete
 string app_name
-string gcm_defaultSenderId
-string google_api_key
-string google_app_id
-string google_crash_reporting_api_key
-string google_storage_bucket
-string project_id
 style Theme.PetQuest
 xml backup_rules
 xml data_extraction_rules
