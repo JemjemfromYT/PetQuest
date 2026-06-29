@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.JemjemfroYT.petquest"
+    namespace = "com.example.petquest"
     compileSdk = 35
 
     defaultConfig {

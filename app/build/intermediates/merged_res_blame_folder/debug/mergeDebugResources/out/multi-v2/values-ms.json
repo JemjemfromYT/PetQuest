@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.petquest.app-mergeDebugResources-82:/values-ms/values-ms.xml",
+            "outputFile": "com.JemjemfroYT.petquest.app-mergeDebugResources-82:/values-ms/values-ms.xml",
             "map": [
                 {
                     "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\9d7986c4629c7ed77f7b9961c652ee02\\workspace\\transformed\\play-services-basement-18.4.0\\res\\values-ms\\values.xml",

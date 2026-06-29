@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.petquest"
+    package="com.JemjemfromYT.petquest"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -21,13 +21,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <permission
-        android:name="com.example.petquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        android:name="com.JemjemfromYT.petquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="com.example.petquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+    <uses-permission android:name="com.JemjemfromYT.petquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 
     <application
-        android:name="com.example.petquest.PetQuestApplication"
+        android:name="com.JemjemfroYT.petquest.PetQuestApplication"
         android:allowBackup="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:debuggable="true"
@@ -38,7 +38,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PetQuest" >
         <activity
-            android:name="com.example.petquest.MainActivity"
+            android:name="com.JemjemfroYT.petquest.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
@@ -77,7 +77,7 @@
 
         <provider
             android:name="androidx.startup.InitializationProvider"
-            android:authorities="com.example.petquest.androidx-startup"
+            android:authorities="com.JemjemfromYT.petquest.androidx-startup"
             android:exported="false" >
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
@@ -224,7 +224,7 @@
 
         <provider
             android:name="com.google.mlkit.common.internal.MlKitInitProvider"
-            android:authorities="com.example.petquest.mlkitinitprovider"
+            android:authorities="com.JemjemfromYT.petquest.mlkitinitprovider"
             android:exported="false"
             android:initOrder="99" />
 

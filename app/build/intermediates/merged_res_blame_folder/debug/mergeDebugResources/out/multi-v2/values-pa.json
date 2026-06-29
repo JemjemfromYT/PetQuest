@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.petquest.app-mergeDebugResources-82:/values-pa/values-pa.xml",
+            "outputFile": "com.JemjemfroYT.petquest.app-mergeDebugResources-82:/values-pa/values-pa.xml",
             "map": [
                 {
                     "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\516bb1d60c49163503878c2b6866bb65\\workspace\\transformed\\material3-release\\res\\values-pa\\values-pa.xml",

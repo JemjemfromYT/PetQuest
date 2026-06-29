@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.petquest.app-mergeDebugResources-82:/values-pt-rBR/values-pt-rBR.xml",
+            "outputFile": "com.JemjemfroYT.petquest.app-mergeDebugResources-82:/values-pt-rBR/values-pt-rBR.xml",
             "map": [
                 {
                     "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\6df10b75a4a53f6da8c0b66d6fd62f2c\\workspace\\transformed\\play-services-base-18.5.0\\res\\values-pt-rBR\\values.xml",

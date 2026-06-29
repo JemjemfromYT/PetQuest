@@ -222,7 +222,7 @@ MERGED from [com.google.android.odml:image:1.0.0-beta1] C:\Users\almar\.gradle\c
 		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:18:9-46
 	android:name
 		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:12:9-44
-activity#com.example.petquest.MainActivity
+activity#com.JemjemfroYT.petquest.MainActivity
 ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:20:9-39:20
 	android:screenOrientation
 		ADDED from C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\AndroidManifest.xml:23:13-49
@@ -882,7 +882,7 @@ ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\trans
 		ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e314942d6a613a2f7cf1d4706d5ef33\workspace\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
 	android:name
 		ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e314942d6a613a2f7cf1d4706d5ef33\workspace\transformed\core-1.13.1\AndroidManifest.xml:23:9-81
-permission#com.example.petquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+permission#com.JemjemfromYT.petquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e314942d6a613a2f7cf1d4706d5ef33\workspace\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
 	android:protectionLevel
 		ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e314942d6a613a2f7cf1d4706d5ef33\workspace\transformed\core-1.13.1\AndroidManifest.xml:24:9-44
@@ -892,7 +892,7 @@ uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e314942d6a613a2f7cf1d4706d5ef33\workspace\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e314942d6a613a2f7cf1d4706d5ef33\workspace\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
-uses-permission#com.example.petquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission#com.JemjemfromYT.petquest.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e314942d6a613a2f7cf1d4706d5ef33\workspace\transformed\core-1.13.1\AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.13.1] C:\Users\almar\.gradle\caches\9.2.1\transforms\3e314942d6a613a2f7cf1d4706d5ef33\workspace\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
