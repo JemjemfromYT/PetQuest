@@ -26,6 +26,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -973,10 +974,67 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
 
 @Composable
 private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
-    val hasGoldBorder = pet.bondLevel >= 20
+
+    // ── Visual tier by bond level ─────────────────────────────────────────────
+    // 0 = plain | 1 = silver(5+) | 2 = sapphire(10+) | 3 = gold(20+)
+    // 4 = prism(30+) | 5 = legendary(50+)
+    val tier = when {
+        pet.bondLevel >= 50 -> 5
+        pet.bondLevel >= 30 -> 4
+        pet.bondLevel >= 20 -> 3
+        pet.bondLevel >= 10 -> 2
+        pet.bondLevel >= 5  -> 1
+        else                -> 0
+    }
+
+    val borderColors: List<Color> = when (tier) {
+        1 -> listOf(Color(0xFFB0BEC5), Color(0xFFECEFF1), Color(0xFFB0BEC5))
+        2 -> listOf(Color(0xFF1565C0), Color(0xFF64B5F6), Color(0xFF1565C0))
+        3 -> listOf(Color(0xFFFFD700), Color(0xFFFFF8DC), Color(0xFFFFB300), Color(0xFFFFD700))
+        4 -> listOf(Color(0xFFE040FB), Color(0xFFFFD700), Color(0xFF40C4FF), Color(0xFF69F0AE), Color(0xFFE040FB))
+        5 -> listOf(Color(0xFFFF1744), Color(0xFFFFD700), Color(0xFF00E676), Color(0xFF40C4FF), Color(0xFFE040FB), Color(0xFFFF1744))
+        else -> emptyList()
+    }
+
+    val borderWidth = when (tier) {
+        0 -> 0.dp; 1 -> 1.5.dp; 2 -> 2.dp; 3 -> 2.5.dp; 4 -> 3.dp; else -> 3.5.dp
+    }
+
+    val lvColor: Color = when (tier) {
+        0 -> MaterialTheme.colorScheme.primary
+        1 -> Color(0xFFB0BEC5)
+        2 -> Color(0xFF42A5F5)
+        3 -> Color(0xFFFFD700)
+        4 -> Color(0xFFE040FB)
+        else -> Color(0xFFFF6D00)
+    }
+
+    // Pulse animation for tier 3+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse_${pet.id}")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue  = if (tier >= 3) 0.65f else 1f,
+        targetValue   = 1f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(if (tier >= 4) 800 else 1300, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pa"
+    )
+
+    val borderBrush: Brush? = when {
+        tier == 0 -> null
+        tier >= 3  -> Brush.linearGradient(borderColors.map { it.copy(alpha = pulseAlpha) })
+        else       -> Brush.linearGradient(borderColors)
+    }
+
+    // Stripe gradient: blends tier accent into rarity color
+    val stripeColors = if (borderColors.isNotEmpty())
+        listOf(borderColors.first(), rarityColor, borderColors.last())
+    else
+        listOf(rarityColor, rarityColor.copy(alpha = 0.45f))
 
     Card(
-        elevation = CardDefaults.cardElevation(4.dp),
+        elevation = CardDefaults.cardElevation((4 + tier).dp),
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier  = Modifier.fillMaxWidth()
     ) {
@@ -984,13 +1042,12 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Top stripe — grows with tier, uses accent colors
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(5.dp)
-                    .background(
-                        Brush.horizontalGradient(listOf(rarityColor, rarityColor.copy(alpha = 0.45f)))
-                    )
+                    .height((5 + tier).dp)
+                    .background(Brush.horizontalGradient(stripeColors))
             )
 
             Column(
@@ -1003,8 +1060,8 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .then(
-                            if (hasGoldBorder)
-                                Modifier.border(2.dp, Color(0xFFFFD700), MaterialTheme.shapes.small)
+                            if (borderBrush != null)
+                                Modifier.border(borderWidth, borderBrush, MaterialTheme.shapes.small)
                             else Modifier
                         )
                         .clip(MaterialTheme.shapes.small),
@@ -1028,13 +1085,31 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
                         }
                     }
 
-                    if (pet.isVerified) {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            contentDescription = "Verified",
-                            tint               = MaterialTheme.colorScheme.primary,
-                            modifier           = Modifier.padding(3.dp).size(14.dp)
-                        )
+                    // Top-right corner: verified check + tier icon stacked
+                    Column(
+                        modifier            = Modifier.padding(3.dp),
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(1.dp)
+                    ) {
+                        if (pet.isVerified) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = "Verified",
+                                tint               = MaterialTheme.colorScheme.primary,
+                                modifier           = Modifier.size(14.dp)
+                            )
+                        }
+                        // Tier badge icon — animates opacity for tier 3+
+                        val tierIcon = when (tier) {
+                            1 -> "✦"; 2 -> "💎"; 3 -> "⭐"; 4 -> "🌟"; 5 -> "👑"; else -> null
+                        }
+                        if (tierIcon != null) {
+                            Text(
+                                text     = tierIcon,
+                                fontSize = 11.sp,
+                                color    = lvColor.copy(alpha = if (tier >= 3) pulseAlpha else 1f)
+                            )
+                        }
                     }
                 }
 
@@ -1064,11 +1139,12 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
                             color      = rarityColor
                         )
                     }
+                    // Lv. text color matches tier accent
                     Text(
                         "Lv.${pet.bondLevel}",
                         fontSize   = 12.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color      = MaterialTheme.colorScheme.primary
+                        color      = lvColor
                     )
                 }
             }
@@ -1092,28 +1168,154 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
         Virtue.COMPASSION -> Triple(Color(0xFF880E4F), Color(0xFFC2185B), Color(0xFFEC407A))
     }
 
+    // Tier matches front card logic
+    val tier = when {
+        pet.bondLevel >= 50 -> 5
+        pet.bondLevel >= 30 -> 4
+        pet.bondLevel >= 20 -> 3
+        pet.bondLevel >= 10 -> 2
+        pet.bondLevel >= 5  -> 1
+        else                -> 0
+    }
+
+    // Halo / aura color: white-tinted accent based on virtue + tier brightness
+    val haloColor = when (tier) {
+        0, 1 -> Color.White
+        2    -> Color(0xFF90CAF9)
+        3    -> Color(0xFFFFE082)
+        4    -> Color(0xFFCE93D8)
+        else -> Color(0xFFFF8A65)
+    }
+
+    // Emblem visibility scales with level
+    val emblemAlpha = when {
+        pet.bondLevel >= 50 -> 0.55f
+        pet.bondLevel >= 30 -> 0.42f
+        pet.bondLevel >= 20 -> 0.32f
+        pet.bondLevel >= 10 -> 0.22f
+        pet.bondLevel >= 5  -> 0.17f
+        else                -> 0.13f
+    }
+
+    val emblemSize = when {
+        pet.bondLevel >= 50 -> 160.dp
+        pet.bondLevel >= 30 -> 150.dp
+        pet.bondLevel >= 20 -> 145.dp
+        else                -> 140.dp
+    }
+
+    // Pulse for tier 2+
+    val infiniteTransition = rememberInfiniteTransition(label = "backpulse_${pet.id}")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue  = if (tier >= 2) 0.4f else 1f,
+        targetValue   = if (tier >= 2) 0.9f else 1f,
+        animationSpec = infiniteRepeatable(
+            animation  = tween(1400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "bp"
+    )
+
+    // Corner dot size grows with tier
+    val cornerDotAlpha = if (tier >= 3) pulseAlpha * 0.7f else 0f
+
     Card(
-        elevation = CardDefaults.cardElevation(4.dp),
+        elevation = CardDefaults.cardElevation((4 + tier).dp),
         modifier  = Modifier.fillMaxWidth().fillMaxHeight(),
         shape     = MaterialTheme.shapes.medium
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(listOf(gradStart, gradMid, gradEnd))
-                )
+                .background(Brush.verticalGradient(listOf(gradStart, gradMid, gradEnd)))
         ) {
+
+            // ── Outer aura ring (tier 2+) ──────────────────────────────────────
+            if (tier >= 2) {
+                Box(
+                    modifier = Modifier
+                        .size(emblemSize + 32.dp)
+                        .align(Alignment.Center)
+                        .background(
+                            brush = Brush.radialGradient(
+                                listOf(
+                                    haloColor.copy(alpha = pulseAlpha * 0.18f),
+                                    Color.Transparent
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                )
+            }
+
+            // ── Second outer ring for tier 4+ ─────────────────────────────────
+            if (tier >= 4) {
+                Box(
+                    modifier = Modifier
+                        .size(emblemSize + 60.dp)
+                        .align(Alignment.Center)
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    haloColor.copy(alpha = pulseAlpha * 0.5f),
+                                    Color.Transparent,
+                                    haloColor.copy(alpha = pulseAlpha * 0.5f)
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                )
+            }
+
+            // ── Inner ring circle (tier 3+) ────────────────────────────────────
+            if (tier >= 3) {
+                Box(
+                    modifier = Modifier
+                        .size(emblemSize + 10.dp)
+                        .align(Alignment.Center)
+                        .border(
+                            width = 1.5.dp,
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    haloColor.copy(alpha = pulseAlpha * 0.7f),
+                                    Color.Transparent,
+                                    haloColor.copy(alpha = pulseAlpha * 0.7f)
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                )
+            }
+
+            // ── Central emblem — larger and more visible at higher levels ──────
             Image(
                 painter            = painterResource(virtueInfo.emblemRes),
                 contentDescription = null,
                 modifier           = Modifier
-                    .size(140.dp)
+                    .size(emblemSize)
                     .align(Alignment.Center)
-                    .graphicsLayer { alpha = 0.13f },
+                    .graphicsLayer { alpha = emblemAlpha },
                 contentScale       = ContentScale.Fit
             )
 
+            // ── Corner sparkle dots (tier 3+) ──────────────────────────────────
+            if (tier >= 3) {
+                val dotChar = if (tier >= 5) "✦" else if (tier >= 4) "✦" else "·"
+                val dotSize = if (tier >= 4) 13.sp else 11.sp
+                Text(dotChar, Modifier.align(Alignment.TopEnd).padding(10.dp),
+                    color = haloColor.copy(alpha = cornerDotAlpha), fontSize = dotSize)
+                Text(dotChar, Modifier.align(Alignment.BottomStart).padding(10.dp),
+                    color = haloColor.copy(alpha = cornerDotAlpha), fontSize = dotSize)
+                if (tier >= 4) {
+                    Text(dotChar, Modifier.align(Alignment.TopStart).padding(10.dp),
+                        color = haloColor.copy(alpha = cornerDotAlpha * 0.6f), fontSize = dotSize)
+                    Text(dotChar, Modifier.align(Alignment.BottomEnd).padding(10.dp),
+                        color = haloColor.copy(alpha = cornerDotAlpha * 0.6f), fontSize = dotSize)
+                }
+            }
+
+            // ── Small virtue icon pill — top-left ─────────────────────────────
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -1131,6 +1333,39 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 )
             }
 
+            // ── Level tier badge — top-right (tier 1+) ────────────────────────
+            if (tier >= 1) {
+                val tierLabel = when (tier) {
+                    1 -> "LV.${pet.bondLevel}"
+                    2 -> "LV.${pet.bondLevel}"
+                    3 -> "★ LV.${pet.bondLevel}"
+                    4 -> "🌟 LV.${pet.bondLevel}"
+                    else -> "👑 LV.${pet.bondLevel}"
+                }
+                val tierBg = when (tier) {
+                    1 -> Color(0xFFB0BEC5)
+                    2 -> Color(0xFF1565C0)
+                    3 -> Color(0xFFFFB300)
+                    4 -> Color(0xFF7B1FA2)
+                    else -> Color(0xFFBF360C)
+                }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(9.dp)
+                        .background(tierBg.copy(alpha = 0.85f), shape = RoundedCornerShape(12.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        tierLabel,
+                        fontSize   = 9.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color      = Color.White
+                    )
+                }
+            }
+
+            // ── Title text — bottom center ─────────────────────────────────────
             val earnedTitle: String = when {
                 pet.bondLevel >= 50 -> "Eternal Companion"
                 pet.bondLevel >= 40 -> "Soul Bonded"
@@ -1143,39 +1378,41 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 else                -> "New Companion"
             }
 
-            val words = earnedTitle.split(" ")
             Column(
                 modifier = Modifier
-                    .align(Alignment.Center)
+                    .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .background(
+                        Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f)))
+                    )
+                    .padding(horizontal = 12.dp, vertical = 14.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                val words = earnedTitle.split(" ")
                 if (words.size >= 2) {
                     Text(
                         text          = words.first(),
-                        fontSize      = 13.sp,
+                        fontSize      = 10.sp,
                         fontWeight    = FontWeight.Light,
-                        color         = Color.White.copy(alpha = 0.75f),
+                        color         = Color.White.copy(alpha = 0.70f),
                         textAlign     = TextAlign.Center,
-                        letterSpacing = 4.sp
+                        letterSpacing = 3.sp
                     )
                     Text(
                         text          = words.drop(1).joinToString(" ").uppercase(),
-                        fontSize      = 21.sp,
+                        fontSize      = 18.sp,
                         fontWeight    = FontWeight.Black,
                         color         = Color.White,
                         textAlign     = TextAlign.Center,
                         letterSpacing = (-0.5).sp,
-                        lineHeight    = 23.sp,
+                        lineHeight    = 21.sp,
                         maxLines      = 1,
                         overflow      = TextOverflow.Ellipsis
                     )
                 } else {
                     Text(
                         text          = earnedTitle.uppercase(),
-                        fontSize      = 21.sp,
+                        fontSize      = 18.sp,
                         fontWeight    = FontWeight.Black,
                         color         = Color.White,
                         textAlign     = TextAlign.Center,
@@ -1188,4 +1425,5 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
         }
     }
 }
+
 
