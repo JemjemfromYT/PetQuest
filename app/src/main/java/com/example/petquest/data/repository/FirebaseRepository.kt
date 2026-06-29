@@ -1,16 +1,25 @@
 package com.example.petquest.data.repository
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.tasks.await
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.InputStream
 
 private const val TAG = "FirebaseRepo"
+
+// Maximum thumbnail dimension in pixels (maintains aspect ratio)
+private const val THUMB_MAX_PX = 256
+// JPEG quality 0-100
+private const val THUMB_QUALITY = 65
 
 data class PetSummary(
     val name       : String  = "",
@@ -37,165 +46,132 @@ data class PublicProfile(
 
 class FirebaseRepository {
 
-    private val auth    = Firebase.auth
-    private val db      = Firebase.firestore
-    private val storage = Firebase.storage
+    private val auth = Firebase.auth
+    private val db   = Firebase.firestore
+    // NOTE: Firebase Storage intentionally NOT used — requires paid Blaze plan.
+    // Pet photos are compressed to thumbnails and stored as data URIs in Firestore.
 
-    // Application context — always valid because Firebase was initialised with it
     private val appContext get() = FirebaseApp.getInstance().applicationContext
 
-    // Session upload cache: local URI string -> Firebase Storage download URL
-    private val photoCache = mutableMapOf<String, String>()
+    // Session cache: local URI string → data URI (avoids re-compressing same photo)
+    private val thumbCache = mutableMapOf<String, String>()
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /**
-     * Returns true only for real local Android URIs that can be opened as a stream.
-     * Rejects "admin_verified", "ml_verified_TIMESTAMP", or anything without a scheme.
-     */
-    private fun isUploadableUri(uriString: String): Boolean =
-        uriString.startsWith("file://") || uriString.startsWith("content://")
-
-    /**
-     * Open a local URI as an InputStream.
-     * file://  — CameraX internal storage; opened directly via File.
-     * content:// — MediaStore / gallery; opened via ContentResolver.
-     */
-    private fun openUriStream(uri: Uri): java.io.InputStream? {
+    /** Open a local Android URI as a stream (file:// and content:// both handled). */
+    private fun openStream(uri: Uri): InputStream? {
         return if (uri.scheme == "file") {
-            val path = uri.path ?: run {
-                Log.w(TAG, "file:// URI has null path: $uri")
-                return null
-            }
+            val path = uri.path ?: return null
             val file = File(path)
-            if (file.exists()) {
-                Log.d(TAG, "Opening file stream: $path (${file.length()} bytes)")
-                file.inputStream()
-            } else {
-                Log.w(TAG, "File does not exist: $path")
-                null
-            }
+            if (file.exists()) file.inputStream()
+            else { Log.w(TAG, "File not found: $path"); null }
         } else {
-            Log.d(TAG, "Opening content stream: $uri")
-            try {
-                appContext.contentResolver.openInputStream(uri)
-            } catch (e: Exception) {
-                Log.e(TAG, "ContentResolver failed for $uri", e)
-                null
-            }
+            try { appContext.contentResolver.openInputStream(uri) }
+            catch (e: Exception) { Log.e(TAG, "ContentResolver failed: $uri", e); null }
         }
     }
 
     /**
-     * Upload one pet photo to Firebase Storage and return the https download URL.
-     * Uses putStream() — works for file:// (CameraX) and content:// (gallery) URIs.
+     * Compress a local photo to a 256×256 JPEG thumbnail and return it as a
+     * data URI string ("data:image/jpeg;base64,...").
+     * This can be stored directly in Firestore and displayed by AsyncImage / <img>.
+     * Free-plan safe — no Firebase Storage required.
      */
-    private suspend fun uploadPetPhoto(
-        uid      : String,
-        index    : Int,
-        petName  : String,
-        uriString: String
-    ): String? {
-        // Return cached URL if we've already uploaded this URI this session
-        photoCache[uriString]?.let {
-            Log.d(TAG, "Cache hit for ${petName}: $it")
-            return it
-        }
-
-        val uri      = Uri.parse(uriString)
-        val safeKey  = petName.lowercase().replace(Regex("[^a-z0-9]"), "_").take(40)
-        val remotePath = "pet_photos/$uid/${safeKey}_$index.jpg"
-        val storageRef = storage.reference.child(remotePath)
-
-        val stream = openUriStream(uri) ?: run {
-            Log.w(TAG, "Could not open stream for ${petName} ($uriString) — skipping upload")
-            return null
-        }
-
+    private fun compressToDataUri(stream: InputStream): String? {
         return try {
-            Log.d(TAG, "Uploading ${petName} photo -> gs://.../$remotePath")
-            stream.use { s -> storageRef.putStream(s).await() }
-            val downloadUrl = storageRef.downloadUrl.await().toString()
-            photoCache[uriString] = downloadUrl
-            Log.d(TAG, "Upload success for ${petName}: $downloadUrl")
-            downloadUrl
+            val bitmap = BitmapFactory.decodeStream(stream) ?: return null
+            val w = bitmap.width
+            val h = bitmap.height
+            val scale = THUMB_MAX_PX.toFloat() / maxOf(w, h)
+            val sw = (w * scale).toInt().coerceAtLeast(1)
+            val sh = (h * scale).toInt().coerceAtLeast(1)
+            val scaled = Bitmap.createScaledBitmap(bitmap, sw, sh, true)
+            val baos = ByteArrayOutputStream()
+            scaled.compress(Bitmap.CompressFormat.JPEG, THUMB_QUALITY, baos)
+            val encoded = Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
+            "data:image/jpeg;base64,$encoded"
         } catch (e: Exception) {
-            Log.e(TAG, "Upload FAILED for ${petName} ($uriString)", e)
+            Log.e(TAG, "compressToDataUri failed", e)
             null
         }
     }
+
+    /** Returns true only for real local Android URIs (file:// or content://). */
+    private fun isLocalUri(s: String) =
+        s.startsWith("file://") || s.startsWith("content://")
 
     // ── Public API ────────────────────────────────────────────────────────────
 
     suspend fun ensureSignedIn(): String {
         if (auth.currentUser == null) {
-            Log.d(TAG, "No current user — signing in anonymously")
+            Log.d(TAG, "Signing in anonymously…")
             auth.signInAnonymously().await()
         }
-        val uid = auth.currentUser?.uid
+        return auth.currentUser?.uid
             ?: throw IllegalStateException("Sign-in succeeded but uid is null")
-        Log.d(TAG, "Signed in as uid=$uid")
-        return uid
     }
 
     fun getMyUid(): String? = auth.currentUser?.uid
 
     suspend fun pushProfile(profile: PublicProfile) {
         val uid = ensureSignedIn()
-        Log.d(TAG, "pushProfile: uid=$uid, pets=${profile.pets.size}")
+        Log.d(TAG, "pushProfile uid=$uid pets=${profile.pets.size}")
 
-        // ── Fetch existing Firestore data so we can preserve previously-uploaded URLs ──
+        // Fetch existing Firestore data so we can preserve already-stored thumbnails
         val existingPets: List<PetSummary> = try {
             db.collection("profiles").document(uid).get().await()
                 .toObject(PublicProfile::class.java)?.pets ?: emptyList()
-        } catch (e: Exception) {
-            Log.w(TAG, "Could not fetch existing profile (first push?): ${e.message}")
-            emptyList()
-        }
+        } catch (_: Exception) { emptyList() }
 
-        // Build a quick map of index -> existing download URL
-        val existingUrls = existingPets.mapIndexedNotNull { i, p ->
-            val url = p.photoUri
-            if (url != null && url.startsWith("https://")) i to url else null
+        val existingDataUris: Map<Int, String> = existingPets.mapIndexedNotNull { i, p ->
+            val uri = p.photoUri
+            if (uri != null && (uri.startsWith("data:") || uri.startsWith("https://"))) i to uri
+            else null
         }.toMap()
 
-        // ── Upload any new local photos ────────────────────────────────────────────
-        val petsWithWebUrls = profile.pets.mapIndexed { index, pet ->
+        val petsWithThumbs = profile.pets.mapIndexed { index, pet ->
             val uriString = pet.photoUri
-
             when {
-                // Already a Firebase Storage / web URL — keep as-is
-                uriString != null && uriString.startsWith("https://") -> {
-                    Log.d(TAG, "Pet[${pet.name}]: already a web URL, no upload needed")
+                // Already a data URI or web URL — nothing to do
+                uriString != null && (uriString.startsWith("data:") ||
+                        uriString.startsWith("https://")) -> {
+                    Log.d(TAG, "Pet[${pet.name}]: already has thumbnail/URL")
                     pet
                 }
 
-                // Valid local URI (file:// or content://) — upload to Storage
-                uriString != null && isUploadableUri(uriString) -> {
-                    Log.d(TAG, "Pet[${pet.name}]: uploading local URI $uriString")
-                    val downloadUrl = uploadPetPhoto(uid, index, pet.name, uriString)
-                        ?: existingUrls[index]  // fall back to previously-uploaded URL
-                    Log.d(TAG, "Pet[${pet.name}]: final photoUri = $downloadUrl")
-                    pet.copy(photoUri = downloadUrl)
+                // Local file (file:// or content://) — compress to thumbnail
+                uriString != null && isLocalUri(uriString) -> {
+                    val dataUri = thumbCache.getOrElse(uriString) {
+                        Log.d(TAG, "Pet[${pet.name}]: compressing local photo…")
+                        val uri    = Uri.parse(uriString)
+                        val stream = openStream(uri)
+                        val result = if (stream != null)
+                            compressToDataUri(stream) else null
+                        if (result != null) {
+                            thumbCache[uriString] = result
+                            Log.d(TAG, "Pet[${pet.name}]: thumbnail OK (${result.length} chars)")
+                        } else {
+                            Log.w(TAG, "Pet[${pet.name}]: compression failed, preserving existing")
+                        }
+                        result ?: existingDataUris[index] ?: ""
+                    }.ifEmpty { null }
+
+                    pet.copy(photoUri = dataUri ?: existingDataUris[index])
                 }
 
-                // "admin_verified", "ml_verified_...", null, or anything else —
-                // not a real photo; preserve any previously-uploaded URL instead
+                // null / "admin_verified" / "ml_verified_…" — preserve existing thumb
                 else -> {
-                    val preserved = existingUrls[index]
-                    Log.d(TAG, "Pet[${pet.name}]: no photo URI (got '$uriString'), preserving existing: $preserved")
+                    val preserved = existingDataUris[index]
+                    Log.d(TAG, "Pet[${pet.name}]: no local photo, preserving: ${preserved?.take(30)}")
                     pet.copy(photoUri = preserved)
                 }
             }
         }
 
-        // ── Write merged profile to Firestore ──────────────────────────────────────
-        val final = profile.copy(
-            uid       = uid,
-            pets      = petsWithWebUrls,
-            updatedAt = System.currentTimeMillis()
-        )
-        db.collection("profiles").document(uid).set(final).await()
+        db.collection("profiles")
+            .document(uid)
+            .set(profile.copy(uid = uid, pets = petsWithThumbs, updatedAt = System.currentTimeMillis()))
+            .await()
         Log.d(TAG, "pushProfile: Firestore write OK for uid=$uid")
     }
 
@@ -204,7 +180,7 @@ class FirebaseRepository {
             db.collection("profiles").document(uid).get().await()
                 .toObject(PublicProfile::class.java)
         } catch (e: Exception) {
-            Log.e(TAG, "fetchProfile error for uid=$uid", e)
+            Log.e(TAG, "fetchProfile error uid=$uid", e)
             null
         }
     }

@@ -205,7 +205,7 @@
     /* Resolve gs:// or relative Storage paths to HTTPS download URL */
     async function resolveUrl(url) {
         if (!url) return null;
-        if (url.startsWith("https://")) return url;
+        if (url.startsWith("https://") || url.startsWith("data:")) return url;
         try { return await getDownloadURL(ref(storage, url)); } catch { return null; }
     }
 
