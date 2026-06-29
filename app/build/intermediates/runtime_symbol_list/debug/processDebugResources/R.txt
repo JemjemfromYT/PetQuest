@@ -2951,6 +2951,8 @@ int drawable abc_textfield_search_material 0x7f070076
 int drawable abc_vector_test 0x7f070077
 int drawable avd_hide_password 0x7f070078
 int drawable avd_show_password 0x7f070079
+int drawable bolt 0x7f07010b
+int drawable bookmark 0x7f07010c
 int drawable btn_checkbox_checked_mtrl 0x7f07007a
 int drawable btn_checkbox_checked_to_unchecked_mtrl_animation 0x7f07007b
 int drawable btn_checkbox_unchecked_mtrl 0x7f07007c
@@ -2959,6 +2961,8 @@ int drawable btn_radio_off_mtrl 0x7f07007e
 int drawable btn_radio_off_to_on_mtrl_animation 0x7f07007f
 int drawable btn_radio_on_mtrl 0x7f070080
 int drawable btn_radio_on_to_off_mtrl_animation 0x7f070081
+int drawable camera 0x7f07010d
+int drawable check 0x7f07010e
 int drawable common_full_open_on_phone 0x7f070082
 int drawable common_google_signin_btn_icon_dark 0x7f070083
 int drawable common_google_signin_btn_icon_dark_focused 0x7f070084
@@ -2978,6 +2982,7 @@ int drawable common_google_signin_btn_text_light 0x7f070091
 int drawable common_google_signin_btn_text_light_focused 0x7f070092
 int drawable common_google_signin_btn_text_light_normal 0x7f070093
 int drawable common_google_signin_btn_text_light_normal_background 0x7f070094
+int drawable compass 0x7f07010f
 int drawable compassion 0x7f070095
 int drawable courage 0x7f070096
 int drawable design_fab_background 0x7f070097
@@ -2989,8 +2994,12 @@ int drawable diligence 0x7f07009c
 int drawable empty_achievements 0x7f07009d
 int drawable empty_collection 0x7f07009e
 int drawable empty_tasks 0x7f07009f
+int drawable event 0x7f070110
+int drawable explore 0x7f070111
+int drawable flame 0x7f070112
 int drawable googleg_disabled_color_18 0x7f0700a0
 int drawable googleg_standard_color_18 0x7f0700a1
+int drawable heart 0x7f070113
 int drawable ic_arrow_back_black_24 0x7f0700a2
 int drawable ic_bondpoints 0x7f0700a3
 int drawable ic_call_answer 0x7f0700a4
@@ -3017,6 +3026,7 @@ int drawable ic_search_black_24 0x7f0700b8
 int drawable ic_streak 0x7f0700b9
 int drawable ic_verified 0x7f0700ba
 int drawable indeterminate_static 0x7f0700bb
+int drawable lock 0x7f070114
 int drawable m3_avd_hide_password 0x7f0700bc
 int drawable m3_avd_show_password 0x7f0700bd
 int drawable m3_bottom_sheet_drag_handle 0x7f0700be
@@ -3038,6 +3048,7 @@ int drawable material_ic_keyboard_arrow_previous_black_24dp 0x7f0700cd
 int drawable material_ic_keyboard_arrow_right_black_24dp 0x7f0700ce
 int drawable material_ic_menu_arrow_down_black_24dp 0x7f0700cf
 int drawable material_ic_menu_arrow_up_black_24dp 0x7f0700d0
+int drawable medal 0x7f070115
 int drawable mtrl_bottomsheet_drag_handle 0x7f0700d1
 int drawable mtrl_checkbox_button 0x7f0700d2
 int drawable mtrl_checkbox_button_checked_unchecked 0x7f0700d3
@@ -3089,11 +3100,16 @@ int drawable notification_template_icon_bg 0x7f070100
 int drawable notification_template_icon_low_bg 0x7f070101
 int drawable notification_tile_bg 0x7f070102
 int drawable notify_panel_notification_icon_bg 0x7f070103
+int drawable paw 0x7f070116
+int drawable pets 0x7f070117
 int drawable profile_banner 0x7f070104
+int drawable shield 0x7f070118
+int drawable star 0x7f070119
 int drawable temperance 0x7f070105
 int drawable test_level_drawable 0x7f070106
 int drawable tooltip_frame_dark 0x7f070107
 int drawable tooltip_frame_light 0x7f070108
+int drawable trophy 0x7f07011a
 int drawable verification_success 0x7f070109
 int drawable wisdom 0x7f07010a
 int font nunito_bold 0x7f080000

@@ -1,3 +1,8 @@
+// HOW TO APPLY: Open SharedProfileScreen.kt → Ctrl+A → Delete → Paste this entire file
+// CHANGES from original:
+//   1. Tab icons replaced — emoji text removed, PNG icons added (paw / trophy / event)
+//      Matches ProfileScreen.kt exactly. Requires paw.png, trophy.png, event.png in res/drawable/
+
 // ╔══════════════════════════════════════════════════════════════════════════════╗
 // ║  ⚠️  SYNC CONTRACT — READ BEFORE EDITING  ⚠️                                ║
 // ║                                                                              ║
@@ -15,17 +20,6 @@
 // ║   5. Data comes from Firebase via ProfileScreen.buildCurrentProfile()       ║
 // ║         which already filters verifiedPets — SpPetsGrid double-filters too  ║
 // ╚══════════════════════════════════════════════════════════════════════════════╝
-// app/src/main/java/com/example/petquest/ui/screens/SharedProfileScreen.kt
-// HOW TO APPLY: Open this file → Ctrl+A → Delete → Paste this entire file
-// CHANGES:
-//   1. Replaced FirebaseRepository with SupabaseRepository in the function signature
-//   2. Added SpPetPhoto helper composable that handles BOTH:
-//      - Real https:// URLs (Supabase Storage) → AsyncImage works perfectly
-//      - Old data:image/jpeg;base64,... strings (from the old Firebase era) → decoded to Bitmap
-//      THIS IS THE BUG FIX: AsyncImage cannot load data: URIs natively.
-//      Both web page and Trainer Profile now show real photos.
-//   3. Added tab navigation: 🐾 My Pets | 🏆 Achievements | 🎉 Events
-
 package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
@@ -61,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import android.graphics.BitmapFactory
 import android.util.Base64
 import coil.compose.AsyncImage
+import com.example.petquest.R
 import com.example.petquest.data.model.PetType
 import com.example.petquest.data.model.Virtue
 import com.example.petquest.data.repository.SupabaseRepository
@@ -201,24 +196,12 @@ private fun speciesEmoji(speciesName: String): String = when (speciesName.upperc
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THE KEY FIX: SpPetPhoto — handles both real URLs and base64 data URIs
-//
-// WHY THIS WAS BROKEN:
-//   AsyncImage (Coil) loads https:// and file:// URIs perfectly.
-//   But "data:image/jpeg;base64,..." is NOT supported by Coil — it just
-//   shows nothing, which is exactly why you saw blank spaces.
-//
-// THE FIX:
-//   If the photoUri starts with "data:", we manually decode the base64
-//   into a Bitmap and draw it with Image().
-//   If it's a real https:// URL (new Supabase photos), AsyncImage works fine.
+// SpPetPhoto — handles both real URLs and base64 data URIs
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SpPetPhoto(photoUri: String, name: String, modifier: Modifier = Modifier) {
     if (photoUri.startsWith("data:image")) {
-        // Decode base64 data URI into a Bitmap — cached with remember so it
-        // only decodes once per unique URI, not on every recomposition.
         val bitmap = remember(photoUri) {
             try {
                 val base64Part = photoUri.substringAfter("base64,")
@@ -237,7 +220,6 @@ private fun SpPetPhoto(photoUri: String, name: String, modifier: Modifier = Modi
             )
         }
     } else {
-        // Real https:// URL (Supabase Storage) — AsyncImage handles this perfectly
         AsyncImage(
             model              = photoUri,
             contentDescription = "$name photo",
@@ -248,7 +230,7 @@ private fun SpPetPhoto(photoUri: String, name: String, modifier: Modifier = Modi
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Root composable — now accepts SupabaseRepository instead of FirebaseRepository
+// Root composable
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -430,7 +412,6 @@ private fun SpProfileContent(profile: PublicProfile) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 SpStatCard(Modifier.weight(1f), "${profile.bondPoints}", "Total Bond Pts",
                     Color(0xFF1B5E20), Color(0xFFE8F5E9))
-                // SYNC: count live-filtered verified pets, NOT stale DB pet_count
                 SpStatCard(Modifier.weight(1f), "${profile.pets.count { it.isVerified }}", "Active Pets",
                     Color(0xFF4A148C), Color(0xFFF3E5F5))
             }
@@ -450,7 +431,7 @@ private fun SpProfileContent(profile: PublicProfile) {
             )
         }
 
-        // ── Tab row ────────────────────────────────────────────────────────────
+        // ── Tab row — PNG icons matching ProfileScreen ─────────────────────────
         item {
             TabRow(
                 selectedTabIndex = selectedTab,
@@ -460,17 +441,41 @@ private fun SpProfileContent(profile: PublicProfile) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick  = { selectedTab = 0 },
-                    text     = { Text("🐾 My Pets", fontSize = 12.sp, maxLines = 1) }
+                    icon = {
+                        Image(
+                            painter            = painterResource(R.drawable.paw),
+                            contentDescription = null,
+                            modifier           = Modifier.size(20.dp),
+                            contentScale       = ContentScale.Fit
+                        )
+                    },
+                    text = { Text("My Pets", fontSize = 11.sp, maxLines = 1) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick  = { selectedTab = 1 },
-                    text     = { Text("🏆 Achievements", fontSize = 12.sp, maxLines = 1) }
+                    icon = {
+                        Image(
+                            painter            = painterResource(R.drawable.trophy),
+                            contentDescription = null,
+                            modifier           = Modifier.size(20.dp),
+                            contentScale       = ContentScale.Fit
+                        )
+                    },
+                    text = { Text("Achievements", fontSize = 11.sp, maxLines = 1) }
                 )
                 Tab(
                     selected = selectedTab == 2,
                     onClick  = { selectedTab = 2 },
-                    text     = { Text("🎉 Events", fontSize = 12.sp, maxLines = 1) }
+                    icon = {
+                        Image(
+                            painter            = painterResource(R.drawable.event),
+                            contentDescription = null,
+                            modifier           = Modifier.size(20.dp),
+                            contentScale       = ContentScale.Fit
+                        )
+                    },
+                    text = { Text("Events", fontSize = 11.sp, maxLines = 1) }
                 )
             }
         }
@@ -479,10 +484,9 @@ private fun SpProfileContent(profile: PublicProfile) {
         item {
             when (selectedTab) {
 
-                // ── 🐾 My Pets ─────────────────────────────────────────────────
+                // ── My Pets ─────────────────────────────────────────────────────
                 0 -> {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        // SYNC: count live-filtered verified pets, NOT stale DB pet_count
                         Text(
                             "My Pets (${profile.pets.count { it.isVerified }})",
                             fontSize   = 16.sp,
@@ -514,12 +518,12 @@ private fun SpProfileContent(profile: PublicProfile) {
                     }
                 }
 
-                // ── 🏆 Achievements ────────────────────────────────────────────
+                // ── Achievements ────────────────────────────────────────────────
                 1 -> {
                     SpAchievementsSection(groupedAchievs)
                 }
 
-                // ── 🎉 Events ──────────────────────────────────────────────────
+                // ── Events ──────────────────────────────────────────────────────
                 2 -> {
                     SpEventBadgesSection(eventBadges)
                 }
@@ -796,7 +800,7 @@ private fun SpFlippablePetCard(pet: PetSummary, modifier: Modifier = Modifier) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Front face — FIXED: now uses SpPetPhoto which handles data: URIs and real URLs
+// Front face
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -1013,18 +1017,6 @@ private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
 
     val cornerDotAlpha = if (tier >= 3) pulseAlpha * 0.7f else 0f
 
-    val earnedTitle = when {
-        pet.bondLevel >= 50 -> "Eternal Companion"
-        pet.bondLevel >= 40 -> "Soul Bonded"
-        pet.bondLevel >= 30 -> "Elite Protector"
-        pet.bondLevel >= 25 -> "Bonded Guardian"
-        pet.bondLevel >= 20 -> "Master Companion"
-        pet.bondLevel >= 15 -> "Lifelong Partner"
-        pet.bondLevel >= 10 -> "Loyal Friend"
-        pet.bondLevel >= 5  -> "Trusted Companion"
-        else                -> "New Companion"
-    }
-
     Card(
         elevation = CardDefaults.cardElevation((4 + tier).dp),
         modifier  = Modifier.fillMaxWidth().fillMaxHeight(),
@@ -1035,7 +1027,6 @@ private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
                 .fillMaxSize()
                 .background(Brush.verticalGradient(listOf(gradStart, gradMid, gradEnd)))
         ) {
-            // Outer aura (tier 2+)
             if (tier >= 2) {
                 Box(
                     modifier = Modifier
@@ -1050,113 +1041,145 @@ private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
                 )
             }
 
-            // Second outer ring (tier 4+)
             if (tier >= 4) {
                 Box(
                     modifier = Modifier
                         .size(emblemSize + 60.dp)
                         .align(Alignment.Center)
                         .border(
-                            1.dp,
-                            Brush.sweepGradient(listOf(
-                                haloColor.copy(alpha = pulseAlpha * 0.5f),
-                                Color.Transparent,
-                                haloColor.copy(alpha = pulseAlpha * 0.5f)
-                            )),
-                            CircleShape
+                            width = 1.dp,
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    haloColor.copy(alpha = pulseAlpha * 0.5f),
+                                    Color.Transparent,
+                                    haloColor.copy(alpha = pulseAlpha * 0.5f)
+                                )
+                            ),
+                            shape = CircleShape
                         )
                 )
             }
 
-            // Inner ring (tier 3+)
             if (tier >= 3) {
                 Box(
                     modifier = Modifier
                         .size(emblemSize + 10.dp)
                         .align(Alignment.Center)
                         .border(
-                            1.5.dp,
-                            Brush.sweepGradient(listOf(
-                                haloColor.copy(alpha = pulseAlpha * 0.7f),
-                                Color.Transparent,
-                                haloColor.copy(alpha = pulseAlpha * 0.7f)
-                            )),
-                            CircleShape
+                            width = 1.5.dp,
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    haloColor.copy(alpha = pulseAlpha * 0.7f),
+                                    Color.Transparent,
+                                    haloColor.copy(alpha = pulseAlpha * 0.7f)
+                                )
+                            ),
+                            shape = CircleShape
                         )
                 )
             }
 
-            // Central emblem
-            Image(
-                painter            = painterResource(virtueInfo.emblemRes),
-                contentDescription = null,
-                modifier           = Modifier
-                    .size(emblemSize)
-                    .align(Alignment.Center)
-                    .graphicsLayer { alpha = emblemAlpha },
-                contentScale       = ContentScale.Fit
-            )
-
-            // Corner sparkles — Icon, no emoji (tier 3+)
-            if (tier >= 3) {
-                val dotIcon   = if (tier >= 5) Icons.Default.EmojiEvents else Icons.Default.Star
-                val dotSize   = if (tier >= 4) 10.dp else 8.dp
-                val dotAlpha  = cornerDotAlpha
-                Icon(dotIcon, null, tint = haloColor.copy(alpha = dotAlpha),
-                    modifier = Modifier.align(Alignment.TopEnd).padding(10.dp).size(dotSize))
-                Icon(dotIcon, null, tint = haloColor.copy(alpha = dotAlpha),
-                    modifier = Modifier.align(Alignment.BottomStart).padding(10.dp).size(dotSize))
-                if (tier >= 4) {
-                    Icon(dotIcon, null, tint = haloColor.copy(alpha = dotAlpha * 0.6f),
-                        modifier = Modifier.align(Alignment.TopStart).padding(28.dp).size(dotSize))
-                    Icon(dotIcon, null, tint = haloColor.copy(alpha = dotAlpha * 0.6f),
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(28.dp).size(dotSize))
-                }
-            }
-
-            // Virtue icon pill — top-left
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(9.dp)
-                    .background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(20.dp))
-                    .padding(7.dp)
-            ) {
+            if (virtueInfo != null) {
                 Image(
                     painter            = painterResource(virtueInfo.emblemRes),
-                    contentDescription = virtue.name,
-                    modifier           = Modifier.size(16.dp)
+                    contentDescription = null,
+                    modifier           = Modifier
+                        .size(emblemSize)
+                        .align(Alignment.Center)
+                        .graphicsLayer { alpha = emblemAlpha },
+                    contentScale       = ContentScale.Fit
                 )
             }
 
-            // Level shown on front card — back stays clean, aura rings show progress
+            if (tier >= 3) {
+                val dotChar = if (tier >= 4) "✦" else "·"
+                val dotSize = if (tier >= 4) 13.sp else 11.sp
+                Text(dotChar, Modifier.align(Alignment.TopEnd).padding(10.dp),
+                    color = haloColor.copy(alpha = cornerDotAlpha), fontSize = dotSize)
+                Text(dotChar, Modifier.align(Alignment.BottomStart).padding(10.dp),
+                    color = haloColor.copy(alpha = cornerDotAlpha), fontSize = dotSize)
+                if (tier >= 4) {
+                    Text(dotChar, Modifier.align(Alignment.TopStart).padding(10.dp),
+                        color = haloColor.copy(alpha = cornerDotAlpha * 0.6f), fontSize = dotSize)
+                    Text(dotChar, Modifier.align(Alignment.BottomEnd).padding(10.dp),
+                        color = haloColor.copy(alpha = cornerDotAlpha * 0.6f), fontSize = dotSize)
+                }
+            }
 
-            // Title — bottom gradient overlay
+            if (virtueInfo != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(9.dp)
+                        .background(color = Color.White.copy(alpha = 0.18f), shape = RoundedCornerShape(20.dp))
+                        .padding(7.dp)
+                ) {
+                    Image(
+                        painter            = painterResource(virtueInfo.emblemRes),
+                        contentDescription = virtue.name,
+                        modifier           = Modifier.size(16.dp)
+                    )
+                }
+            }
+
+            val bondStatus: String
+            val bondTitle: String
+            val lv = pet.bondLevel
+            val earned = when {
+                lv >= 50 -> "Eternal Companion"
+                lv >= 40 -> "Soul Bonded"
+                lv >= 30 -> "Elite Protector"
+                lv >= 25 -> "Bonded Guardian"
+                lv >= 20 -> "Master Companion"
+                lv >= 15 -> "Lifelong Partner"
+                lv >= 10 -> "Loyal Friend"
+                lv >= 5  -> "Trusted Companion"
+                else     -> "New Companion"
+            }
+            val words = earned.split(" ")
+            if (words.size >= 2) {
+                bondStatus = words.first()
+                bondTitle  = words.drop(1).joinToString(" ").uppercase()
+            } else {
+                bondStatus = ""
+                bondTitle  = earned.uppercase()
+            }
+
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f))))
+                    .background(
+                        Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f)))
+                    )
                     .padding(horizontal = 12.dp, vertical = 14.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val words = earnedTitle.split(" ")
-                if (words.size >= 2) {
-                    Text(words.first(), fontSize = 10.sp, fontWeight = FontWeight.Light,
-                        color = Color.White.copy(alpha = 0.70f), textAlign = TextAlign.Center, letterSpacing = 3.sp)
-                    Text(words.drop(1).joinToString(" ").uppercase(), fontSize = 18.sp,
-                        fontWeight = FontWeight.Black, color = Color.White, textAlign = TextAlign.Center,
-                        letterSpacing = (-0.5).sp, lineHeight = 21.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                } else {
-                    Text(earnedTitle.uppercase(), fontSize = 18.sp, fontWeight = FontWeight.Black,
-                        color = Color.White, textAlign = TextAlign.Center, letterSpacing = (-0.5).sp,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (bondStatus.isNotEmpty()) {
+                    Text(
+                        text          = bondStatus,
+                        fontSize      = 10.sp,
+                        fontWeight    = FontWeight.Light,
+                        color         = Color.White.copy(alpha = 0.70f),
+                        textAlign     = TextAlign.Center,
+                        letterSpacing = 3.sp
+                    )
                 }
+                Text(
+                    text          = bondTitle,
+                    fontSize      = 18.sp,
+                    fontWeight    = FontWeight.Black,
+                    color         = Color.White,
+                    textAlign     = TextAlign.Center,
+                    letterSpacing = (-0.5).sp,
+                    lineHeight    = 21.sp,
+                    maxLines      = 1,
+                    overflow      = TextOverflow.Ellipsis
+                )
             }
         }
     }
 }
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Achievements section
@@ -1164,29 +1187,55 @@ private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
 
 @Composable
 private fun SpAchievementsSection(grouped: List<Pair<AchievCategoryDef, List<String>>>) {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp),
-        colors = CardDefaults.cardColors(containerColor =
-            if (grouped.isNotEmpty()) Color(0xFFFFF8E1) else MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(modifier = Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.EmojiEvents, null, tint =
-                    if (grouped.isNotEmpty()) Color(0xFFF9A825) else MaterialTheme.colorScheme.onSurfaceVariant,
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors    = CardDefaults.cardColors(
+            containerColor = if (grouped.isNotEmpty()) Color(0xFFFFF8E1)
+            else MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier            = Modifier.fillMaxWidth().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(Icons.Default.EmojiEvents, null,
+                    tint     = if (grouped.isNotEmpty()) Color(0xFFF9A825)
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp))
-                Text("Achievements", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold,
-                    color = if (grouped.isNotEmpty()) Color(0xFF5D4037) else MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "Achievements",
+                    fontSize   = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color      = if (grouped.isNotEmpty()) Color(0xFF5D4037)
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 if (grouped.isNotEmpty()) {
                     val totalCount = grouped.sumOf { it.second.size }
                     Spacer(Modifier.weight(1f))
                     Surface(shape = RoundedCornerShape(20.dp), color = Color(0xFFF9A825).copy(alpha = 0.20f)) {
-                        Text("$totalCount unlocked", modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                            fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFFF9A825))
+                        Text(
+                            "$totalCount unlocked",
+                            modifier   = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            fontSize   = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = Color(0xFFF9A825)
+                        )
                     }
                 }
             }
 
             if (grouped.isEmpty()) {
-                Text("No achievements unlocked yet.\nComplete tasks and care for your pets to earn badges!",
-                    fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 17.sp)
+                Text(
+                    "No achievements unlocked yet.\nComplete tasks and care for your pets to earn badges!",
+                    fontSize   = 12.sp,
+                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 17.sp
+                )
             } else {
                 grouped.forEachIndexed { index, (category, titles) ->
                     SpAchievCategoryRow(category, titles)
@@ -1202,22 +1251,37 @@ private fun SpAchievementsSection(grouped: List<Pair<AchievCategoryDef, List<Str
 @Composable
 private fun SpAchievCategoryRow(category: AchievCategoryDef, titles: List<String>) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
             Icon(category.icon, null, tint = category.color, modifier = Modifier.size(14.dp))
             Text(category.label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = category.color)
         }
         titles.chunked(2).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { title ->
-                    Surface(modifier = Modifier.weight(1f), shape = RoundedCornerShape(10.dp),
-                        color = category.color.copy(alpha = 0.10f)) {
-                        Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape    = RoundedCornerShape(10.dp),
+                        color    = category.color.copy(alpha = 0.10f)
+                    ) {
+                        Row(
+                            modifier              = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
                             Icon(category.icon, null, tint = category.color, modifier = Modifier.size(14.dp))
-                            Text(title, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = category.color,
-                                maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 13.sp,
-                                modifier = Modifier.weight(1f))
+                            Text(
+                                title,
+                                fontSize   = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color      = category.color,
+                                maxLines   = 2,
+                                overflow   = TextOverflow.Ellipsis,
+                                lineHeight = 13.sp,
+                                modifier   = Modifier.weight(1f)
+                            )
                         }
                     }
                 }

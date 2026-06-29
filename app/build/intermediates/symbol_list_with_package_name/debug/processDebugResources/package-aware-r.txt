@@ -2952,6 +2952,8 @@ drawable abc_textfield_search_material
 drawable abc_vector_test
 drawable avd_hide_password
 drawable avd_show_password
+drawable bolt
+drawable bookmark
 drawable btn_checkbox_checked_mtrl
 drawable btn_checkbox_checked_to_unchecked_mtrl_animation
 drawable btn_checkbox_unchecked_mtrl
@@ -2960,6 +2962,8 @@ drawable btn_radio_off_mtrl
 drawable btn_radio_off_to_on_mtrl_animation
 drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
+drawable camera
+drawable check
 drawable common_full_open_on_phone
 drawable common_google_signin_btn_icon_dark
 drawable common_google_signin_btn_icon_dark_focused
@@ -2979,6 +2983,7 @@ drawable common_google_signin_btn_text_light
 drawable common_google_signin_btn_text_light_focused
 drawable common_google_signin_btn_text_light_normal
 drawable common_google_signin_btn_text_light_normal_background
+drawable compass
 drawable compassion
 drawable courage
 drawable design_fab_background
@@ -2990,8 +2995,12 @@ drawable diligence
 drawable empty_achievements
 drawable empty_collection
 drawable empty_tasks
+drawable event
+drawable explore
+drawable flame
 drawable googleg_disabled_color_18
 drawable googleg_standard_color_18
+drawable heart
 drawable ic_arrow_back_black_24
 drawable ic_bondpoints
 drawable ic_call_answer
@@ -3018,6 +3027,7 @@ drawable ic_search_black_24
 drawable ic_streak
 drawable ic_verified
 drawable indeterminate_static
+drawable lock
 drawable m3_avd_hide_password
 drawable m3_avd_show_password
 drawable m3_bottom_sheet_drag_handle
@@ -3039,6 +3049,7 @@ drawable material_ic_keyboard_arrow_previous_black_24dp
 drawable material_ic_keyboard_arrow_right_black_24dp
 drawable material_ic_menu_arrow_down_black_24dp
 drawable material_ic_menu_arrow_up_black_24dp
+drawable medal
 drawable mtrl_bottomsheet_drag_handle
 drawable mtrl_checkbox_button
 drawable mtrl_checkbox_button_checked_unchecked
@@ -3090,11 +3101,16 @@ drawable notification_template_icon_bg
 drawable notification_template_icon_low_bg
 drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
+drawable paw
+drawable pets
 drawable profile_banner
+drawable shield
+drawable star
 drawable temperance
 drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
+drawable trophy
 drawable verification_success
 drawable wisdom
 font nunito_bold
