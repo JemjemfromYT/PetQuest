@@ -4,24 +4,7 @@
             "outputFile": "com.example.petquest.test.app-mergeDebugAndroidTestResources-34:/values-ms/values-ms.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\3e1f71dba7562e6ed135392ab67ab346\\workspace\\transformed\\core-1.13.1\\res\\values-ms\\values-ms.xml",
-                    "from": {
-                        "startLines": "2,3,4,5,6,7,8,9",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,150,252,349,459,565,683,798",
-                        "endColumns": "94,101,96,109,105,117,114,100",
-                        "endOffsets": "145,247,344,454,560,678,793,894"
-                    },
-                    "to": {
-                        "startLines": "2,3,4,5,6,7,8,24",
-                        "startColumns": "4,4,4,4,4,4,4,4",
-                        "startOffsets": "105,200,302,399,509,615,733,2121",
-                        "endColumns": "94,101,96,109,105,117,114,100",
-                        "endOffsets": "195,297,394,504,610,728,843,2217"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\e30ad74d0cebb2a0e3b7c2db84dd94b8\\workspace\\transformed\\ui-release\\res\\values-ms\\values-ms.xml",
+                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\89acec335d85c47c01e976f5b893ea23\\workspace\\transformed\\ui-release\\res\\values-ms\\values-ms.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -35,6 +18,23 @@
                         "startOffsets": "848,938,1022,1118,1220,1305,1388,1483,1570,1655,1740,1826,1898,1975,2048,2222,2298,2364",
                         "endColumns": "89,83,95,101,84,82,94,86,84,84,85,71,76,72,72,75,65,119",
                         "endOffsets": "933,1017,1113,1215,1300,1383,1478,1565,1650,1735,1821,1893,1970,2043,2116,2293,2359,2479"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\almar\\.gradle\\caches\\9.2.1\\transforms\\3e314942d6a613a2f7cf1d4706d5ef33\\workspace\\transformed\\core-1.13.1\\res\\values-ms\\values-ms.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,150,252,349,459,565,683,798",
+                        "endColumns": "94,101,96,109,105,117,114,100",
+                        "endOffsets": "145,247,344,454,560,678,793,894"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,24",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "105,200,302,399,509,615,733,2121",
+                        "endColumns": "94,101,96,109,105,117,114,100",
+                        "endOffsets": "195,297,394,504,610,728,843,2217"
                     }
                 }
             ]

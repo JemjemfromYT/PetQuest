@@ -128,7 +128,7 @@ class SupabaseRepository(private val appContext: Context) {
 
             val body    = "{}".toRequestBody("application/json".toMediaType())
             val request = Request.Builder()
-                .url("$SUPABASE_URL/auth/v1/token?grant_type=anonymous")
+                .url("$SUPABASE_URL/auth/v1/signup")
                 .addHeader("apikey", SUPABASE_ANON_KEY)
                 .addHeader("Content-Type", "application/json")
                 .post(body)
