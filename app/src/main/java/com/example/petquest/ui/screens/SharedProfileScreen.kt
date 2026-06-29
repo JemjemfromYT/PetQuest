@@ -421,7 +421,8 @@ private fun SpProfileContent(profile: PublicProfile) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 SpStatCard(Modifier.weight(1f), "${profile.bondPoints}", "Total Bond Pts",
                     Color(0xFF1B5E20), Color(0xFFE8F5E9))
-                SpStatCard(Modifier.weight(1f), "${profile.petCount}", "Active Pets",
+                // SYNC: count live-filtered verified pets, NOT stale DB pet_count
+                SpStatCard(Modifier.weight(1f), "${profile.pets.count { it.isVerified }}", "Active Pets",
                     Color(0xFF4A148C), Color(0xFFF3E5F5))
             }
         }
@@ -438,7 +439,8 @@ private fun SpProfileContent(profile: PublicProfile) {
         }
         if (profile.pets.isNotEmpty()) {
             item {
-                Text("My Pets (${profile.petCount})", fontSize = 16.sp,
+                // SYNC: count live-filtered verified pets, NOT stale DB pet_count
+                Text("My Pets (${profile.pets.count { it.isVerified }})", fontSize = 16.sp,
                     fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp))
             }
             item { SpPetsGrid(profile.pets) }
