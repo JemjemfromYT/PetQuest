@@ -141,16 +141,11 @@ fun ProfileScreen(
         unlockedBadgeTitles = allAchievements.filter { it.isUnlocked }.map { it.title }
     )
 
+    // ── Background sync: runs in viewModelScope so navigation can't cancel it ──
     LaunchedEffect(pets.size, allAchievements.count { it.isUnlocked }) {
         kotlinx.coroutines.delay(800)
         if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
-            isSyncing = true
-            try {
-                firebaseRepository.pushProfile(buildCurrentProfile())
-            } catch (_: Exception) {
-            } finally {
-                isSyncing = false
-            }
+            viewModel.syncProfileToFirebase()
         }
     }
 
@@ -158,17 +153,8 @@ fun ProfileScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                scope.launch {
-                    kotlinx.coroutines.delay(500)
-                    if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
-                        isSyncing = true
-                        try {
-                            firebaseRepository.pushProfile(buildCurrentProfile())
-                        } catch (_: Exception) {
-                        } finally {
-                            isSyncing = false
-                        }
-                    }
+                if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
+                    viewModel.syncProfileToFirebase()
                 }
             }
         }
@@ -240,8 +226,9 @@ fun ProfileScreen(
                     var uid: String? = null
                     try { uid = firebaseRepository.ensureSignedIn() } catch (_: Exception) {}
 
-                    // STEP 2: Upload photos and save profile to Firestore (best-effort).
-                    try { firebaseRepository.pushProfile(profile) } catch (_: Exception) {}
+                    // STEP 2: Upload photos + push to Firestore in viewModelScope
+                    // (not cancelled if user dismisses the share sheet mid-upload).
+                    viewModel.syncProfileToFirebase()
 
                     val shareLink = if (uid != null) {
                         "https://jemjemfromyt.github.io/PetQuest/share.html?uid=$uid"
