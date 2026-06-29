@@ -8,18 +8,9 @@
 ║    • ProfileScreen.kt  → Profile tab (owner's own profile)                  ║
 ║    • SharedProfileScreen.kt → shared/public Trainer Profile view            ║
 ║                                                                              ║
-║  RULES — if you change one, change all:                                     ║
-║   1. ONLY verified pets are shown (isVerified === true / pet.isVerified)     ║
-║   2. Pet count header = verified-only count                                  ║
-║   3. Card FRONT:  photo (or species emoji) + rarity bar + name + rarity      ║
-║         chip + Lv.N  — NO tier star or level badge                           ║
-║   4. Card BACK:   virtue image (large) + bond status + virtue title          ║
-║         — NO LV.XX badge on back; animated aura/rings are app-only           ║
-║   5. Bond status / title thresholds must match bondInfo() in this file       ║
-║         and the app's earnedTitle / bondStatus logic in SharedProfileScreen  ║
-║   6. Achievements categories & titles must match ACHIEV_CATEGORIES here      ║
-║         and the app's achievement definitions                                ║
-║   7. Species-collected count and total (29) must match PetType.entries.size ║
+║  CHANGES in this version:                                                   ║
+║   1. Default theme is now LIGHT MODE                                        ║
+║   2. Tab icons use PNG images instead of emoji                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 -->
 <html lang="en">
@@ -29,11 +20,19 @@
     <title>PetQuest – Trainer Profile</title>
     <style>
         *{box-sizing:border-box;margin:0;padding:0}
+
+        /* ── Light mode (default) ── */
         :root{
-            --bg:#0f1525;--card:#1a2035;--card2:#141b2d;
-            --or:#f97316;--or2:#fb923c;--txm:#94a3b8;
+            --bg:#f5f7fa;
+            --card:#ffffff;
+            --card2:#eef1f6;
+            --or:#f97316;--or2:#fb923c;
+            --txm:#6b7280;
+            --text:#111827;
+            --border:rgba(0,0,0,.08);
         }
-        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+
+        body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center}
 
         /* Loading */
         #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100vh;width:100%}
@@ -43,7 +42,7 @@
 
         /* Error */
         #error{display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:100vh;width:100%;text-align:center;padding:24px}
-        #error h2{font-size:20px;font-weight:700}
+        #error h2{font-size:20px;font-weight:700;color:var(--text)}
         #errmsg{font-size:14px;color:var(--txm)}
 
         #profile{display:none;width:100%;max-width:480px;padding-bottom:48px}
@@ -53,14 +52,14 @@
         .topbar-title{font-size:20px;font-weight:900;color:#fff;letter-spacing:-.2px}
 
         /* Trainer hero */
-        .trainer-hero{background:var(--card2);padding:20px;display:flex;align-items:center;gap:16px;position:relative}
+        .trainer-hero{background:var(--card2);padding:20px;display:flex;align-items:center;gap:16px;position:relative;border-bottom:1px solid var(--border)}
         .trainer-avatar{width:64px;height:64px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--or),var(--or2));display:flex;align-items:center;justify-content:center;position:relative}
         .trainer-avatar img{width:30px;height:30px;object-fit:contain;filter:brightness(0) invert(1)}
         .trainer-lvbadge{position:absolute;bottom:-2px;right:-2px;background:#7c3aed;color:#fff;border-radius:50%;width:22px;height:22px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--card2)}
-        .trainer-name{font-size:22px;font-weight:800;color:#fff}
+        .trainer-name{font-size:22px;font-weight:800;color:var(--text)}
         .trainer-sub{font-size:13px;color:var(--txm);margin-top:3px}
 
-        /* Stats strip — always visible above tabs */
+        /* Stats strip */
         .stats-strip{padding:14px 14px 0;display:flex;flex-direction:column;gap:10px}
 
         /* Level card */
@@ -75,11 +74,11 @@
 
         /* Mini stats row */
         .mini-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-        .mini-stat{background:var(--card);border-radius:12px;padding:12px 10px;text-align:center}
+        .mini-stat{background:var(--card);border-radius:12px;padding:12px 10px;text-align:center;border:1px solid var(--border)}
         .mini-stat-val{font-size:20px;font-weight:900}
         .mini-stat-lbl{font-size:10px;font-weight:600;color:var(--txm);margin-top:2px}
-        .mini-stat.bond  .mini-stat-val{color:#22c55e}
-        .mini-stat.pets  .mini-stat-val{color:#a855f7}
+        .mini-stat.bond  .mini-stat-val{color:#16a34a}
+        .mini-stat.pets  .mini-stat-val{color:#7c3aed}
         .mini-stat.streak .mini-stat-val{color:#f97316}
 
         /* Species bar */
@@ -93,11 +92,12 @@
         .spbar{height:5px;border-radius:99px;background:#fff;transition:width .5s}
 
         /* Tab nav */
-        .tab-nav{position:sticky;top:0;z-index:10;background:var(--bg);padding:12px 14px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-        .tab-nav-inner{display:flex;gap:4px;background:var(--card2);border-radius:12px;padding:4px}
+        .tab-nav{position:sticky;top:0;z-index:10;background:var(--bg);padding:12px 14px 0;border-bottom:1px solid var(--border)}
+        .tab-nav-inner{display:flex;gap:4px;background:var(--card2);border-radius:12px;padding:4px;border:1px solid var(--border)}
         .tab-btn{flex:1;padding:9px 6px;border:none;background:transparent;color:var(--txm);font-size:12px;font-weight:700;border-radius:9px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.01em}
-        .tab-btn .tab-icon{font-size:16px;line-height:1}
-        .tab-btn.active{background:var(--or);color:#fff;box-shadow:0 2px 10px rgba(249,115,22,.4)}
+        .tab-icon-img{width:20px;height:20px;object-fit:contain;display:block}
+        .tab-btn.active{background:var(--or);color:#fff;box-shadow:0 2px 10px rgba(249,115,22,.35)}
+        .tab-btn.active .tab-icon-img{filter:brightness(0) invert(1)}
 
         /* Tab panels */
         .tab-panel{display:none;padding:14px 14px 0;flex-direction:column;gap:12px}
@@ -105,7 +105,7 @@
 
         /* My Pets panel */
         .pets-header{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
-        .pets-title{font-size:17px;font-weight:800;color:#fff}
+        .pets-title{font-size:17px;font-weight:800;color:var(--text)}
         .pets-hint{font-size:12px;color:var(--txm);margin-bottom:10px}
         .pets-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
         .pets-empty{text-align:center;padding:40px 20px;color:var(--txm);font-size:14px;line-height:1.6}
@@ -118,12 +118,12 @@
         .flip-back{transform:rotateY(180deg)}
 
         /* Pet card front */
-        .pet-front{background:var(--card);display:flex;flex-direction:column}
+        .pet-front{background:var(--card);display:flex;flex-direction:column;border:1px solid var(--border)}
         .pet-photo{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--card2)}
         .pet-photo-placeholder{width:100%;aspect-ratio:1;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:48px}
         .pet-rarity-bar{height:5px;width:100%;flex-shrink:0}
         .pet-info{padding:10px 12px 12px}
-        .pet-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
+        .pet-name{font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
         .pet-row{display:flex;align-items:center;justify-content:space-between}
         .pet-rarity-chip{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
         .pet-lv{font-size:13px;font-weight:800}
@@ -136,9 +136,9 @@
 
         /* Achievements panel */
         .section-head{display:flex;align-items:center;justify-content:space-between}
-        .section-title{font-size:17px;font-weight:800;color:#fff}
-        .count-pill{font-size:11px;font-weight:800;padding:4px 12px;border-radius:99px;background:rgba(249,168,37,.18);color:#F9A825;border:1px solid rgba(249,168,37,.3)}
-        .ach-cat-block{background:var(--card);border-radius:14px;padding:14px 14px 10px}
+        .section-title{font-size:17px;font-weight:800;color:var(--text)}
+        .count-pill{font-size:11px;font-weight:800;padding:4px 12px;border-radius:99px;background:rgba(249,168,37,.15);color:#b45309;border:1px solid rgba(249,168,37,.3)}
+        .ach-cat-block{background:var(--card);border-radius:14px;padding:14px 14px 10px;border:1px solid var(--border)}
         .ach-cat-row{display:flex;align-items:center;gap:7px;margin-bottom:10px}
         .ach-cat-icon{font-size:17px}
         .ach-cat-name{font-size:13px;font-weight:800;flex:1}
@@ -153,13 +153,13 @@
         .ev-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
         .ev-item{background:var(--card);border:1px solid rgba(249,115,22,.18);border-radius:14px;padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
         .ev-emoji{font-size:34px;line-height:1}
-        .ev-name{color:#fb923c;font-weight:800;font-size:12px;line-height:1.3}
+        .ev-name{color:#ea580c;font-weight:800;font-size:12px;line-height:1.3}
         .ev-type{color:var(--txm);font-size:11px;font-weight:500}
 
         /* CTA */
-        .cta-footer{background:var(--card);border-radius:14px;padding:18px;text-align:center;margin:14px 14px 0}
-        .cta-msg{font-size:14px;font-weight:600;margin-bottom:14px;color:#aaa}
-        .openbtn{display:block;width:100%;background:#4CAF50;color:#fff;font-size:16px;font-weight:800;text-align:center;padding:16px;border-radius:14px;text-decoration:none}
+        .cta-footer{background:var(--card);border-radius:14px;padding:18px;text-align:center;margin:14px 14px 0;border:1px solid var(--border)}
+        .cta-msg{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--txm)}
+        .openbtn{display:block;width:100%;background:#16a34a;color:#fff;font-size:16px;font-weight:800;text-align:center;padding:16px;border-radius:14px;text-decoration:none}
         .shint{font-size:12px;color:var(--txm);margin-top:10px}
     </style>
 </head>
@@ -202,28 +202,28 @@
     };
 
     const ACHIEV_CATEGORIES = [
-        { label:'First Steps',     icon:'🐾', color:'#2E7D32', bg:'rgba(46,125,50,.12)',
+        { label:'First Steps',     icon:'🐾', color:'#2E7D32', bg:'rgba(46,125,50,.10)',
           titles:['First Pet','First Verification','Pet Lover','Own 5 Pets','Own 10 Pets','Verify 3 Pets','Verify 5 Pets','Verify 10 Pets'] },
-        { label:'Streak',          icon:'🔥', color:'#E65100', bg:'rgba(230,81,0,.12)',
+        { label:'Streak',          icon:'🔥', color:'#E65100', bg:'rgba(230,81,0,.10)',
           titles:['3-Day Streak','7-Day Streak','14-Day Streak','30-Day Streak','60-Day Streak','100-Day Streak'] },
-        { label:'Tasks',           icon:'✅', color:'#1565C0', bg:'rgba(21,101,192,.12)',
+        { label:'Tasks',           icon:'✅', color:'#1565C0', bg:'rgba(21,101,192,.10)',
           titles:['Complete 10 Tasks','Complete 25 Tasks','Complete 50 Tasks','Complete 100 Tasks','Complete 250 Tasks','Complete 500 Tasks'] },
-        { label:'Bond Points',     icon:'⭐', color:'#F9A825', bg:'rgba(249,168,37,.12)',
+        { label:'Bond Points',     icon:'⭐', color:'#b45309', bg:'rgba(180,83,9,.10)',
           titles:['Earn 100 Bond Points','Earn 250 Bond Points','Earn 500 Bond Points','Earn 1000 Bond Points','Earn 2500 Bond Points','Earn 5000 Bond Points'] },
-        { label:'Pet Bond Level',  icon:'🏆', color:'#6A1B9A', bg:'rgba(106,27,154,.12)',
+        { label:'Pet Bond Level',  icon:'🏆', color:'#6A1B9A', bg:'rgba(106,27,154,.10)',
           titles:['Bond Master','Bond Veteran','Level 10 Companion','Virtue Master','Dedicated Caregiver','Elite Trainer'] },
-        { label:'Trainer Level',   icon:'🌟', color:'#BF360C', bg:'rgba(191,54,12,.12)',
+        { label:'Trainer Level',   icon:'🌟', color:'#BF360C', bg:'rgba(191,54,12,.10)',
           titles:['Reach Level 10','Reach Level 20','Reach Level 30','Reach Level 50'] },
-        { label:'Species & Rarity',icon:'🧭', color:'#00695C', bg:'rgba(0,105,92,.12)',
+        { label:'Species & Rarity',icon:'🧭', color:'#00695C', bg:'rgba(0,105,92,.10)',
           titles:['Species Collector','Animal Explorer','Master Explorer','Rarity Hunter','Epic Tamer'] },
     ];
 
     function rarityColor(r) {
         switch((r||'').toUpperCase()) {
             case 'COMMON':    return '#9E9E9E';
-            case 'UNCOMMON':  return '#22c55e';
-            case 'RARE':      return '#3b82f6';
-            case 'EPIC':      return '#a855f7';
+            case 'UNCOMMON':  return '#16a34a';
+            case 'RARE':      return '#2563eb';
+            case 'EPIC':      return '#7c3aed';
             case 'LEGENDARY': return '#f97316';
             default:          return '#9E9E9E';
         }
@@ -335,10 +335,10 @@
                     const bond   = bondInfo(pet.bondLevel);
                     const vKey   = (pet.virtue||'').toLowerCase();
                     const vc     = VIRTUE_CFG[vKey] || VIRTUE_CFG[VIRTUE_FALLBACK[idx % VIRTUE_FALLBACK.length]];
-                    const lvColor = pet.rarity?.toUpperCase() === 'RARE'      ? '#60a5fa'
-                                  : pet.rarity?.toUpperCase() === 'EPIC'      ? '#c084fc'
-                                  : pet.rarity?.toUpperCase() === 'LEGENDARY' ? '#fb923c'
-                                  : '#f59e0b';
+                    const lvColor = pet.rarity?.toUpperCase() === 'RARE'      ? '#2563eb'
+                                  : pet.rarity?.toUpperCase() === 'EPIC'      ? '#7c3aed'
+                                  : pet.rarity?.toUpperCase() === 'LEGENDARY' ? '#f97316'
+                                  : '#d97706';
                     return `
                     <div class="flip-wrap" onclick="this.classList.toggle('flipped')" id="flip-${idx}">
                         <div class="flip-inner">
@@ -351,7 +351,7 @@
                                 <div class="pet-info">
                                     <div class="pet-name">${pet.name||'Unknown'}</div>
                                     <div class="pet-row">
-                                        <span class="pet-rarity-chip" style="background:${rc}22;color:${rc}">${rarity}</span>
+                                        <span class="pet-rarity-chip" style="background:${rc}18;color:${rc}">${rarity}</span>
                                         <span class="pet-lv" style="color:${lvColor}">Lv.${pet.bondLevel??1}</span>
                                     </div>
                                 </div>
@@ -455,13 +455,16 @@
             <div class="tab-nav">
                 <div class="tab-nav-inner">
                     <button class="tab-btn active" onclick="switchTab('pets',this)">
-                        <span class="tab-icon">🐾</span>My Pets
+                        <img src="${ICON_BASE}paw.png" alt="pets" class="tab-icon-img">
+                        My Pets
                     </button>
                     <button class="tab-btn" onclick="switchTab('achievements',this)">
-                        <span class="tab-icon">🏆</span>Achievements
+                        <img src="${ICON_BASE}trophy.png" alt="achievements" class="tab-icon-img">
+                        Achievements
                     </button>
                     <button class="tab-btn" onclick="switchTab('events',this)">
-                        <span class="tab-icon">🎉</span>Events
+                        <img src="${ICON_BASE}event.png" alt="events" class="tab-icon-img">
+                        Events
                     </button>
                 </div>
             </div>

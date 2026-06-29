@@ -1,3 +1,9 @@
+// HOW TO APPLY: Open ProfileScreen.kt → Ctrl+A → Delete → Paste this entire file
+// CHANGES from original:
+//   1. Tab icons replaced — emoji text removed, PNG icons added (paw / trophy / event)
+//      If build fails with "unresolved reference: paw/trophy/event", copy the matching
+//      PNG files from docs/icons/ into app/src/main/res/drawable/ with those exact names.
+
 // ╔══════════════════════════════════════════════════════════════════════════════╗
 // ║  ⚠️  SYNC CONTRACT — READ BEFORE EDITING  ⚠️                                ║
 // ║                                                                              ║
@@ -278,16 +284,13 @@ fun ProfileScreen(
     }
 
     // ── Hidden admin sequence state (silent, zero visual feedback) ──────────────
-    // Step 1: tap "Total Bond Pts" label 3x  →  Step 2: tap "Active Pets" label 3x
-    // Must complete both steps within 8 seconds. No hint is ever shown.
-    var hiddenStep     by remember { mutableIntStateOf(0) }   // 0 = idle, 1 = step-1 in progress
-    var hiddenTapA     by remember { mutableIntStateOf(0) }   // taps on Bond Pts label
-    var hiddenTapB     by remember { mutableIntStateOf(0) }   // taps on Active Pets label
-    var hiddenStepMs   by remember { mutableLongStateOf(0L) } // time step-1 started
+    var hiddenStep     by remember { mutableIntStateOf(0) }
+    var hiddenTapA     by remember { mutableIntStateOf(0) }
+    var hiddenTapB     by remember { mutableIntStateOf(0) }
+    var hiddenStepMs   by remember { mutableLongStateOf(0L) }
 
     fun onBondCardTap() {
         val now = System.currentTimeMillis()
-        // Reset if timed out while waiting for step 2
         if (hiddenStep == 1 && now - hiddenStepMs > 12000L) {
             hiddenStep = 0; hiddenTapA = 0; hiddenTapB = 0
         }
@@ -296,7 +299,6 @@ fun ProfileScreen(
             if (hiddenTapA == 1) hiddenStepMs = System.currentTimeMillis()
             if (hiddenTapA >= 3) {
                 hiddenStep = 1; hiddenTapA = 0
-                // Silent haptic pulse — you feel it, nobody sees it
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             }
         }
@@ -356,11 +358,9 @@ fun ProfileScreen(
                 try {
                     val profile = buildCurrentProfile()
 
-                    // STEP 1: Sign in FIRST to lock in the uid.
                     var uid: String? = null
                     try { uid = supabaseRepository.ensureSignedIn() } catch (_: Exception) {}
 
-                    // STEP 2: Upload photos + push to Firestore in viewModelScope
                     viewModel.syncProfileToFirebase()
 
                     val shareLink = if (uid != null) {
@@ -682,7 +682,7 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Species collected (always visible, navigates to collection) ────
+            // ── Species collected ──────────────────────────────────────────────
             item {
                 Card(
                     modifier  = Modifier.fillMaxWidth().clickable { onNavigateToCollection() },
@@ -753,7 +753,7 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Tab row ────────────────────────────────────────────────────────
+            // ── Tab row — PNG icons instead of emoji ───────────────────────────
             item {
                 TabRow(
                     selectedTabIndex = selectedTab,
@@ -763,17 +763,41 @@ fun ProfileScreen(
                     Tab(
                         selected = selectedTab == 0,
                         onClick  = { selectedTab = 0 },
-                        text     = { Text("🐾 My Pets", fontSize = 12.sp, maxLines = 1) }
+                        icon = {
+                            Image(
+                                painter            = painterResource(R.drawable.paw),
+                                contentDescription = null,
+                                modifier           = Modifier.size(20.dp),
+                                contentScale       = ContentScale.Fit
+                            )
+                        },
+                        text = { Text("My Pets", fontSize = 11.sp, maxLines = 1) }
                     )
                     Tab(
                         selected = selectedTab == 1,
                         onClick  = { selectedTab = 1 },
-                        text     = { Text("🏆 Achievements", fontSize = 12.sp, maxLines = 1) }
+                        icon = {
+                            Image(
+                                painter            = painterResource(R.drawable.trophy),
+                                contentDescription = null,
+                                modifier           = Modifier.size(20.dp),
+                                contentScale       = ContentScale.Fit
+                            )
+                        },
+                        text = { Text("Achievements", fontSize = 11.sp, maxLines = 1) }
                     )
                     Tab(
                         selected = selectedTab == 2,
                         onClick  = { selectedTab = 2 },
-                        text     = { Text("🎉 Events", fontSize = 12.sp, maxLines = 1) }
+                        icon = {
+                            Image(
+                                painter            = painterResource(R.drawable.event),
+                                contentDescription = null,
+                                modifier           = Modifier.size(20.dp),
+                                contentScale       = ContentScale.Fit
+                            )
+                        },
+                        text = { Text("Events", fontSize = 11.sp, maxLines = 1) }
                     )
                 }
             }
@@ -782,7 +806,7 @@ fun ProfileScreen(
             item {
                 when (selectedTab) {
 
-                    // ── 🐾 My Pets ─────────────────────────────────────────────
+                    // ── My Pets ─────────────────────────────────────────────
                     0 -> {
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Row(
@@ -836,12 +860,12 @@ fun ProfileScreen(
                         }
                     }
 
-                    // ── 🏆 Achievements ────────────────────────────────────────
+                    // ── Achievements ────────────────────────────────────────
                     1 -> {
                         PsAchievementsSection(groupedAchievs)
                     }
 
-                    // ── 🎉 Events ──────────────────────────────────────────────
+                    // ── Events ──────────────────────────────────────────────
                     2 -> {
                         EventBadgesSection(eventBadges = eventBadges)
                     }
@@ -865,7 +889,7 @@ fun ProfileScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Achievements section (own profile — mirrors SharedProfileScreen)
+// Achievements section
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -1285,9 +1309,6 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
 @Composable
 private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
 
-    // ── Visual tier by bond level ─────────────────────────────────────────────
-    // 0 = plain | 1 = silver(5+) | 2 = sapphire(10+) | 3 = gold(20+)
-    // 4 = prism(30+) | 5 = legendary(50+)
     val tier = when {
         pet.bondLevel >= 50 -> 5
         pet.bondLevel >= 30 -> 4
@@ -1319,7 +1340,6 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
         else -> Color(0xFFFF6D00)
     }
 
-    // Pulse animation for tier 3+
     val infiniteTransition = rememberInfiniteTransition(label = "pulse_${pet.id}")
     val pulseAlpha by infiniteTransition.animateFloat(
         initialValue  = if (tier >= 3) 0.65f else 1f,
@@ -1337,7 +1357,6 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
         else       -> Brush.linearGradient(borderColors)
     }
 
-    // Stripe gradient: blends tier accent into rarity color
     val stripeColors = if (borderColors.isNotEmpty())
         listOf(borderColors.first(), rarityColor, borderColors.last())
     else
@@ -1352,7 +1371,6 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
             modifier            = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top stripe — grows with tier, uses accent colors
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1395,7 +1413,6 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
                         }
                     }
 
-                    // Top-right corner: verified check + tier icon stacked
                     Column(
                         modifier            = Modifier.padding(3.dp),
                         horizontalAlignment = Alignment.End,
@@ -1438,7 +1455,6 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
                             color      = rarityColor
                         )
                     }
-                    // Lv. text color matches tier accent
                     Text(
                         "Lv.${pet.bondLevel}",
                         fontSize   = 12.sp,
@@ -1467,7 +1483,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
         Virtue.COMPASSION -> Triple(Color(0xFF880E4F), Color(0xFFC2185B), Color(0xFFEC407A))
     }
 
-    // Tier matches front card logic
     val tier = when {
         pet.bondLevel >= 50 -> 5
         pet.bondLevel >= 30 -> 4
@@ -1477,7 +1492,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
         else                -> 0
     }
 
-    // Halo / aura color: white-tinted accent based on virtue + tier brightness
     val haloColor = when (tier) {
         0, 1 -> Color.White
         2    -> Color(0xFF90CAF9)
@@ -1486,7 +1500,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
         else -> Color(0xFFFF8A65)
     }
 
-    // Emblem visibility scales with level
     val emblemAlpha = when {
         pet.bondLevel >= 50 -> 0.55f
         pet.bondLevel >= 30 -> 0.42f
@@ -1503,7 +1516,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
         else                -> 140.dp
     }
 
-    // Pulse for tier 2+
     val infiniteTransition = rememberInfiniteTransition(label = "backpulse_${pet.id}")
     val pulseAlpha by infiniteTransition.animateFloat(
         initialValue  = if (tier >= 2) 0.4f else 1f,
@@ -1515,7 +1527,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
         label = "bp"
     )
 
-    // Corner dot size grows with tier
     val cornerDotAlpha = if (tier >= 3) pulseAlpha * 0.7f else 0f
 
     Card(
@@ -1529,7 +1540,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 .background(Brush.verticalGradient(listOf(gradStart, gradMid, gradEnd)))
         ) {
 
-            // ── Outer aura ring (tier 2+) ──────────────────────────────────────
             if (tier >= 2) {
                 Box(
                     modifier = Modifier
@@ -1547,7 +1557,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 )
             }
 
-            // ── Second outer ring for tier 4+ ─────────────────────────────────
             if (tier >= 4) {
                 Box(
                     modifier = Modifier
@@ -1567,7 +1576,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 )
             }
 
-            // ── Inner ring circle (tier 3+) ────────────────────────────────────
             if (tier >= 3) {
                 Box(
                     modifier = Modifier
@@ -1587,7 +1595,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 )
             }
 
-            // ── Central emblem — larger and more visible at higher levels ──────
             Image(
                 painter            = painterResource(virtueInfo.emblemRes),
                 contentDescription = null,
@@ -1598,7 +1605,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 contentScale       = ContentScale.Fit
             )
 
-            // ── Corner sparkle dots (tier 3+) ──────────────────────────────────
             if (tier >= 3) {
                 val dotChar = if (tier >= 5) "✦" else if (tier >= 4) "✦" else "·"
                 val dotSize = if (tier >= 4) 13.sp else 11.sp
@@ -1614,7 +1620,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 }
             }
 
-            // ── Small virtue icon pill — top-left ─────────────────────────────
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -1632,9 +1637,6 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                 )
             }
 
-            // Level shown on front card — back stays clean, aura rings show progress
-
-            // ── Title text — bottom center ─────────────────────────────────────
             val earnedTitle: String = when {
                 pet.bondLevel >= 50 -> "Eternal Companion"
                 pet.bondLevel >= 40 -> "Soul Bonded"

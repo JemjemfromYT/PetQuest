@@ -1,12 +1,8 @@
-// app/src/main/java/com/example/petquest/MainActivity.kt
-// HOW TO APPLY: Open this file → Ctrl+A → Delete → Paste this entire file
+// HOW TO APPLY: Open MainActivity.kt → Ctrl+A → Delete → Paste this entire file
 // CHANGES from original:
-//   1. PetQuestViewModelFactory now receives app.supabaseRepository (was missing)
-//   2. SharedProfileScreen call: firebaseRepository → supabaseRepository
-//   3. ProfileScreen call: firebaseRepository → supabaseRepository
-//
-// ⚠️ IMPORTANT: You MUST also delete FirebaseRepository.kt before building!
-//    Right-click FirebaseRepository.kt → Delete → OK
+//   1. ThemeManager initialized from SharedPreferences on startup (default: LIGHT)
+//   2. PetQuestTheme now driven by ThemeManager.themeMode (Light/Dark/Auto)
+//   3. All previous fixes (supabaseRepository wiring) preserved
 
 package com.example.petquest
 
@@ -16,6 +12,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -45,10 +42,20 @@ class MainActivity : ComponentActivity() {
         SoundManager.musicEnabled = prefs.getBoolean("music_enabled", true)
         SoundManager.sfxEnabled   = prefs.getBoolean("sfx_enabled",   true)
 
+        // Load saved theme (default: LIGHT)
+        ThemeManager.themeMode = prefs.getString("theme_mode", "LIGHT") ?: "LIGHT"
+
         handleIncomingIntent(intent)
 
         setContent {
-            PetQuestTheme {
+            // Recompose automatically when ThemeManager.themeMode changes
+            val darkTheme = when (ThemeManager.themeMode) {
+                "DARK"  -> true
+                "LIGHT" -> false
+                else    -> isSystemInDarkTheme()  // "AUTO"
+            }
+
+            PetQuestTheme(darkTheme = darkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color    = MaterialTheme.colorScheme.background
@@ -58,7 +65,7 @@ class MainActivity : ComponentActivity() {
                         factory = PetQuestViewModelFactory(
                             app.petRepository,
                             app.userPreferencesRepository,
-                            app.supabaseRepository          // FIX 1: was missing
+                            app.supabaseRepository
                         )
                     )
 
@@ -154,7 +161,7 @@ class MainActivity : ComponentActivity() {
                             val app2 = LocalContext.current.applicationContext as PetQuestApplication
                             SharedProfileScreen(
                                 uid                = uid,
-                                supabaseRepository = app2.supabaseRepository,  // FIX 2
+                                supabaseRepository = app2.supabaseRepository,
                                 onBackClick        = { nav.navigateUp() }
                             )
                         }
@@ -274,7 +281,7 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
                 4 -> EventsScreen(viewModel = viewModel)
                 5 -> ProfileScreen(
                     viewModel              = viewModel,
-                    supabaseRepository     = (LocalContext.current.applicationContext as PetQuestApplication).supabaseRepository,  // FIX 3
+                    supabaseRepository     = (LocalContext.current.applicationContext as PetQuestApplication).supabaseRepository,
                     onAddPetClick          = { outerNav.navigate("add_more_pet") },
                     onAdminClick           = { outerNav.navigate("admin") },
                     onNavigateToCollection = { tab = 2 }

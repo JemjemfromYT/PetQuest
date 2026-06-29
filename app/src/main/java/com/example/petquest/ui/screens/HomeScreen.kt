@@ -1,3 +1,8 @@
+// HOW TO APPLY: Open HomeScreen.kt → Ctrl+A → Delete → Paste this entire file
+// CHANGES from original:
+//   1. SettingsDialog now has Light / Dark / Automatic theme toggle
+//      (uses ThemeManager object — make sure ThemeManager.kt is added first)
+
 package com.example.petquest.ui.screens
 
 import android.content.Context
@@ -46,6 +51,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.petquest.R
 import com.example.petquest.SoundManager
+import com.example.petquest.ThemeManager
 import com.example.petquest.ui.VirtueConfig
 import com.example.petquest.viewmodel.PetQuestViewModel
 
@@ -272,6 +278,9 @@ fun EventBadge(event: SeasonalEvent) {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Settings Dialog — music, SFX, and theme toggle
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun SettingsDialog(
     onDismiss : () -> Unit,
@@ -280,6 +289,15 @@ private fun SettingsDialog(
     val prefs  = remember { context.getSharedPreferences("petquest_settings", Context.MODE_PRIVATE) }
     var musicOn by remember { mutableStateOf(prefs.getBoolean("music_enabled", true)) }
     var sfxOn   by remember { mutableStateOf(prefs.getBoolean("sfx_enabled",   true)) }
+
+    // Theme mode — reads/writes ThemeManager and persists to SharedPreferences
+    var currentTheme by remember { mutableStateOf(ThemeManager.themeMode) }
+
+    val themeOptions = listOf(
+        "Light"     to "LIGHT",
+        "Dark"      to "DARK",
+        "Automatic" to "AUTO"
+    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -291,6 +309,8 @@ private fun SettingsDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+
+                // ── Background Music ──────────────────────────────────────────
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -314,7 +334,10 @@ private fun SettingsDialog(
                         }
                     )
                 }
+
                 HorizontalDivider()
+
+                // ── Sound Effects ─────────────────────────────────────────────
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -336,6 +359,40 @@ private fun SettingsDialog(
                             SoundManager.sfxEnabled = enabled
                         }
                     )
+                }
+
+                HorizontalDivider()
+
+                // ── App Theme ─────────────────────────────────────────────────
+                Text(
+                    "App Theme",
+                    fontSize   = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color      = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier   = Modifier.padding(top = 4.dp)
+                )
+
+                themeOptions.forEach { (label, mode) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                currentTheme = mode
+                                ThemeManager.themeMode = mode
+                                prefs.edit().putString("theme_mode", mode).apply()
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentTheme == mode,
+                            onClick  = {
+                                currentTheme = mode
+                                ThemeManager.themeMode = mode
+                                prefs.edit().putString("theme_mode", mode).apply()
+                            }
+                        )
+                        Text(label, fontSize = 14.sp)
+                    }
                 }
             }
         },
@@ -428,7 +485,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             Spacer(Modifier.width(4.dp))
                         }
 
-                        // 3-dot menu — Settings ONLY (Share Profile is on Profile tab)
+                        // 3-dot menu — Settings ONLY
                         Box {
                             IconButton(onClick = { showMenu = true }) {
                                 Icon(
