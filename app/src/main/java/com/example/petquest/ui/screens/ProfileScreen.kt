@@ -43,6 +43,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -70,7 +71,6 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
@@ -125,12 +125,8 @@ val PROFILE_BANNERS: List<Int> = listOf(
     R.drawable.profile_banner2,
     R.drawable.profile_banner3,
     R.drawable.profile_banner4,
-    R.drawable.profile_banner5,
-    R.drawable.profile_banner6,
-    R.drawable.profile_banner7,
-    R.drawable.profile_banner8,
-    R.drawable.profile_banner9,
-    R.drawable.profile_banner10
+    R.drawable.profile_banner5
+    // Add more here when ready: R.drawable.profile_banner6 … R.drawable.profile_banner10
 )
 
 private val PS_ACHIEV_CATEGORIES = listOf(
@@ -222,7 +218,6 @@ fun ProfileScreen(
     val notificationMinute   by viewModel.notificationMinute.collectAsState()
     val userStreak           by viewModel.userStreak.collectAsState()
     val profileBannerIndex   by viewModel.profileBannerIndex.collectAsState()
-    val username             by viewModel.username.collectAsState()
 
     val speciesCount = collectedSpecies.size
     val totalSpecies = PetType.entries.size
@@ -260,8 +255,6 @@ fun ProfileScreen(
     var isSharingProfile by remember { mutableStateOf(false) }
     var isSyncing        by remember { mutableStateOf(false) }
     var showBannerPicker by remember { mutableStateOf(false) }
-    var showUsernameEditor  by remember { mutableStateOf(false) }
-    var usernameInput       by remember(username) { mutableStateOf(username) }
 
     // ── Tab state ─────────────────────────────────────────────────────────────
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -451,55 +444,6 @@ fun ProfileScreen(
         )
     }
 
-
-    if (showUsernameEditor) {
-        AlertDialog(
-            onDismissRequest = { showUsernameEditor = false },
-            title = { Text("Trainer Name", fontWeight = FontWeight.ExtraBold) },
-            text = {
-                Column {
-                    Text(
-                        "This name shows on your profile and shared links.",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value         = usernameInput,
-                        onValueChange = { newVal -> if (newVal.length <= 24) usernameInput = newVal },
-                        label         = { Text("Trainer name (max 24 chars)") },
-                        singleLine    = true,
-                        modifier      = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val trimmed = usernameInput.trim()
-                    if (trimmed.isNotEmpty()) {
-                        viewModel.saveUsername(trimmed)
-                        scope.launch { viewModel.syncProfileToFirebase() }
-                    }
-                    showUsernameEditor = false
-                }) { Text("Save", color = Color(0xFFFF6D00), fontWeight = FontWeight.Bold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showUsernameEditor = false }) { Text("Cancel") }
-            }
-        )
-    }
-
-    if (showBannerPicker) {
-        BannerPickerSheet(
-            currentIndex = profileBannerIndex,
-            onSelect     = { idx ->
-                viewModel.saveBannerIndex(idx)
-                showBannerPicker = false
-            },
-            onDismiss    = { showBannerPicker = false }
-        )
-    }
-
     Scaffold(
         topBar = {
             Box(
@@ -584,25 +528,32 @@ fun ProfileScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
-                                modifier = Modifier
-                                    .size(80.dp)
-                                    .clip(MaterialTheme.shapes.medium)
-                                    .clickable { showBannerPicker = true },
+                                modifier         = Modifier.size(84.dp),
                                 contentAlignment = Alignment.BottomEnd
                             ) {
-                                val bannerRes = PROFILE_BANNERS.getOrElse(profileBannerIndex - 1) { PROFILE_BANNERS[0] }
-                                Image(
-                                    painter            = painterResource(bannerRes),
-                                    contentDescription = "Profile banner",
-                                    modifier           = Modifier.fillMaxSize().padding(4.dp),
-                                    contentScale       = ContentScale.Fit
-                                )
+                                Card(
+                                    modifier  = Modifier.size(80.dp).clickable { showBannerPicker = true },
+                                    shape     = RoundedCornerShape(18.dp),
+                                    elevation = CardDefaults.cardElevation(4.dp),
+                                    colors    = CardDefaults.cardColors(
+                                        containerColor = Color.White.copy(alpha = 0.20f)
+                                    ),
+                                    border    = BorderStroke(2.dp, Color.White.copy(alpha = 0.55f))
+                                ) {
+                                    val bannerRes = PROFILE_BANNERS.getOrElse(profileBannerIndex - 1) { PROFILE_BANNERS[0] }
+                                    Image(
+                                        painter            = painterResource(bannerRes),
+                                        contentDescription = "Profile banner",
+                                        modifier           = Modifier.fillMaxSize().padding(6.dp),
+                                        contentScale       = ContentScale.Fit
+                                    )
+                                }
                                 // Pencil badge at bottom-right corner
                                 Surface(
-                                    modifier        = Modifier.padding(4.dp),
+                                    modifier        = Modifier.padding(2.dp),
                                     shape           = CircleShape,
                                     color           = Color(0xFFFF6D00),
-                                    shadowElevation = 2.dp
+                                    shadowElevation = 3.dp
                                 ) {
                                     Icon(
                                         Icons.Default.Edit,
@@ -616,56 +567,32 @@ fun ProfileScreen(
                             Spacer(Modifier.width(16.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    modifier = Modifier.clickable { showUsernameEditor = true }
-                                ) {
-                                    Text(
-                                        text = if (username.isNotBlank()) username
-                                        else (pets.firstOrNull()?.name ?: "Trainer"),
-                                        fontSize   = 15.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color      = Color.White.copy(alpha = 0.93f)
-                                    )
-                                    Icon(
-                                        imageVector        = Icons.Default.Edit,
-                                        contentDescription = "Edit name",
-                                        tint               = Color.White.copy(alpha = 0.65f),
-                                        modifier           = Modifier.size(13.dp)
-                                    )
-                                }
-                                Spacer(Modifier.height(4.dp))
-                                Row(
-                                    verticalAlignment     = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        "Level $userLevel",
-                                        fontSize   = 28.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color      = Color.White
-                                    )
-                                    val title = trainerTitle(userLevel)
-                                    if (title.isNotEmpty()) {
-                                        Surface(
-                                            shape = MaterialTheme.shapes.extraSmall,
-                                            color = Color.White.copy(alpha = 0.25f)
-                                        ) {
-                                            Text(
-                                                title,
-                                                modifier = Modifier.padding(
-                                                    horizontal = 7.dp, vertical = 3.dp
-                                                ),
-                                                fontSize   = 10.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color      = Color.White
-                                            )
-                                        }
+                                val title = trainerTitle(userLevel)
+                                Text(
+                                    "Level $userLevel",
+                                    fontSize   = 28.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color      = Color.White
+                                )
+                                if (title.isNotEmpty()) {
+                                    Spacer(Modifier.height(3.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = Color.White.copy(alpha = 0.25f)
+                                    ) {
+                                        Text(
+                                            title,
+                                            modifier   = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                            fontSize   = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color      = Color.White,
+                                            maxLines   = 2,
+                                            softWrap   = true
+                                        )
                                     }
                                 }
 
-                                Spacer(Modifier.height(10.dp))
+                                if (title.isEmpty()) Spacer(Modifier.height(10.dp))
 
                                 Row(
                                     modifier              = Modifier.fillMaxWidth(),

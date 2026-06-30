@@ -66,9 +66,9 @@
         .lvcard{background:linear-gradient(135deg,var(--or),#ea580c);border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px}
         .lvcard-icon{width:48px;height:48px;background:rgba(255,255,255,.22);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
         .lvcard-icon img{width:24px;height:24px;object-fit:contain;filter:brightness(0) invert(1)}
-          .lvcard-banner-wrap{width:80px;height:80px;background:rgba(255,255,255,.20);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:2px solid rgba(255,255,255,.25)}
-          .lvcard-banner{width:78px;height:78px;object-fit:cover;border-radius:12px}
-          .lvcard-banner-fallback{font-size:32px;line-height:1}
+        .lvcard-banner-wrap{width:74px;height:74px;background:rgba(255,255,255,.20);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:2px solid rgba(255,255,255,.4)}
+        .lvcard-banner{width:70px;height:70px;object-fit:cover;border-radius:11px}
+        .lvcard-banner-fallback{font-size:30px;line-height:1}
         .lvcard-body{flex:1}
         .lvcard-title{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.1}
         .lvcard-sub{font-size:11px;color:rgba(255,255,255,.85);margin-top:3px;margin-bottom:8px;display:flex;justify-content:space-between}
@@ -76,14 +76,18 @@
         .lvbar{height:5px;border-radius:99px;background:#fff;transition:width .5s}
 
         /* Mini stats row */
-        .mini-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-        .mini-stat{background:var(--card);border-radius:12px;padding:12px 10px;text-align:center;border:1px solid var(--border)}
-        .mini-stat-val{font-size:20px;font-weight:900}
-        .mini-stat-lbl{font-size:10px;font-weight:600;color:var(--txm);margin-top:2px}
-        .mini-stat.bond  .mini-stat-val{color:#16a34a}
-        .mini-stat.pets  .mini-stat-val{color:#7c3aed}
-        .mini-stat.streak .mini-stat-val{color:#f97316}
-
+        .mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .mini-stat{background:var(--card);border-radius:14px;padding:14px 10px;text-align:center;border:1px solid var(--border)}
+        .mini-stat-val{font-size:22px;font-weight:900}
+        .mini-stat-lbl{font-size:11px;font-weight:600;color:var(--txm);margin-top:3px}
+        .mini-stat.bond .mini-stat-val{color:#16a34a}
+        .mini-stat.bond{background:#f0fdf4;border-color:#bbf7d0}
+        .mini-stat.pets .mini-stat-val{color:#7c3aed}
+        .mini-stat.pets{background:#faf5ff;border-color:#e9d5ff}
+        .streak-card{background:#fef2f2;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;border:1px solid #fecaca}
+        .streak-card-icon{font-size:26px;line-height:1;flex-shrink:0}
+        .streak-card-title{font-size:16px;font-weight:900;color:#9a3412}
+        .streak-card-sub{font-size:11px;color:#ea580c;margin-top:2px;font-weight:500}
         /* Species bar */
         .sp-card{background:linear-gradient(135deg,#14532d,#166534);border-radius:12px;padding:13px 16px}
         .sp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -303,7 +307,7 @@
         const bondPoints   = data.bond_points   ?? 0;
         const speciesCount = data.species_count ?? 0;
         const streak       = data.streak        ?? 0;
-          const bannerIndex  = data.banner_index  ?? 1;
+        const bannerIndex  = data.banner_index  ?? 1;
         const totalSpecies = 29;
 
         const allPets       = Array.isArray(data.pets) ? data.pets : [];
@@ -419,11 +423,9 @@
             <div class="stats-strip">
                 <div class="lvcard">
                     <div class="lvcard-banner-wrap">
-                      <img class="lvcard-banner"
-                           src="./banners/profile_banner${bannerIndex}.png"
-                           alt="banner"
-                           onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\"lvcard-banner-fallback\">🐾</span>'">
-                  </div>
+                        <img class="lvcard-banner" src="./banners/profile_banner${bannerIndex}.png" alt="banner"
+                             onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\"lvcard-banner-fallback\">🐾</span>'">
+                    </div>
                     <div class="lvcard-body">
                         <div class="lvcard-title">Level ${level}</div>
                         <div class="lvcard-sub">
@@ -437,17 +439,21 @@
                 <div class="mini-stats">
                     <div class="mini-stat bond">
                         <div class="mini-stat-val">${bondPoints.toLocaleString()}</div>
-                        <div class="mini-stat-lbl">Bond Pts</div>
+                        <div class="mini-stat-lbl">Total Bond Pts</div>
                     </div>
                     <div class="mini-stat pets">
                         <div class="mini-stat-val">${verifiedCount}</div>
-                        <div class="mini-stat-lbl">Pets</div>
-                    </div>
-                    <div class="mini-stat streak">
-                        <div class="mini-stat-val">${streak}</div>
-                        <div class="mini-stat-lbl">Day Streak</div>
+                        <div class="mini-stat-lbl">Active Pets</div>
                     </div>
                 </div>
+                ${streak > 0 ? `
+                <div class="streak-card">
+                    <div class="streak-card-icon">🔥</div>
+                    <div>
+                        <div class="streak-card-title">${streak} Day Streak</div>
+                        <div class="streak-card-sub">Consistent trainer — logging in every day!</div>
+                    </div>
+                </div>` : ''}
 
                 <div class="sp-card">
                     <div class="sp-head">

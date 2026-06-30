@@ -167,7 +167,7 @@
     "com.google.services.firebase.aqiPopupShown": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/almar/AndroidStudioProjects/PetQuest mobile app/app/src/main/res/drawable",
+    "last_opened_file_path": "C:/Users/almar/AndroidStudioProjects/PetQuest mobile app/docs/banners",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.2",
@@ -181,11 +181,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\docs\banners" />
       <recent name="C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\res\drawable" />
       <recent name="C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\docs\icons" />
       <recent name="C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app" />
       <recent name="C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\res\raw" />
-      <recent name="C:\Users\almar\AndroidStudioProjects\PetQuest\app\src\main\res" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\almar\AndroidStudioProjects\PetQuest mobile app\app\src\main\res\drawable" />
@@ -278,14 +278,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1782106353017</updated>
-    </task>
-    <task id="LOCAL-00178" summary="nothing">
-      <option name="closed" value="true" />
-      <created>1782636531455</created>
-      <option name="number" value="00178" />
-      <option name="presentableId" value="LOCAL-00178" />
-      <option name="project" value="LOCAL" />
-      <updated>1782636531455</updated>
     </task>
     <task id="LOCAL-00179" summary="nothing">
       <option name="closed" value="true" />
@@ -671,7 +663,15 @@
       <option name="project" value="LOCAL" />
       <updated>1782798566272</updated>
     </task>
-    <option name="localTasksCounter" value="227" />
+    <task id="LOCAL-00227" summary="hi">
+      <option name="closed" value="true" />
+      <created>1782798783596</created>
+      <option name="number" value="00227" />
+      <option name="presentableId" value="LOCAL-00227" />
+      <option name="project" value="LOCAL" />
+      <updated>1782798783596</updated>
+    </task>
+    <option name="localTasksCounter" value="228" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
