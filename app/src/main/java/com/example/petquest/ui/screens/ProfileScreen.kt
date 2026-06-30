@@ -540,16 +540,18 @@ fun ProfileScreen(
                                     modifier           = Modifier.fillMaxSize().padding(4.dp),
                                     contentScale       = ContentScale.Fit
                                 )
-                                // Dark scrim + pencil icon so user knows it's tappable
-                                Box(
-                                    modifier         = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.30f)),
-                                    contentAlignment = Alignment.Center
+                                // Pencil badge at bottom-right corner
+                                Surface(
+                                    modifier        = Modifier.padding(4.dp),
+                                    shape           = CircleShape,
+                                    color           = Color(0xFFFF6D00),
+                                    shadowElevation = 2.dp
                                 ) {
                                     Icon(
                                         Icons.Default.Edit,
                                         contentDescription = "Change banner",
                                         tint     = Color.White,
-                                        modifier = Modifier.size(28.dp)
+                                        modifier = Modifier.size(20.dp).padding(4.dp)
                                     )
                                 }
                             }
