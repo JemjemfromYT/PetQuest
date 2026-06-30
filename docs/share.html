@@ -66,6 +66,10 @@
         .lvcard{background:linear-gradient(135deg,var(--or),#ea580c);border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px}
         .lvcard-icon{width:48px;height:48px;background:rgba(255,255,255,.22);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
         .lvcard-icon img{width:24px;height:24px;object-fit:contain;filter:brightness(0) invert(1)}
+          /* Banner image in level card */
+          .lvcard-banner{width:72px;height:72px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,.18);flex-shrink:0;padding:4px}
+          .lvcard-banner-wrap{width:80px;height:80px;background:rgba(255,255,255,.18);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+
         .lvcard-body{flex:1}
         .lvcard-title{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.1}
         .lvcard-sub{font-size:11px;color:rgba(255,255,255,.85);margin-top:3px;margin-bottom:8px;display:flex;justify-content:space-between}
@@ -300,6 +304,7 @@
         const bondPoints   = data.bond_points   ?? 0;
         const speciesCount = data.species_count ?? 0;
         const streak       = data.streak        ?? 0;
+        const bannerIndex  = data.banner_index  ?? 1;
         const totalSpecies = 29;
 
         const allPets       = Array.isArray(data.pets) ? data.pets : [];
@@ -414,7 +419,7 @@
 
             <div class="stats-strip">
                 <div class="lvcard">
-                    <div class="lvcard-icon"><img src="${ICON_BASE}paw.png" alt="paw"></div>
+                    <div class="lvcard-banner-wrap"><img class="lvcard-banner" src="./banners/profile_banner${bannerIndex}.png" alt="Trainer Banner" onerror="this.parentElement.innerHTML='<img src=\"${ICON_BASE}paw.png\" style=\"width:28px;filter:brightness(0) invert(1)\">'"></div>
                     <div class="lvcard-body">
                         <div class="lvcard-title">Level ${level}</div>
                         <div class="lvcard-sub">

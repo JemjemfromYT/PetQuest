@@ -443,6 +443,17 @@ fun ProfileScreen(
         )
     }
 
+    if (showBannerPicker) {
+        BannerPickerSheet(
+            currentIndex = profileBannerIndex,
+            onSelect     = { idx ->
+                viewModel.saveBannerIndex(idx)
+                showBannerPicker = false
+            },
+            onDismiss    = { showBannerPicker = false }
+        )
+    }
+
     Scaffold(
         topBar = {
             Box(

@@ -37,6 +37,7 @@ class PetQuestViewModel(
                 val total      = totalBondPoints.value
                 val level      = userLevel.value
                 val streak     = prefsRepository.userStreak.first()
+                val bannerIdx  = prefsRepository.profileBannerIndex.first()
                 val specCount  = collectedSpecies.value.size
                 val badgeTitles = allAchievements.value
                     .filter { it.isUnlocked }
@@ -65,7 +66,8 @@ class PetQuestViewModel(
                     petCount            = pets.size,
                     speciesCount        = specCount,
                     pets                = petSummaries,
-                    unlockedBadgeTitles = badgeTitles
+                    unlockedBadgeTitles = badgeTitles,
+                    bannerIndex         = bannerIdx
                 )
 
                 supabaseRepository.pushProfile(profile)
