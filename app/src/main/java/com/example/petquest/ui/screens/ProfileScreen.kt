@@ -525,9 +525,12 @@ fun ProfileScreen(
                             modifier          = Modifier.fillMaxWidth().padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box {
+                            Box(
+                                modifier = Modifier
+                                    .clickable { showBannerPicker = true }
+                                    .padding(bottom = 4.dp, end = 4.dp)
+                            ) {
                                 Card(
-                                    modifier  = Modifier.clickable { showBannerPicker = true },
                                     shape     = MaterialTheme.shapes.medium,
                                     colors    = CardDefaults.cardColors(
                                         containerColor = Color.White.copy(alpha = 0.25f)
@@ -543,7 +546,7 @@ fun ProfileScreen(
                                     )
                                 }
                                 Surface(
-                                    modifier        = Modifier.align(Alignment.BottomEnd).offset(3.dp, 3.dp),
+                                    modifier        = Modifier.align(Alignment.BottomEnd),
                                     shape           = CircleShape,
                                     color           = Color(0xFFFF6D00),
                                     shadowElevation = 2.dp
