@@ -3103,7 +3103,16 @@ drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
 drawable paw
 drawable pets
-drawable profile_banner
+drawable profile_banner1
+drawable profile_banner10
+drawable profile_banner2
+drawable profile_banner3
+drawable profile_banner4
+drawable profile_banner5
+drawable profile_banner6
+drawable profile_banner7
+drawable profile_banner8
+drawable profile_banner9
 drawable shield
 drawable star
 drawable temperance

@@ -118,6 +118,15 @@ private data class PsAchievCategoryDef(
     val titles : List<String>
 )
 
+val PROFILE_BANNERS: List<Int> = listOf(
+    R.drawable.profile_banner1,
+    R.drawable.profile_banner2,
+    R.drawable.profile_banner3,
+    R.drawable.profile_banner4,
+    R.drawable.profile_banner5
+    // Add more here when ready: R.drawable.profile_banner6 … R.drawable.profile_banner10
+)
+
 private val PS_ACHIEV_CATEGORIES = listOf(
     PsAchievCategoryDef(
         label  = "First Steps",

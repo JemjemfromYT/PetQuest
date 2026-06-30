@@ -1,258 +1,298 @@
 [
     {
-        "merged": "com.example.petquest.app-debug-84:/raw_bg_music.mp3.flat",
-        "source": "com.example.petquest.app-main-86:/raw/bg_music.mp3"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_verification_success.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\verification_success.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-xhdpi_ic_launcher_foreground.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-xhdpi/ic_launcher_foreground.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\raw_bg_music.mp3.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\raw\\bg_music.mp3"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_ic_verified.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/ic_verified.xml"
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner4.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner4.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_ic_streak.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/ic_streak.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-mdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-mdpi\\ic_launcher_foreground.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_trophy.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/trophy.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-xxxhdpi\\ic_launcher_round.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_check.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/check.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-mdpi\\ic_launcher.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/raw_sfx_level_up.mp3.flat",
-        "source": "com.example.petquest.app-main-86:/raw/sfx_level_up.mp3"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\xml_file_paths.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\xml\\file_paths.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-anydpi-v26_ic_launcher.xml.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-anydpi-v26/ic_launcher.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-hdpi\\ic_launcher_round.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-mdpi_ic_launcher_foreground.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-mdpi/ic_launcher_foreground.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_profile_banner.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\profile_banner.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/raw_sfx_task_complete.mp3.flat",
-        "source": "com.example.petquest.app-main-86:/raw/sfx_task_complete.mp3"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\raw_sfx_task_complete.mp3.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\raw\\sfx_task_complete.mp3"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/raw_sfx_streak.mp3.flat",
-        "source": "com.example.petquest.app-main-86:/raw/sfx_streak.mp3"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\ic_launcher_background.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/font_nunito_bold.ttf.flat",
-        "source": "com.example.petquest.app-main-86:/font/nunito_bold.ttf"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_shield.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\shield.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_explore.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/explore.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\ic_launcher_foreground.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-hdpi_ic_launcher_foreground.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-hdpi/ic_launcher_foreground.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_empty_achievements.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\empty_achievements.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_event.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/event.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_trophy.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\trophy.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-xxhdpi/ic_launcher_round.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_ic_verified.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\ic_verified.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-xxxhdpi/ic_launcher_round.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-hdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-hdpi\\ic_launcher_foreground.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/font_nunito_semibold.ttf.flat",
-        "source": "com.example.petquest.app-main-86:/font/nunito_semibold.ttf"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_empty_tasks.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\empty_tasks.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-mdpi_ic_launcher.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-mdpi/ic_launcher.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\raw_sfx_streak.mp3.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\raw\\sfx_streak.mp3"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-xxxhdpi_ic_launcher_foreground.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-xxxhdpi/ic_launcher_foreground.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\font_nunito_semibold.ttf.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\font\\nunito_semibold.ttf"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_star.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/star.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_wisdom.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\wisdom.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/xml_file_paths.xml.flat",
-        "source": "com.example.petquest.app-main-86:/xml/file_paths.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_star.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\star.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_empty_achievements.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/empty_achievements.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\xml_data_extraction_rules.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\xml\\data_extraction_rules.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/font_nunito_extrabold.ttf.flat",
-        "source": "com.example.petquest.app-main-86:/font/nunito_extrabold.ttf"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-xxhdpi\\ic_launcher_round.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_wisdom.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/wisdom.png"
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner5.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner5.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-xhdpi_ic_launcher.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-xhdpi/ic_launcher.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_ic_level.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\ic_level.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_pets.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/pets.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_flame.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\flame.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_flame.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/flame.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\font_nunito_extrabold.ttf.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\font\\nunito_extrabold.ttf"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-mdpi_ic_launcher_round.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-mdpi/ic_launcher_round.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_courage.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\courage.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_bolt.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/bolt.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_compass.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\compass.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-xhdpi_ic_launcher_round.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-xhdpi/ic_launcher_round.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\font_nunito_bold.ttf.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\font\\nunito_bold.ttf"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/xml_data_extraction_rules.xml.flat",
-        "source": "com.example.petquest.app-main-86:/xml/data_extraction_rules.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_check.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\check.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_lock.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/lock.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-xxxhdpi\\ic_launcher.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/xml_backup_rules.xml.flat",
-        "source": "com.example.petquest.app-main-86:/xml/backup_rules.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-xxhdpi\\ic_launcher.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/raw_sfx_tap.mp3.flat",
-        "source": "com.example.petquest.app-main-86:/raw/sfx_tap.mp3"
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner1.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner1.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-hdpi_ic_launcher.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-hdpi/ic_launcher.webp"
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner8.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner8.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-xxhdpi_ic_launcher.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-xxhdpi/ic_launcher.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_ic_streak.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\ic_streak.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_temperance.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/temperance.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_temperance.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\temperance.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-xxxhdpi_ic_launcher.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-xxxhdpi/ic_launcher.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-xhdpi\\ic_launcher.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_paw.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/paw.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_paw.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\paw.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_compassion.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/compassion.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_heart.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\heart.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-hdpi_ic_launcher_round.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-hdpi/ic_launcher_round.webp"
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner6.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner6.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/raw_sfx_pet_happy.mp3.flat",
-        "source": "com.example.petquest.app-main-86:/raw/sfx_pet_happy.mp3"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-xhdpi\\ic_launcher_round.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_ic_launcher_background.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/ic_launcher_background.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\raw_sfx_tap.mp3.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\raw\\sfx_tap.mp3"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_medal.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/medal.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\raw_sfx_pet_happy.mp3.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\raw\\sfx_pet_happy.mp3"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_diligence.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/diligence.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-xxxhdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-xxxhdpi\\ic_launcher_foreground.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_empty_tasks.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/empty_tasks.xml"
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner10.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner10.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_verification_success.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/verification_success.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_heart.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/heart.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_medal.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\medal.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_ic_locked.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/ic_locked.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_ic_locked.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\ic_locked.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_courage.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/courage.png"
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner2.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner2.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_ic_bondpoints.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/ic_bondpoints.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-xxhdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-xxhdpi\\ic_launcher_foreground.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_ic_level.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/ic_level.xml"
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner9.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner9.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-xxhdpi_ic_launcher_foreground.webp.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-xxhdpi/ic_launcher_foreground.webp"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-hdpi\\ic_launcher.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_empty_collection.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/empty_collection.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\xml_backup_rules.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\xml\\backup_rules.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_compass.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/compass.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\font_nunito_regular.ttf.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\font\\nunito_regular.ttf"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_shield.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/shield.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_event.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\event.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/font_nunito_medium.ttf.flat",
-        "source": "com.example.petquest.app-main-86:/font/nunito_medium.ttf"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-mdpi\\ic_launcher_round.webp"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_bookmark.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/bookmark.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_empty_collection.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\empty_collection.xml"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_camera.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/camera.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\font_nunito_medium.ttf.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\font\\nunito_medium.ttf"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
-        "source": "com.example.petquest.app-main-86:/mipmap-anydpi-v26/ic_launcher_round.xml"
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner7.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner7.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/font_nunito_regular.ttf.flat",
-        "source": "com.example.petquest.app-main-86:/font/nunito_regular.ttf"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\raw_sfx_level_up.mp3.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\raw\\sfx_level_up.mp3"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_ic_launcher_foreground.xml.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/ic_launcher_foreground.xml"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_explore.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\explore.png"
     },
     {
-        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner.png.flat",
-        "source": "com.example.petquest.app-main-86:/drawable/profile_banner.png"
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_lock.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\lock.png"
+    },
+    {
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_bookmark.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\bookmark.png"
+    },
+    {
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_ic_bondpoints.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\ic_bondpoints.xml"
+    },
+    {
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_compassion.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\compassion.png"
+    },
+    {
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_diligence.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\diligence.png"
+    },
+    {
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_camera.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\camera.png"
+    },
+    {
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_bolt.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\bolt.png"
+    },
+    {
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "com.example.petquest.app-debug-84:/drawable_profile_banner3.png.flat",
+        "source": "com.example.petquest.app-main-86:/drawable/profile_banner3.png"
+    },
+    {
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\drawable_pets.png.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\drawable\\pets.png"
+    },
+    {
+        "merged": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-debug-84:\\mipmap-xhdpi_ic_launcher_foreground.webp.flat",
+        "source": "C:\\Users\\almar\\.gradle\\daemon\\9.2.1\\com.example.petquest.app-main-86:\\mipmap-xhdpi\\ic_launcher_foreground.webp"
     }
 ]
