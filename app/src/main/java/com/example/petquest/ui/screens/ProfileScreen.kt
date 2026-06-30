@@ -259,7 +259,7 @@ fun ProfileScreen(
     val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
     var isSyncing        by remember { mutableStateOf(false) }
-    var showBannerPicker    by remember { mutableStateOf(false) }
+    var showBannerPicker by remember { mutableStateOf(false) }
     var showUsernameEditor  by remember { mutableStateOf(false) }
     var usernameInput       by remember(username) { mutableStateOf(username) }
 
@@ -451,25 +451,25 @@ fun ProfileScreen(
         )
     }
 
+
     if (showUsernameEditor) {
         AlertDialog(
             onDismissRequest = { showUsernameEditor = false },
-            title = { Text("Your Trainer Name", fontWeight = FontWeight.ExtraBold) },
+            title = { Text("Trainer Name", fontWeight = FontWeight.ExtraBold) },
             text = {
                 Column {
                     Text(
-                        "This name appears on your profile and when you share your trainer link.",
+                        "This name shows on your profile and shared links.",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(12.dp))
                     OutlinedTextField(
                         value         = usernameInput,
-                        onValueChange = { if (it.length <= 24) usernameInput = it },
-                        label         = { Text("Trainer name") },
+                        onValueChange = { newVal -> if (newVal.length <= 24) usernameInput = newVal },
+                        label         = { Text("Trainer name (max 24 chars)") },
                         singleLine    = true,
-                        modifier      = Modifier.fillMaxWidth(),
-                        supportingText = { Text("${usernameInput.length} / 24") }
+                        modifier      = Modifier.fillMaxWidth()
                     )
                 }
             },
@@ -616,6 +616,26 @@ fun ProfileScreen(
                             Spacer(Modifier.width(16.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    modifier = Modifier.clickable { showUsernameEditor = true }
+                                ) {
+                                    Text(
+                                        text = if (username.isNotBlank()) username
+                                        else (pets.firstOrNull()?.name ?: "Trainer"),
+                                        fontSize   = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color      = Color.White.copy(alpha = 0.93f)
+                                    )
+                                    Icon(
+                                        imageVector        = Icons.Default.Edit,
+                                        contentDescription = "Edit name",
+                                        tint               = Color.White.copy(alpha = 0.65f),
+                                        modifier           = Modifier.size(13.dp)
+                                    )
+                                }
+                                Spacer(Modifier.height(4.dp))
                                 Row(
                                     verticalAlignment     = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)

@@ -38,13 +38,13 @@ class PetQuestViewModel(
                 val level      = userLevel.value
                 val streak     = prefsRepository.userStreak.first()
                 val bannerIdx  = prefsRepository.profileBannerIndex.first()
+                val savedName  = prefsRepository.username.first().trim()
                 val specCount  = collectedSpecies.value.size
                 val badgeTitles = allAchievements.value
                     .filter { it.isUnlocked }
                     .map { it.title }
 
-                val savedUsername = prefsRepository.username.first().trim()
-                val trainerName = if (savedUsername.isNotEmpty()) savedUsername else pets.firstOrNull()?.name ?: "Trainer"
+                val trainerName = if (savedName.isNotEmpty()) savedName else pets.firstOrNull()?.name ?: "Trainer"
 
                 val petSummaries = pets.take(6).map { pet ->
                     PetSummary(
@@ -152,6 +152,9 @@ class PetQuestViewModel(
     val lastEventClaimDate: StateFlow<String> =
         prefsRepository.lastEventClaimDate
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    val username: StateFlow<String> =
+        prefsRepository.username.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     val profileBannerIndex: StateFlow<Int> =
         prefsRepository.profileBannerIndex
