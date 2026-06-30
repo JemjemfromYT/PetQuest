@@ -37,6 +37,9 @@ class PetRepository(private val dao: PetQuestDao) {
     suspend fun updatePet(petId: Int, name: String) =
         dao.updatePet(petId, name)
 
+    suspend fun updatePetPhotoUri(petId: Int, newUri: String) =
+        dao.updatePetPhotoUri(petId, newUri)
+
     suspend fun deletePet(petId: Int) {
         dao.deleteTasksForPet(petId)
         dao.deletePetById(petId)

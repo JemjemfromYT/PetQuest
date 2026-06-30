@@ -24,6 +24,9 @@ interface PetQuestDao {
     @Query("UPDATE pets SET name = :name WHERE id = :petId")
     suspend fun updatePet(petId: Int, name: String)
 
+    @Query("UPDATE pets SET photoUri = :newUri WHERE id = :petId")
+    suspend fun updatePetPhotoUri(petId: Int, newUri: String)
+
     @Query("DELETE FROM pets WHERE id = :petId")
     suspend fun deletePetById(petId: Int)
 

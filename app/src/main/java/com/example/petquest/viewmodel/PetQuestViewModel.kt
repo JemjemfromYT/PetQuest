@@ -54,7 +54,8 @@ class PetQuestViewModel(
                         bondLevel  = pet.bondLevel,
                         isVerified = pet.isVerified,
                         photoUri   = pet.photoUri,
-                        virtue     = pet.virtue.name.uppercase()
+                        virtue     = pet.virtue.name.uppercase(),
+                        petId      = pet.id
                     )
                 }
 
@@ -71,8 +72,13 @@ class PetQuestViewModel(
                     bannerIndex         = bannerIdx
                 )
 
-                supabaseRepository.pushProfile(profile)
-                Log.d("PetQuestVM", "syncProfileToFirebase: pushed profile for uid=$uid")
+                val uploadedUrls = supabaseRepository.pushProfile(profile)
+                // Update local Room DB: replace file:// URIs with Supabase https:// URLs.
+                // This prevents re-uploads on future syncs (the "skip if https://" check fires).
+                uploadedUrls.forEach { (petId, supabaseUrl) ->
+                    petRepository.updatePetPhotoUri(petId, supabaseUrl)
+                }
+                Log.d("PetQuestVM", "syncProfileToFirebase: pushed profile for uid=$uid, uploaded ${uploadedUrls.size} photo(s)")
             } catch (e: Exception) {
                 Log.e("PetQuestVM", "syncProfileToFirebase error", e)
             }

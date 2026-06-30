@@ -58,7 +58,8 @@ data class PetSummary(
     val bondLevel  : Int     = 1,
     val isVerified : Boolean = false,
     val photoUri   : String? = null,   // now a real Supabase Storage URL like https://...
-    val virtue     : String  = ""
+    val virtue     : String  = "",
+    val petId      : Int     = 0        // local Room ID — used for stable upload filenames
 )
 
 data class PublicProfile(
@@ -234,13 +235,16 @@ class SupabaseRepository(private val appContext: Context) {
     }
 
     // Upload a JPEG byte array to Supabase Storage and return the public URL.
-    // The URL looks like: https://xxx.supabase.co/storage/v1/object/public/pet-photos/uid/name.jpg
-    private suspend fun uploadPhotoToStorage(uid: String, petName: String, photoBytes: ByteArray): String? {
+    // Uses a stable filename based on petId so re-uploads overwrite instead of creating duplicates.
+    private suspend fun uploadPhotoToStorage(uid: String, petId: Int, petName: String, photoBytes: ByteArray): String? {
         return withContext(Dispatchers.IO) {
             try {
                 val token    = getStoredToken() ?: return@withContext null
                 val safeName = petName.replace(Regex("[^a-zA-Z0-9_]"), "_")
-                val path     = "$uid/${safeName}_${System.currentTimeMillis()}.jpg"
+                // Stable filename: no timestamp → same pet always maps to the same file.
+                // x-upsert:true tells Supabase to overwrite if the file already exists.
+                val fileName = if (petId > 0) "${petId}_${safeName}.jpg" else "${safeName}.jpg"
+                val path     = "$uid/$fileName"
 
                 val body    = photoBytes.toRequestBody("image/jpeg".toMediaType())
                 val request = Request.Builder()
@@ -248,6 +252,7 @@ class SupabaseRepository(private val appContext: Context) {
                     .addHeader("apikey", SUPABASE_ANON_KEY)
                     .addHeader("Authorization", "Bearer $token")
                     .addHeader("Content-Type", "image/jpeg")
+                    .addHeader("x-upsert", "true")   // overwrite existing file — no duplicates!
                     .post(body)
                     .build()
 
@@ -269,9 +274,13 @@ class SupabaseRepository(private val appContext: Context) {
 
     // ── Push profile to Supabase ──────────────────────────────────────────────
 
-    suspend fun pushProfile(profile: PublicProfile) {
+    // Returns a map of petId → new Supabase URL for every pet photo that was just uploaded.
+    // The caller should use this to update the local Room DB so future syncs skip re-uploads.
+    suspend fun pushProfile(profile: PublicProfile): Map<Int, String> {
         val uid   = ensureSignedIn()
         val token = getStoredToken() ?: throw Exception("No auth token — call ensureSignedIn() first")
+
+        val uploadedUrls = mutableMapOf<Int, String>()
 
         // Process each pet: upload local photos to Storage, keep existing URLs as-is
         val processedPets = withContext(Dispatchers.IO) {
@@ -288,7 +297,8 @@ class SupabaseRepository(private val appContext: Context) {
                         Log.d(TAG, "Pet[${pet.name}]: uploading local photo…")
                         val stream  = openStream(Uri.parse(uri))
                         val bytes   = if (stream != null) compressPhoto(stream) else null
-                        val pubUrl  = if (bytes != null) uploadPhotoToStorage(uid, pet.name, bytes) else null
+                        val pubUrl  = if (bytes != null) uploadPhotoToStorage(uid, pet.petId, pet.name, bytes) else null
+                        if (pubUrl != null) uploadedUrls[pet.petId] = pubUrl
                         pet.copy(photoUri = pubUrl ?: uri)   // fallback to original if upload fails
                     }
                     // No photo
@@ -345,6 +355,7 @@ class SupabaseRepository(private val appContext: Context) {
             }
             Log.d(TAG, "Profile pushed OK for uid=$uid")
         }
+        return uploadedUrls
     }
 
     // ── Fetch profile from Supabase ───────────────────────────────────────────
