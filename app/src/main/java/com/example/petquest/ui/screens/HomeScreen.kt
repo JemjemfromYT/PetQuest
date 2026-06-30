@@ -1,7 +1,8 @@
 // HOW TO APPLY: Open HomeScreen.kt → Ctrl+A → Delete → Paste this entire file
 // CHANGES from original:
 //   1. SettingsDialog now has Light / Dark / Automatic theme toggle
-//      (uses ThemeManager object — make sure ThemeManager.kt is added first)
+//   2. 3-dot menu removed from Home top bar (moved to Profile tab)
+//   3. SettingsDialog is now non-private so ProfileScreen can use it
 
 package com.example.petquest.ui.screens
 
@@ -24,7 +25,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.Settings
@@ -282,7 +282,7 @@ fun EventBadge(event: SeasonalEvent) {
 // Settings Dialog — music, SFX, and theme toggle
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun SettingsDialog(
+fun SettingsDialog(
     onDismiss : () -> Unit,
     context   : Context
 ) {
@@ -424,8 +424,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
     val allDone     = tasks.isNotEmpty() && doneTasks == tasks.size
     val isDark      = isSystemInDarkTheme()
 
-    var showMenu     by remember { mutableStateOf(false) }
-    var showSettings by remember { mutableStateOf(false) }
 
     val todayProgress by animateFloatAsState(
         targetValue   = if (tasks.isEmpty()) 0f else doneTasks / tasks.size.toFloat(),
@@ -435,10 +433,6 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
 
     val headerStart = activeEvent?.gradientStart ?: Color(0xFFFF8C42)
     val headerEnd   = activeEvent?.gradientEnd   ?: Color(0xFFFFB77A)
-
-    if (showSettings) {
-        SettingsDialog(onDismiss = { showSettings = false }, context = context)
-    }
 
     Scaffold(
         topBar = {
@@ -485,37 +479,7 @@ fun HomeScreen(viewModel: PetQuestViewModel, navController: NavController) {
                             Spacer(Modifier.width(4.dp))
                         }
 
-                        // 3-dot menu — Settings ONLY
-                        Box {
-                            IconButton(onClick = { showMenu = true }) {
-                                Icon(
-                                    imageVector        = Icons.Default.MoreVert,
-                                    contentDescription = "More options",
-                                    tint               = Color.White
-                                )
-                            }
 
-                            DropdownMenu(
-                                expanded         = showMenu,
-                                onDismissRequest = { showMenu = false }
-                            ) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(
-                                            verticalAlignment     = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                        ) {
-                                            Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(18.dp))
-                                            Text("Settings", fontSize = 14.sp)
-                                        }
-                                    },
-                                    onClick = {
-                                        showMenu     = false
-                                        showSettings = true
-                                    }
-                                )
-                            }
-                        }
                     }
                 }
             }

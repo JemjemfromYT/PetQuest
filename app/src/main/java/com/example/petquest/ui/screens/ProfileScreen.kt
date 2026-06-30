@@ -1,8 +1,10 @@
 // HOW TO APPLY: Open ProfileScreen.kt → Ctrl+A → Delete → Paste this entire file
 // CHANGES from original:
-//   1. @file:Suppress("UNUSED_VALUE") at file level — fixes ALL 7 lambda warnings reliably
-//   2. Edit trainer name button added — tap pencil icon next to username to change it anytime
-//   3. Tab icons use PNG drawables (paw / trophy / event)
+//   1. @file:Suppress("UNUSED_VALUE") at file level — suppresses UNUSED_VALUE warnings
+//   2. 3-dot menu in Profile top bar (Settings + Edit Profile)
+//   3. Edit Profile dialog: change trainer name + profile picture in one place
+//   4. Removed two standalone pencil edit buttons (cleaner UI)
+//   5. Tab icons use PNG drawables (paw / trophy / event)
 
 @file:Suppress("UNUSED_VALUE")
 
@@ -69,10 +71,14 @@ import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
@@ -264,11 +270,13 @@ fun ProfileScreen(
     var isSharingProfile by remember { mutableStateOf(false) }
     var isSyncing        by remember { mutableStateOf(false) }
     var showBannerPicker by remember { mutableStateOf(false) }
+    var showMenu        by remember { mutableStateOf(false) }
+    var showSettings    by remember { mutableStateOf(false) }
+    var showEditProfile by remember { mutableStateOf(false) }
 
     var selectedTab by remember { mutableIntStateOf(0) }
 
-    // ── Edit name dialog state ─────────────────────────────────────────────────
-    var showEditName by remember { mutableStateOf(false) }
+    // ── Edit name / profile state ──────────────────────────────────────────────
     var nameInput    by remember(username) { mutableStateOf(username) }
 
     fun buildCurrentProfile() = PublicProfile(
@@ -424,13 +432,59 @@ fun ProfileScreen(
         }
     }
 
-    // ── Edit name dialog ───────────────────────────────────────────────────────
-    if (showEditName) {
+    // ── App Settings dialog (music, SFX, theme) ──────────────────────────────
+    if (showSettings) {
+        SettingsDialog(onDismiss = { showSettings = false }, context = context)
+    }
+
+    // ── Edit Profile dialog (name + banner picker) ────────────────────────────
+    if (showEditProfile) {
         AlertDialog(
-            onDismissRequest = { showEditName = false },
-            title = { Text("Edit Trainer Name", fontWeight = FontWeight.Bold) },
+            onDismissRequest = { showEditProfile = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color(0xFFFF6B35), modifier = Modifier.size(20.dp))
+                    Text("Edit Profile", fontWeight = FontWeight.Bold)
+                }
+            },
             text = {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // ── Profile picture ───────────────────────────────────────
+                    Text("Profile Picture", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(
+                        modifier          = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        val bannerRes = PROFILE_BANNERS.getOrElse(profileBannerIndex - 1) { PROFILE_BANNERS[0] }
+                        Card(
+                            modifier  = Modifier.size(56.dp),
+                            shape     = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(2.dp)
+                        ) {
+                            Image(
+                                painter            = painterResource(bannerRes),
+                                contentDescription = "Current banner",
+                                modifier           = Modifier.fillMaxSize(),
+                                contentScale       = ContentScale.Crop
+                            )
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                showEditProfile = false
+                                showBannerPicker = true
+                            },
+                            shape  = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, Color(0xFFFF6B35))
+                        ) {
+                            Text("Change Picture", color = Color(0xFFFF6B35), fontSize = 13.sp)
+                        }
+                    }
+
+                    HorizontalDivider()
+
+                    // ── Trainer name ──────────────────────────────────────────
+                    Text("Trainer Name", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     OutlinedTextField(
                         value           = nameInput,
                         onValueChange   = { if (it.length <= 24) nameInput = it },
@@ -451,7 +505,7 @@ fun ProfileScreen(
                         keyboardActions = KeyboardActions(onDone = {
                             val trimmed = nameInput.trim()
                             if (trimmed.isNotEmpty()) viewModel.saveUsername(trimmed)
-                            showEditName = false
+                            showEditProfile = false
                         }),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -459,9 +513,7 @@ fun ProfileScreen(
                         "${nameInput.length}/24",
                         fontSize = 11.sp,
                         color    = Color(0xFFBDBDBD),
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .padding(top = 4.dp)
+                        modifier = Modifier.align(Alignment.End)
                     )
                 }
             },
@@ -470,7 +522,7 @@ fun ProfileScreen(
                     onClick  = {
                         val trimmed = nameInput.trim()
                         if (trimmed.isNotEmpty()) viewModel.saveUsername(trimmed)
-                        showEditName = false
+                        showEditProfile = false
                     },
                     enabled  = nameInput.trim().isNotEmpty(),
                     colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6B35)),
@@ -478,7 +530,7 @@ fun ProfileScreen(
                 ) { Text("Save") }
             },
             dismissButton = {
-                TextButton(onClick = { showEditName = false }) {
+                TextButton(onClick = { showEditProfile = false }) {
                     Text("Cancel", color = Color(0xFFBDBDBD))
                 }
             }
@@ -550,7 +602,7 @@ fun ProfileScreen(
                         color         = Color.White,
                         letterSpacing = (-0.5).sp
                     )
-                    Row {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         if (isSharingProfile) {
                             CircularProgressIndicator(
                                 modifier    = Modifier.size(24.dp),
@@ -563,6 +615,52 @@ fun ProfileScreen(
                                     Icons.Default.Share,
                                     contentDescription = "Share Profile",
                                     tint               = Color.White.copy(alpha = 0.85f)
+                                )
+                            }
+                        }
+                        // 3-dot menu — Settings + Edit Profile
+                        Box {
+                            IconButton(onClick = { showMenu = true }) {
+                                Icon(
+                                    imageVector        = Icons.Default.MoreVert,
+                                    contentDescription = "More options",
+                                    tint               = Color.White
+                                )
+                            }
+                            DropdownMenu(
+                                expanded         = showMenu,
+                                onDismissRequest = { showMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment     = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(18.dp))
+                                            Text("Settings", fontSize = 14.sp)
+                                        }
+                                    },
+                                    onClick = {
+                                        showMenu     = false
+                                        showSettings = true
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment     = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                                            Text("Edit Profile", fontSize = 14.sp)
+                                        }
+                                    },
+                                    onClick = {
+                                        showMenu        = false
+                                        nameInput       = username
+                                        showEditProfile = true
+                                    }
                                 )
                             }
                         }
@@ -613,7 +711,7 @@ fun ProfileScreen(
                                 contentAlignment = Alignment.BottomEnd
                             ) {
                                 Card(
-                                    modifier  = Modifier.size(80.dp).clickable { showBannerPicker = true },
+                                    modifier  = Modifier.size(80.dp),
                                     shape     = RoundedCornerShape(18.dp),
                                     elevation = CardDefaults.cardElevation(4.dp),
                                     colors    = CardDefaults.cardColors(
@@ -629,19 +727,7 @@ fun ProfileScreen(
                                         contentScale       = ContentScale.Crop
                                     )
                                 }
-                                Surface(
-                                    modifier        = Modifier.padding(2.dp),
-                                    shape           = CircleShape,
-                                    color           = Color(0xFFFF6D00),
-                                    shadowElevation = 3.dp
-                                ) {
-                                    Icon(
-                                        Icons.Default.Edit,
-                                        contentDescription = "Change banner",
-                                        tint     = Color.White,
-                                        modifier = Modifier.size(20.dp).padding(4.dp)
-                                    )
-                                }
+
                             }
 
                             Spacer(Modifier.width(16.dp))
@@ -734,18 +820,7 @@ fun ProfileScreen(
                             color    = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    // Tap to open edit-name dialog
-                    IconButton(onClick = {
-                        nameInput = username
-                        showEditName = true
-                    }) {
-                        Icon(
-                            imageVector        = Icons.Default.Edit,
-                            contentDescription = "Edit trainer name",
-                            tint               = Color(0xFFFF6B35),
-                            modifier           = Modifier.size(20.dp)
-                        )
-                    }
+
                 }
             }
 
