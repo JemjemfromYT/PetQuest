@@ -12,6 +12,7 @@ package com.example.petquest.ui.screens
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -57,13 +58,23 @@ private fun virtueAccentColor(virtueName: String): Color = when (virtueName.uppe
     else         -> Color(0xFF37474F)
 }
 
-private fun virtueAccentBg(virtueName: String): Color = when (virtueName.uppercase()) {
-    "COURAGE"    -> Color(0xFFFFEBEE)
-    "JUSTICE"    -> Color(0xFFE3F2FD)
-    "TEMPERANCE" -> Color(0xFFE8F5E9)
-    "WISDOM"     -> Color(0xFFF3E5F5)
-    "LOYALTY"    -> Color(0xFFFFF3E0)
-    else         -> Color(0xFFECEFF1)
+private fun virtueAccentBg(virtueName: String, isDark: Boolean): Color {
+    if (isDark) return when (virtueName.uppercase()) {
+        "COURAGE"    -> Color(0xFF4A1515)
+        "JUSTICE"    -> Color(0xFF0D2D4A)
+        "TEMPERANCE" -> Color(0xFF0D2E1A)
+        "WISDOM"     -> Color(0xFF2A1040)
+        "LOYALTY"    -> Color(0xFF3D1F00)
+        else         -> Color(0xFF1E1E1E)
+    }
+    return when (virtueName.uppercase()) {
+        "COURAGE"    -> Color(0xFFFFEBEE)
+        "JUSTICE"    -> Color(0xFFE3F2FD)
+        "TEMPERANCE" -> Color(0xFFE8F5E9)
+        "WISDOM"     -> Color(0xFFF3E5F5)
+        "LOYALTY"    -> Color(0xFFFFF3E0)
+        else         -> Color(0xFFECEFF1)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -292,8 +303,9 @@ fun TasksScreen(
                 val doneCount = petTasks.count { it.isCompleted }
                 val allDone   = petTasks.isNotEmpty() && doneCount == petTasks.size
 
+                val isDark      = isSystemInDarkTheme()
                 val virtueColor = virtueAccentColor(selectedPet.virtue.name)
-                val virtueBg    = virtueAccentBg(selectedPet.virtue.name)
+                val virtueBg    = virtueAccentBg(selectedPet.virtue.name, isDark)
 
                 if (petTasks.isEmpty()) {
                     Box(
@@ -425,10 +437,13 @@ private fun ProgressCard(
     petName  : String,
     allDone  : Boolean
 ) {
+    val isDarkProgress = isSystemInDarkTheme()
+    val doneContainer  = if (isDarkProgress) Color(0xFF0D2E1A) else Color(0xFFE8F5E9)
+    val doneText       = if (isDarkProgress) Color(0xFF81C784) else Color(0xFF1B5E20)
     Card(
         modifier  = Modifier.fillMaxWidth(),
         colors    = CardDefaults.cardColors(
-            containerColor = if (allDone) Color(0xFFE8F5E9)
+            containerColor = if (allDone) doneContainer
             else MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(0.dp),
@@ -444,12 +459,12 @@ private fun ProgressCard(
                     if (allDone) "All done for $petName! 🎉" else "$petName's Progress",
                     fontSize   = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color      = if (allDone) Color(0xFF1B5E20)
+                    color      = if (allDone) doneText
                     else MaterialTheme.colorScheme.onSurface
                 )
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = if (allDone) Color(0xFF1B5E20).copy(alpha = 0.12f)
+                    color = if (allDone) doneText.copy(alpha = 0.12f)
                     else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
                 ) {
                     Text(
@@ -457,7 +472,7 @@ private fun ProgressCard(
                         modifier   = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
                         fontSize   = 12.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color      = if (allDone) Color(0xFF1B5E20)
+                        color      = if (allDone) doneText
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

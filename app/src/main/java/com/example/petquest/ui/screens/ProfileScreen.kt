@@ -46,6 +46,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -606,7 +607,7 @@ fun ProfileScreen(
                     Card(
                         modifier  = Modifier.weight(1f).clickable { onBondCardTap() },
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors    = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
+                        colors    = CardDefaults.cardColors(containerColor = if (isSystemInDarkTheme()) Color(0xFF0D2E1A) else Color(0xFFE8F5E9))
                     ) {
                         Column(
                             modifier            = Modifier.fillMaxWidth().padding(14.dp),
@@ -616,20 +617,20 @@ fun ProfileScreen(
                                 "$totalBondPoints",
                                 fontSize   = 24.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color      = Color(0xFF1B5E20)
+                                color      = if (isSystemInDarkTheme()) Color(0xFF81C784) else Color(0xFF1B5E20)
                             )
                             Text(
                                 "Total Bond Pts",
                                 fontSize   = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color      = Color(0xFF2E7D32)
+                                color      = if (isSystemInDarkTheme()) Color(0xFF66BB6A) else Color(0xFF2E7D32)
                             )
                         }
                     }
                     Card(
                         modifier  = Modifier.weight(1f).clickable { onActivePetsCardTap() },
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors    = CardDefaults.cardColors(containerColor = Color(0xFFF3E5F5))
+                        colors    = CardDefaults.cardColors(containerColor = if (isSystemInDarkTheme()) Color(0xFF2A1040) else Color(0xFFF3E5F5))
                     ) {
                         Column(
                             modifier            = Modifier.fillMaxWidth().padding(14.dp),
@@ -639,13 +640,13 @@ fun ProfileScreen(
                                 "${verifiedPets.size}",
                                 fontSize   = 24.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color      = Color(0xFF4A148C)
+                                color      = if (isSystemInDarkTheme()) Color(0xFFCE93D8) else Color(0xFF4A148C)
                             )
                             Text(
                                 "Active Pets",
                                 fontSize   = 11.sp,
                                 fontWeight = FontWeight.Medium,
-                                color      = Color(0xFF6A1B9A)
+                                color      = if (isSystemInDarkTheme()) Color(0xFFBA68C8) else Color(0xFF6A1B9A)
                             )
                         }
                     }
@@ -658,7 +659,7 @@ fun ProfileScreen(
                     Card(
                         modifier  = Modifier.fillMaxWidth(),
                         elevation = CardDefaults.cardElevation(2.dp),
-                        colors    = CardDefaults.cardColors(containerColor = Color(0xFFFBE9E7))
+                        colors    = CardDefaults.cardColors(containerColor = if (isSystemInDarkTheme()) Color(0xFF3D1F00) else Color(0xFFFBE9E7))
                     ) {
                         Row(
                             modifier              = Modifier.fillMaxWidth().padding(14.dp),
@@ -666,16 +667,16 @@ fun ProfileScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Icon(Icons.Default.Whatshot, null,
-                                tint     = Color(0xFFE64A19),
+                                tint     = if (isSystemInDarkTheme()) Color(0xFFFF8A65) else Color(0xFFE64A19),
                                 modifier = Modifier.size(28.dp))
                             Column {
                                 Text("$userStreak Day Streak",
                                     fontSize   = 16.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color      = Color(0xFFBF360C))
+                                    color      = if (isSystemInDarkTheme()) Color(0xFFFF7043) else Color(0xFFBF360C))
                                 Text("Consistent trainer — logging in every day!",
                                     fontSize = 11.sp,
-                                    color    = Color(0xFFE64A19).copy(alpha = 0.75f))
+                                    color    = if (isSystemInDarkTheme()) Color(0xFFFF8A65).copy(alpha = 0.85f) else Color(0xFFE64A19).copy(alpha = 0.75f))
                             }
                         }
                     }
@@ -898,7 +899,7 @@ private fun PsAchievementsSection(grouped: List<Pair<PsAchievCategoryDef, List<S
         modifier  = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(2.dp),
         colors    = CardDefaults.cardColors(
-            containerColor = if (grouped.isNotEmpty()) Color(0xFFFFF8E1)
+            containerColor = if (grouped.isNotEmpty()) (if (isSystemInDarkTheme()) Color(0xFF2C2200) else Color(0xFFFFF8E1))
             else MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
@@ -921,7 +922,7 @@ private fun PsAchievementsSection(grouped: List<Pair<PsAchievCategoryDef, List<S
                     "Achievements",
                     fontSize   = 14.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color      = if (grouped.isNotEmpty()) Color(0xFF5D4037)
+                    color      = if (grouped.isNotEmpty()) (if (isSystemInDarkTheme()) Color(0xFFFFCC80) else Color(0xFF5D4037))
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (grouped.isNotEmpty()) {
@@ -1025,7 +1026,7 @@ private fun SyncBanner() {
             .fillMaxWidth()
             .graphicsLayer { alpha = bannerAlpha },
         shape = RoundedCornerShape(12.dp),
-        color = Color(0xFFFFF3E0)
+        color = if (isSystemInDarkTheme()) Color(0xFF3D1F00) else Color(0xFFFFF3E0)
     ) {
         Row(
             modifier              = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
@@ -1035,13 +1036,13 @@ private fun SyncBanner() {
             CircularProgressIndicator(
                 modifier    = Modifier.size(16.dp),
                 strokeWidth = 2.dp,
-                color       = Color(0xFFE65100)
+                color       = if (isSystemInDarkTheme()) Color(0xFFFF8A65) else Color(0xFFE65100)
             )
             Text(
                 "Syncing photos to share link...",
                 fontSize   = 12.sp,
                 fontWeight = FontWeight.Medium,
-                color      = Color(0xFFBF360C)
+                color      = if (isSystemInDarkTheme()) Color(0xFFFF7043) else Color(0xFFBF360C)
             )
         }
     }
@@ -1057,7 +1058,7 @@ private fun EventBadgesSection(eventBadges: List<AchievementEntity>) {
         modifier  = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(2.dp),
         colors    = CardDefaults.cardColors(
-            containerColor = if (eventBadges.isNotEmpty()) Color(0xFFFFFDE7)
+            containerColor = if (eventBadges.isNotEmpty()) (if (isSystemInDarkTheme()) Color(0xFF2C2200) else Color(0xFFFFFDE7))
             else MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
@@ -1080,7 +1081,7 @@ private fun EventBadgesSection(eventBadges: List<AchievementEntity>) {
                     "Event Badges",
                     fontSize   = 14.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color      = if (eventBadges.isNotEmpty()) Color(0xFF5D4037)
+                    color      = if (eventBadges.isNotEmpty()) (if (isSystemInDarkTheme()) Color(0xFFFFCC80) else Color(0xFF5D4037))
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (eventBadges.isNotEmpty()) {
