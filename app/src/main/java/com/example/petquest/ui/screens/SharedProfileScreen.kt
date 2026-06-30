@@ -401,11 +401,11 @@ private fun SpProfileContent(profile: PublicProfile) {
         contentPadding      = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // ── Trainer header ─────────────────────────────────────────────────────
-        item { SpTrainerHeader(profile) }
-
         // ── Level card ─────────────────────────────────────────────────────────
         item { SpLevelCard(level = profile.level, xpInLevel = xpInLevel, xpProgress = xpProgress, bannerIndex = profile.bannerIndex) }
+
+        // ── Trainer name (below level card, no paw) ────────────────────────────
+        item { SpTrainerHeader(profile) }
 
         // ── Bond Pts + Active Pets stats ───────────────────────────────────────
         item {
@@ -550,31 +550,23 @@ private fun SpProfileContent(profile: PublicProfile) {
 
 @Composable
 private fun SpTrainerHeader(profile: PublicProfile) {
-    Row(
-        modifier              = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 4.dp)
     ) {
-        Box(contentAlignment = Alignment.BottomEnd) {
-            Box(
-                modifier = Modifier.size(72.dp).clip(CircleShape).background(
-                    Brush.radialGradient(listOf(Color(0xFFFFB77A), Color(0xFFFF8C42)))
-                ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.Pets, null, modifier = Modifier.size(36.dp), tint = Color.White)
-            }
-            Surface(shape = CircleShape, color = Color(0xFF6650A4), modifier = Modifier.size(26.dp)) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text("${profile.level}", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
-                }
-            }
-        }
-        Column {
-            Text(profile.trainerName, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold,
-                maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("PetQuest Trainer", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        Text(
+            profile.trainerName,
+            fontSize   = 22.sp,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines   = 1,
+            overflow   = TextOverflow.Ellipsis
+        )
+        Text(
+            "PetQuest Trainer",
+            fontSize = 13.sp,
+            color    = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

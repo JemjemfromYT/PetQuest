@@ -409,17 +409,6 @@
         profileEl.innerHTML = `
             <div class="topbar"><span class="topbar-title">Trainer Profile</span></div>
 
-            <div class="trainer-hero">
-                <div class="trainer-avatar">
-                    <img src="${ICON_BASE}paw.png" alt="paw">
-                    <div class="trainer-lvbadge">${level}</div>
-                </div>
-                <div>
-                    <div class="trainer-name">${name}</div>
-                    <div class="trainer-sub">PetQuest Trainer</div>
-                </div>
-            </div>
-
             <div class="stats-strip">
                 <div class="lvcard">
                     <div class="lvcard-banner-wrap">
@@ -434,6 +423,11 @@
                         </div>
                         <div class="lvbar-wrap"><div class="lvbar" style="width:${lvPct}%"></div></div>
                     </div>
+                </div>
+
+                <div style="padding:4px 2px 0">
+                    <div style="font-size:22px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
+                    <div style="font-size:13px;color:var(--txm);margin-top:2px">PetQuest Trainer</div>
                 </div>
 
                 <div class="mini-stats">

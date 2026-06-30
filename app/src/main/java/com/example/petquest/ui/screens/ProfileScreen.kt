@@ -58,7 +58,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
@@ -82,7 +81,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.res.painterResource
@@ -273,7 +272,7 @@ fun ProfileScreen(
                 rarity     = pet.type.rarity.name,
                 bondLevel  = pet.bondLevel,
                 isVerified = pet.isVerified,
-                photoUri   = pet.photoUri?.toString(),
+                photoUri   = pet.photoUri,
                 virtue     = pet.virtue.name
             )
         },
@@ -406,13 +405,24 @@ fun ProfileScreen(
                         putExtra(Intent.EXTRA_TITLE, "${profile.trainerName}'s PetQuest Profile")
                     }
                     context.startActivity(Intent.createChooser(intent, "Share your PetQuest profile"))
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Toast.makeText(context, "Couldn't share — please try again.", Toast.LENGTH_SHORT).show()
                 } finally {
                     isSharingProfile = false
                 }
             }
         }
+    }
+
+    if (showBannerPicker) {
+        BannerPickerSheet(
+            currentIndex = profileBannerIndex,
+            onSelect     = { idx ->
+                viewModel.saveBannerIndex(idx)
+                showBannerPicker = false
+            },
+            onDismiss    = { showBannerPicker = false }
+        )
     }
 
     if (showTimePicker) {
@@ -1325,7 +1335,7 @@ private fun PetCollectionCard(pet: PetEntity, modifier: Modifier = Modifier) {
                 alpha     = if (rotation > 90f) 1f else 0f
             }
         ) {
-            PetCardBack(pet = pet, rarityColor = rarityColor)
+            PetCardBack(pet = pet)
         }
 
         Box(
@@ -1508,7 +1518,7 @@ private fun PetCardFront(pet: PetEntity, rarityColor: Color) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
+private fun PetCardBack(pet: PetEntity) {
     val virtueInfo = VirtueConfig[pet.virtue]
 
     val (gradStart, gradMid, gradEnd) = when (pet.virtue) {
