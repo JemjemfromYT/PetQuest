@@ -31,6 +31,7 @@ class UserPreferencesRepository(context: Context) {
         val LAST_EVENT_CLAIM_DATE_KEY     = stringPreferencesKey("last_event_claim_date")
         // ── NEW: Whisker cat tutorial flag ────────────────────────────────────
         val HAS_SEEN_TUTORIAL_KEY         = booleanPreferencesKey("has_seen_whisker_tutorial")
+        val PROFILE_BANNER_KEY            = intPreferencesKey("profile_banner_index")
     }
 
     val userStreak: Flow<Int>            = dataStore.data.map { it[STREAK_KEY] ?: 0 }
@@ -49,6 +50,8 @@ class UserPreferencesRepository(context: Context) {
     // ── NEW ──────────────────────────────────────────────────────────────────
     val hasSeenTutorial: Flow<Boolean>   =
         dataStore.data.map { it[HAS_SEEN_TUTORIAL_KEY] ?: false }
+    val profileBannerIndex: Flow<Int>     =
+        dataStore.data.map { it[PROFILE_BANNER_KEY] ?: 1 }
 
     suspend fun updateStreak(streak: Int) {
         dataStore.edit { it[STREAK_KEY] = streak }
@@ -99,5 +102,9 @@ class UserPreferencesRepository(context: Context) {
     // ── NEW ──────────────────────────────────────────────────────────────────
     suspend fun markTutorialSeen() {
         dataStore.edit { it[HAS_SEEN_TUTORIAL_KEY] = true }
+    }
+
+    suspend fun updateProfileBannerIndex(index: Int) {
+        dataStore.edit { it[PROFILE_BANNER_KEY] = index }
     }
 }

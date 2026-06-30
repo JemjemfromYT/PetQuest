@@ -150,6 +150,10 @@ class PetQuestViewModel(
         prefsRepository.lastEventClaimDate
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
+    val profileBannerIndex: StateFlow<Int> =
+        prefsRepository.profileBannerIndex
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1)
+
     val todayEventBonusClaimed: StateFlow<Boolean> = lastEventClaimDate.map { date ->
         date == todayString()
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
@@ -294,6 +298,10 @@ class PetQuestViewModel(
                 Log.e("PetQuestVM", "markTutorialSeen error", e)
             }
         }
+    }
+
+    fun saveBannerIndex(index: Int) {
+        viewModelScope.launch { prefsRepository.updateProfileBannerIndex(index) }
     }
 
     // ─── Event bonus claim ─────────────────────────────────────────────────────

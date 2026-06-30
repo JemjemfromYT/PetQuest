@@ -405,7 +405,7 @@ private fun SpProfileContent(profile: PublicProfile) {
         item { SpTrainerHeader(profile) }
 
         // ── Level card ─────────────────────────────────────────────────────────
-        item { SpLevelCard(level = profile.level, xpInLevel = xpInLevel, xpProgress = xpProgress) }
+        item { SpLevelCard(level = profile.level, xpInLevel = xpInLevel, xpProgress = xpProgress, bannerIndex = profile.bannerIndex) }
 
         // ── Bond Pts + Active Pets stats ───────────────────────────────────────
         item {
@@ -583,7 +583,7 @@ private fun SpTrainerHeader(profile: PublicProfile) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun SpLevelCard(level: Int, xpInLevel: Int, xpProgress: Float) {
+private fun SpLevelCard(level: Int, xpInLevel: Int, xpProgress: Float, bannerIndex: Int = 1) {
     Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(6.dp),
         shape = MaterialTheme.shapes.large) {
         Box(modifier = Modifier.fillMaxWidth().background(
@@ -593,9 +593,13 @@ private fun SpLevelCard(level: Int, xpInLevel: Int, xpProgress: Float) {
                 Card(shape = MaterialTheme.shapes.medium,
                     colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.25f)),
                     elevation = CardDefaults.cardElevation(0.dp)) {
-                    Box(modifier = Modifier.size(64.dp), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Pets, null, modifier = Modifier.size(38.dp).padding(4.dp), tint = Color.White)
-                    }
+                    val bannerRes = PROFILE_BANNERS.getOrElse(bannerIndex - 1) { PROFILE_BANNERS[0] }
+                    Image(
+                        painter            = painterResource(bannerRes),
+                        contentDescription = "Trainer banner",
+                        modifier           = Modifier.size(64.dp).padding(4.dp),
+                        contentScale       = ContentScale.Fit
+                    )
                 }
                 Spacer(Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {

@@ -71,7 +71,8 @@ data class PublicProfile(
     val speciesCount        : Int              = 0,
     val pets                : List<PetSummary> = emptyList(),
     val unlockedBadgeTitles : List<String>     = emptyList(),
-    val updatedAt           : Long             = 0L
+    val updatedAt           : Long             = 0L,
+    val bannerIndex         : Int              = 1
 )
 
 // ── Internal: Supabase database row (snake_case column names) ─────────────────
@@ -88,7 +89,8 @@ private data class ProfileRow(
     @SerializedName("species_count")          val speciesCount       : Int,
     @SerializedName("pets")                   val pets               : List<PetSummary>,
     @SerializedName("unlocked_badge_titles")  val unlockedBadgeTitles: List<String>,
-    @SerializedName("updated_at")             val updatedAt          : Long
+    @SerializedName("updated_at")             val updatedAt          : Long,
+    @SerializedName("banner_index")           val bannerIndex        : Int = 1
 )
 
 // ── Main repository class ─────────────────────────────────────────────────────
@@ -306,7 +308,8 @@ class SupabaseRepository(private val appContext: Context) {
             speciesCount        = profile.speciesCount,
             pets                = processedPets,
             unlockedBadgeTitles = profile.unlockedBadgeTitles,
-            updatedAt           = System.currentTimeMillis()
+            updatedAt           = System.currentTimeMillis(),
+            bannerIndex         = profile.bannerIndex
         )
 
         withContext(Dispatchers.IO) {
@@ -379,7 +382,8 @@ class SupabaseRepository(private val appContext: Context) {
                     speciesCount        = row.speciesCount,
                     pets                = row.pets,
                     unlockedBadgeTitles = row.unlockedBadgeTitles,
-                    updatedAt           = row.updatedAt
+                    updatedAt           = row.updatedAt,
+                    bannerIndex         = row.bannerIndex
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "fetchProfile error for uid=$uid", e)

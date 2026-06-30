@@ -49,10 +49,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.CheckCircle
@@ -202,6 +206,7 @@ fun ProfileScreen(
     val notificationHour     by viewModel.notificationHour.collectAsState()
     val notificationMinute   by viewModel.notificationMinute.collectAsState()
     val userStreak           by viewModel.userStreak.collectAsState()
+    val profileBannerIndex   by viewModel.profileBannerIndex.collectAsState()
 
     val speciesCount = collectedSpecies.size
     val totalSpecies = PetType.entries.size
@@ -238,6 +243,7 @@ fun ProfileScreen(
     val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
     var isSyncing        by remember { mutableStateOf(false) }
+    var showBannerPicker by remember { mutableStateOf(false) }
 
     // ── Tab state ─────────────────────────────────────────────────────────────
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -510,19 +516,36 @@ fun ProfileScreen(
                             modifier          = Modifier.fillMaxWidth().padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Card(
-                                shape     = MaterialTheme.shapes.medium,
-                                colors    = CardDefaults.cardColors(
-                                    containerColor = Color.White.copy(alpha = 0.25f)
-                                ),
-                                elevation = CardDefaults.cardElevation(0.dp)
-                            ) {
-                                Image(
-                                    painter            = painterResource(R.drawable.profile_banner),
-                                    contentDescription = null,
-                                    modifier           = Modifier.size(72.dp).padding(4.dp),
-                                    contentScale       = ContentScale.Fit
-                                )
+                            Box {
+                                Card(
+                                    modifier  = Modifier.clickable { showBannerPicker = true },
+                                    shape     = MaterialTheme.shapes.medium,
+                                    colors    = CardDefaults.cardColors(
+                                        containerColor = Color.White.copy(alpha = 0.25f)
+                                    ),
+                                    elevation = CardDefaults.cardElevation(0.dp)
+                                ) {
+                                    val bannerRes = PROFILE_BANNERS.getOrElse(profileBannerIndex - 1) { PROFILE_BANNERS[0] }
+                                    Image(
+                                        painter            = painterResource(bannerRes),
+                                        contentDescription = "Profile banner",
+                                        modifier           = Modifier.size(72.dp).padding(4.dp),
+                                        contentScale       = ContentScale.Fit
+                                    )
+                                }
+                                Surface(
+                                    modifier        = Modifier.align(Alignment.BottomEnd).offset(3.dp, 3.dp),
+                                    shape           = CircleShape,
+                                    color           = Color(0xFFFF6D00),
+                                    shadowElevation = 2.dp
+                                ) {
+                                    Icon(
+                                        Icons.Default.Edit,
+                                        contentDescription = "Change banner",
+                                        tint     = Color.White,
+                                        modifier = Modifier.size(20.dp).padding(4.dp)
+                                    )
+                                }
                             }
 
                             Spacer(Modifier.width(16.dp))
@@ -1692,6 +1715,91 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
                         maxLines      = 1,
                         overflow      = TextOverflow.Ellipsis
                     )
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Banner Picker Bottom Sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BannerPickerSheet(
+    currentIndex : Int,
+    onSelect     : (Int) -> Unit,
+    onDismiss    : () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest  = onDismiss,
+        sheetState        = sheetState,
+        containerColor    = MaterialTheme.colorScheme.surface,
+        dragHandle        = { BottomSheetDefaults.DragHandle() }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text(
+                "Choose Profile Banner",
+                fontSize   = 18.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier   = Modifier.padding(bottom = 16.dp)
+            )
+            LazyVerticalGrid(
+                columns             = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement   = Arrangement.spacedBy(12.dp),
+                modifier            = Modifier.fillMaxWidth()
+            ) {
+                items(PROFILE_BANNERS.size) { i ->
+                    val idx      = i + 1
+                    val selected = idx == currentIndex
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1.6f)
+                            .clip(MaterialTheme.shapes.medium)
+                            .border(
+                                width = if (selected) 3.dp else 1.dp,
+                                color = if (selected) Color(0xFFFF6D00) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                shape = MaterialTheme.shapes.medium
+                            )
+                            .clickable { onSelect(idx) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter            = painterResource(PROFILE_BANNERS[i]),
+                            contentDescription = "Banner $idx",
+                            modifier           = Modifier.fillMaxSize(),
+                            contentScale       = ContentScale.Fit
+                        )
+                        if (selected) {
+                            Box(
+                                modifier         = Modifier.fillMaxSize().background(Color(0xFFFF6D00).copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.TopEnd
+                            ) {
+                                Surface(
+                                    modifier = Modifier.padding(6.dp),
+                                    shape    = CircleShape,
+                                    color    = Color(0xFFFF6D00)
+                                ) {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = "Selected",
+                                        tint     = Color.White,
+                                        modifier = Modifier.size(20.dp).padding(2.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
