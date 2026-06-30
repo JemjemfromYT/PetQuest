@@ -3,6 +3,8 @@
 //   1. Tab icons replaced — emoji text removed, PNG icons added (paw / trophy / event)
 //      If build fails with "unresolved reference: paw/trophy/event", copy the matching
 //      PNG files from docs/icons/ into app/src/main/res/drawable/ with those exact names.
+//   2. @Suppress("UNUSED_VALUE") moved to function level — eliminates all 7 warnings
+//      at lines 428, 430, 441, 454, 458, 551, 955.
 
 // ╔══════════════════════════════════════════════════════════════════════════════╗
 // ║  ⚠️  SYNC CONTRACT — READ BEFORE EDITING  ⚠️                                ║
@@ -197,6 +199,7 @@ private val PS_ACHIEV_CATEGORIES = listOf(
     )
 )
 
+@Suppress("UNUSED_VALUE")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -257,7 +260,6 @@ fun ProfileScreen(
     val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
     var isSyncing        by remember { mutableStateOf(false) }
-    @Suppress("UNUSED_VALUE")
     var showBannerPicker by remember { mutableStateOf(false) }
 
     // ── Tab state ─────────────────────────────────────────────────────────────
@@ -339,7 +341,6 @@ fun ProfileScreen(
         }
     }
 
-    @Suppress("UNUSED_VALUE")
     var showTimePicker by remember { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(

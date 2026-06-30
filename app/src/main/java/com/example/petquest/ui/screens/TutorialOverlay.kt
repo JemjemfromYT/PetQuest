@@ -2,15 +2,11 @@
 // FILE: app/src/main/java/com/example/petquest/ui/screens/TutorialOverlay.kt
 // FULL REPLACEMENT
 //
-// Layout overhaul:
-//  - Bottom sheet card (like a game dialog), cat sits ON TOP of the card
-//  - Cat is now 180×200dp — much bigger, properly centered
-//  - Chibi proportions: massive head, tiny body peeking above card rim
-//  - Mouth opens/closes while text types (talking animation)
-//  - Typewriter text with simple blinking block cursor ▋
-//  - Friendly sky-blue eyes, rosy cheeks, warm cream fur
-//  - No floating sparkles (they looked cheap)
-//  - Card uses full width with proper padding hierarchy
+// Changes from original:
+//  - Added username input step (step index 1, right after welcome)
+//  - TutorialOverlay now takes onSaveUsername: (String) -> Unit
+//  - Username step shows a text field; name is saved when user taps "Got it!"
+//  - All original cat animation, layout, and tutorial steps preserved
 // ============================================================
 
 package com.example.petquest.ui.screens
@@ -23,11 +19,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -38,6 +38,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,15 +64,22 @@ private val CatBelly    = Color(0xFFFFF6E8)
 
 // ── Tutorial steps ────────────────────────────────────────────────────────────
 data class TutorialStep(
-    val tabIndex : Int,
-    val title    : String,
-    val message  : String,
-    val isLast   : Boolean = false
+    val tabIndex      : Int,
+    val title         : String,
+    val message       : String,
+    val isLast        : Boolean = false,
+    val isUsernameStep: Boolean = false   // NEW: shows a name input field instead of static text
 )
 
 private val TUTORIAL_STEPS = listOf(
     TutorialStep(-1, "Hi! I'm Whisker 🐱",
         "I live in PetQuest and I'll be your guide! Let me show you around. Tap Got it to continue!"),
+
+    // ── NEW: username step ────────────────────────────────────────────────────
+    TutorialStep(-1, "What's your name? 🏷️",
+        "Choose a trainer name — this is how you'll appear on your profile and share page!",
+        isUsernameStep = true),
+
     TutorialStep(0,  "Home 🏠",
         "Your Home screen shows all your pets, today's streak, bond points, and how many tasks you've done today."),
     TutorialStep(1,  "Daily Tasks ✅",
@@ -92,10 +101,15 @@ private val TUTORIAL_STEPS = listOf(
 @Composable
 fun TutorialOverlay(
     onDismiss      : () -> Unit,
-    onTabHighlight : (Int) -> Unit
+    onTabHighlight : (Int) -> Unit,
+    onSaveUsername : (String) -> Unit = {}   // NEW: called with the typed name on the username step
 ) {
     var stepIndex by remember { mutableIntStateOf(0) }
     val step = TUTORIAL_STEPS[stepIndex]
+
+    // Username field state (only used on the username step)
+    var usernameInput by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
 
     var displayedMessage by remember { mutableStateOf("") }
     var isTalking        by remember { mutableStateOf(false) }
@@ -105,11 +119,25 @@ fun TutorialOverlay(
         displayedMessage = ""
         isTalking        = true
         showCursor       = true
-        for (ch in step.message) {
-            displayedMessage += ch
-            delay(26L)
+        // On the username step don't typewrite the message — show it instantly
+        if (step.isUsernameStep) {
+            displayedMessage = step.message
+            isTalking = false
+        } else {
+            for (ch in step.message) {
+                displayedMessage += ch
+                delay(26L)
+            }
+            isTalking = false
         }
-        isTalking = false
+    }
+
+    LaunchedEffect(stepIndex) {
+        if (step.isUsernameStep) {
+            // Small delay so the composable is fully laid out before requesting focus
+            delay(150)
+            try { focusRequester.requestFocus() } catch (_: Exception) {}
+        }
     }
 
     LaunchedEffect(isTalking) {
@@ -122,6 +150,15 @@ fun TutorialOverlay(
 
     LaunchedEffect(step.tabIndex) {
         if (step.tabIndex >= 0) onTabHighlight(step.tabIndex)
+    }
+
+    // Helper: advance to next step (saves username when leaving the username step)
+    fun advance() {
+        if (step.isUsernameStep) {
+            val name = usernameInput.trim()
+            if (name.isNotEmpty()) onSaveUsername(name)
+        }
+        if (step.isLast) onDismiss() else stepIndex++
     }
 
     // Full-screen dark overlay
@@ -169,21 +206,61 @@ fun TutorialOverlay(
 
                 Spacer(Modifier.height(10.dp))
 
-                // Typewriter message — fixed min height to prevent layout jump
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .defaultMinSize(minHeight = 70.dp),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    val cursorStr = if (showCursor && isTalking) "▋" else ""
+                // ── Body: username input OR typewriter message ─────────────────
+                if (step.isUsernameStep) {
+                    // Short description
                     Text(
-                        text       = displayedMessage + cursorStr,
-                        fontSize   = 14.sp,
+                        text       = displayedMessage,
+                        fontSize   = 13.sp,
                         color      = Color(0xFF4A4A4A),
                         textAlign  = TextAlign.Center,
-                        lineHeight = 22.sp
+                        lineHeight = 20.sp
                     )
+                    Spacer(Modifier.height(14.dp))
+                    OutlinedTextField(
+                        value         = usernameInput,
+                        onValueChange = { if (it.length <= 24) usernameInput = it },
+                        placeholder   = { Text("Your trainer name", color = Color(0xFFBDBDBD)) },
+                        singleLine    = true,
+                        modifier      = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        colors        = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor   = Color(0xFFFF6B35),
+                            unfocusedBorderColor = Color(0xFFFFCCBC),
+                            cursorColor          = Color(0xFFFF6B35)
+                        ),
+                        shape         = RoundedCornerShape(14.dp),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            imeAction      = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(onDone = { advance() })
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text      = "${usernameInput.length}/24",
+                        fontSize  = 10.sp,
+                        color     = Color(0xFFBDBDBD),
+                        modifier  = Modifier.align(Alignment.End)
+                    )
+                } else {
+                    // Typewriter message — fixed min height to prevent layout jump
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 70.dp),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        val cursorStr = if (showCursor && isTalking) "▋" else ""
+                        Text(
+                            text       = displayedMessage + cursorStr,
+                            fontSize   = 14.sp,
+                            color      = Color(0xFF4A4A4A),
+                            textAlign  = TextAlign.Center,
+                            lineHeight = 22.sp
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(18.dp))
@@ -202,14 +279,25 @@ fun TutorialOverlay(
                         Spacer(Modifier.width(56.dp))
                     }
 
+                    // On the username step, disable "Got it!" when name is blank
+                    val canAdvance = !step.isUsernameStep || usernameInput.trim().isNotEmpty()
+
                     Button(
-                        onClick  = { if (step.isLast) onDismiss() else stepIndex++ },
-                        colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6B35)),
+                        onClick  = { advance() },
+                        enabled  = canAdvance,
+                        colors   = ButtonDefaults.buttonColors(
+                            containerColor        = Color(0xFFFF6B35),
+                            disabledContainerColor = Color(0xFFFFCCBC)
+                        ),
                         shape    = RoundedCornerShape(16.dp),
                         modifier = Modifier.height(46.dp).defaultMinSize(minWidth = 130.dp)
                     ) {
                         Text(
-                            text       = if (step.isLast) "Let's go! 🐾" else "Got it! →",
+                            text       = when {
+                                step.isLast        -> "Let's go! 🐾"
+                                step.isUsernameStep -> "Save & continue →"
+                                else               -> "Got it! →"
+                            },
                             fontWeight = FontWeight.Bold,
                             fontSize   = 14.sp,
                             color      = Color.White

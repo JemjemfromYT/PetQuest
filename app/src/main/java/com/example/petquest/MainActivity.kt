@@ -3,6 +3,7 @@
 //   1. ThemeManager initialized from SharedPreferences on startup (default: LIGHT)
 //   2. PetQuestTheme now driven by ThemeManager.themeMode (Light/Dark/Auto)
 //   3. All previous fixes (supabaseRepository wiring) preserved
+//   4. TutorialOverlay now receives onSaveUsername so the username step saves correctly
 
 package com.example.petquest
 
@@ -291,7 +292,8 @@ fun MainScreen(viewModel: PetQuestViewModel, outerNav: NavController) {
             if (showTutorial) {
                 TutorialOverlay(
                     onDismiss      = { viewModel.markTutorialSeen() },
-                    onTabHighlight = { highlightedTab -> tab = highlightedTab }
+                    onTabHighlight = { highlightedTab -> tab = highlightedTab },
+                    onSaveUsername = { name -> viewModel.saveUsername(name) }
                 )
             }
         }
