@@ -4,12 +4,15 @@
 //   2. PetQuestTheme now driven by ThemeManager.themeMode (Light/Dark/Auto)
 //   3. All previous fixes (supabaseRepository wiring) preserved
 //   4. TutorialOverlay now receives onSaveUsername so the username step saves correctly
+//   5. Removed unused Uri import, fixed Context.MODE_PRIVATE → MODE_PRIVATE
+//   6. Suppressed UNUSED_VALUE warning on levelUpEvent lambda assignment
+
+@file:Suppress("UNUSED_VALUE")
 
 package com.example.petquest
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -39,7 +42,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val prefs = getSharedPreferences("petquest_settings", Context.MODE_PRIVATE)
+        val prefs = getSharedPreferences("petquest_settings", MODE_PRIVATE)
         SoundManager.musicEnabled = prefs.getBoolean("music_enabled", true)
         SoundManager.sfxEnabled   = prefs.getBoolean("sfx_enabled",   true)
 

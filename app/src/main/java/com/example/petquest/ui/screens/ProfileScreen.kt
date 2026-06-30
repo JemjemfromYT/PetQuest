@@ -1,10 +1,10 @@
 // HOW TO APPLY: Open ProfileScreen.kt → Ctrl+A → Delete → Paste this entire file
 // CHANGES from original:
-//   1. Tab icons replaced — emoji text removed, PNG icons added (paw / trophy / event)
-//      If build fails with "unresolved reference: paw/trophy/event", copy the matching
-//      PNG files from docs/icons/ into app/src/main/res/drawable/ with those exact names.
-//   2. @Suppress("UNUSED_VALUE") moved to function level — eliminates all 7 warnings
-//      at lines 428, 430, 441, 454, 458, 551, 955.
+//   1. @file:Suppress("UNUSED_VALUE") at file level — fixes ALL 7 lambda warnings reliably
+//   2. Edit trainer name button added — tap pencil icon next to username to change it anytime
+//   3. Tab icons use PNG drawables (paw / trophy / event)
+
+@file:Suppress("UNUSED_VALUE")
 
 // ╔══════════════════════════════════════════════════════════════════════════════╗
 // ║  ⚠️  SYNC CONTRACT — READ BEFORE EDITING  ⚠️                                ║
@@ -56,6 +56,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
@@ -87,6 +89,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -199,7 +203,6 @@ private val PS_ACHIEV_CATEGORIES = listOf(
     )
 )
 
-@Suppress("UNUSED_VALUE")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -262,8 +265,11 @@ fun ProfileScreen(
     var isSyncing        by remember { mutableStateOf(false) }
     var showBannerPicker by remember { mutableStateOf(false) }
 
-    // ── Tab state ─────────────────────────────────────────────────────────────
     var selectedTab by remember { mutableIntStateOf(0) }
+
+    // ── Edit name dialog state ─────────────────────────────────────────────────
+    var showEditName by remember { mutableStateOf(false) }
+    var nameInput    by remember(username) { mutableStateOf(username) }
 
     fun buildCurrentProfile() = PublicProfile(
         trainerName         = if (pets.isNotEmpty()) pets.first().name else "PetQuest Trainer",
@@ -286,7 +292,6 @@ fun ProfileScreen(
         unlockedBadgeTitles = allAchievements.filter { it.isUnlocked }.map { it.title }
     )
 
-    // ── Background sync: runs in viewModelScope so navigation can't cancel it ──
     LaunchedEffect(pets.size, allAchievements.count { it.isUnlocked }) {
         kotlinx.coroutines.delay(800)
         if (pets.isNotEmpty() || allAchievements.any { it.isUnlocked }) {
@@ -307,7 +312,6 @@ fun ProfileScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // ── Hidden admin sequence state (silent, zero visual feedback) ──────────────
     var hiddenStep     by remember { mutableIntStateOf(0) }
     var hiddenTapA     by remember { mutableIntStateOf(0) }
     var hiddenTapB     by remember { mutableIntStateOf(0) }
@@ -374,7 +378,6 @@ fun ProfileScreen(
         }
     }
 
-    // ── Share profile ─────────────────────────────────────────────────────────
     val shareProfile: () -> Unit = {
         if (!isSharingProfile) {
             scope.launch {
@@ -419,6 +422,67 @@ fun ProfileScreen(
                 }
             }
         }
+    }
+
+    // ── Edit name dialog ───────────────────────────────────────────────────────
+    if (showEditName) {
+        AlertDialog(
+            onDismissRequest = { showEditName = false },
+            title = { Text("Edit Trainer Name", fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value           = nameInput,
+                        onValueChange   = { if (it.length <= 24) nameInput = it },
+                        singleLine      = true,
+                        label           = { Text("Your trainer name") },
+                        placeholder     = { Text("e.g. Alex") },
+                        colors          = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor   = Color(0xFFFF6B35),
+                            unfocusedBorderColor = Color(0xFFFFCCBC),
+                            cursorColor          = Color(0xFFFF6B35),
+                            focusedLabelColor    = Color(0xFFFF6B35)
+                        ),
+                        shape           = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            imeAction      = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(onDone = {
+                            val trimmed = nameInput.trim()
+                            if (trimmed.isNotEmpty()) viewModel.saveUsername(trimmed)
+                            showEditName = false
+                        }),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        "${nameInput.length}/24",
+                        fontSize = 11.sp,
+                        color    = Color(0xFFBDBDBD),
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(top = 4.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick  = {
+                        val trimmed = nameInput.trim()
+                        if (trimmed.isNotEmpty()) viewModel.saveUsername(trimmed)
+                        showEditName = false
+                    },
+                    enabled  = nameInput.trim().isNotEmpty(),
+                    colors   = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF6B35)),
+                    shape    = RoundedCornerShape(10.dp)
+                ) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditName = false }) {
+                    Text("Cancel", color = Color(0xFFBDBDBD))
+                }
+            }
+        )
     }
 
     if (showBannerPicker) {
@@ -565,7 +629,6 @@ fun ProfileScreen(
                                         contentScale       = ContentScale.Crop
                                     )
                                 }
-                                // Pencil badge at bottom-right corner
                                 Surface(
                                     modifier        = Modifier.padding(2.dp),
                                     shape           = CircleShape,
@@ -650,28 +713,43 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Trainer name ───────────────────────────────────────────────────
+            // ── Trainer name + edit button ──────────────────────────────────────
             item {
-                Column(
-                    modifier = Modifier
+                Row(
+                    modifier          = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 2.dp, vertical = 4.dp)
+                        .padding(horizontal = 2.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text       = username.ifBlank { "PetQuest Trainer" },
-                        fontSize   = 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color      = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text     = "PetQuest Trainer",
-                        fontSize = 13.sp,
-                        color    = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text       = username.ifBlank { "PetQuest Trainer" },
+                            fontSize   = 22.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color      = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text     = "PetQuest Trainer",
+                            fontSize = 13.sp,
+                            color    = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    // Tap to open edit-name dialog
+                    IconButton(onClick = {
+                        nameInput = username
+                        showEditName = true
+                    }) {
+                        Icon(
+                            imageVector        = Icons.Default.Edit,
+                            contentDescription = "Edit trainer name",
+                            tint               = Color(0xFFFF6B35),
+                            modifier           = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
 
-            // ── Bond Pts + Active Pets (admin tap targets preserved) ───────────
+            // ── Bond Pts + Active Pets ─────────────────────────────────────────
             item {
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
@@ -726,7 +804,7 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Streak banner (always visible when streak > 0) ─────────────────
+            // ── Streak banner ──────────────────────────────────────────────────
             if (userStreak > 0) {
                 item {
                     Card(
@@ -827,7 +905,7 @@ fun ProfileScreen(
                 }
             }
 
-            // ── Tab row — PNG icons instead of emoji ───────────────────────────
+            // ── Tab row ────────────────────────────────────────────────────────
             item {
                 TabRow(
                     selectedTabIndex = selectedTab,
@@ -879,8 +957,6 @@ fun ProfileScreen(
             // ── Tab content ────────────────────────────────────────────────────
             item {
                 when (selectedTab) {
-
-                    // ── My Pets ─────────────────────────────────────────────
                     0 -> {
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Row(
@@ -933,20 +1009,12 @@ fun ProfileScreen(
                             }
                         }
                     }
-
-                    // ── Achievements ────────────────────────────────────────
-                    1 -> {
-                        PsAchievementsSection(groupedAchievs)
-                    }
-
-                    // ── Events ──────────────────────────────────────────────
-                    2 -> {
-                        EventBadgesSection(eventBadges = eventBadges)
-                    }
+                    1 -> { PsAchievementsSection(groupedAchievs) }
+                    2 -> { EventBadgesSection(eventBadges = eventBadges) }
                 }
             }
 
-            // ── Settings card (always below tabs) ─────────────────────────────
+            // ── Settings card ──────────────────────────────────────────────────
             item {
                 SettingsCard(
                     notificationsEnabled = notificationsEnabled,
