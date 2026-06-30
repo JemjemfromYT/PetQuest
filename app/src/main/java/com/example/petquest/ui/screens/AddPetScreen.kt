@@ -15,6 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,6 +50,8 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
 
     val selectedTraits  = remember { mutableStateListOf<Trait>() }
     val requiredTraits  = 5
+    val searchFocusRequester = remember { FocusRequester() }
+    val keyboardController   = LocalSoftwareKeyboardController.current
 
     val filteredTypes = remember(typeSearchQuery) {
         PetType.entries.filter {
@@ -114,6 +119,12 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                     if (!expandedType) typeSearchQuery = ""
                 }
             ) {
+                LaunchedEffect(expandedType) {
+                    if (expandedType) {
+                        searchFocusRequester.requestFocus()
+                        keyboardController?.show()
+                    }
+                }
                 OutlinedTextField(
                     value         = "${petEmoji(selectedType.name)} ${toTitleCase(selectedType.name)}",
                     onValueChange = {},
@@ -137,6 +148,7 @@ fun AddPetScreen(onBackClick: () -> Unit, onSavePet: (PetEntity) -> Unit) {
                         modifier   = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .focusRequester(searchFocusRequester)
                     )
                     if (filteredTypes.isEmpty()) {
                         DropdownMenuItem(
