@@ -70,6 +70,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
@@ -124,8 +125,12 @@ val PROFILE_BANNERS: List<Int> = listOf(
     R.drawable.profile_banner2,
     R.drawable.profile_banner3,
     R.drawable.profile_banner4,
-    R.drawable.profile_banner5
-    // Add more here when ready: R.drawable.profile_banner6 … R.drawable.profile_banner10
+    R.drawable.profile_banner5,
+    R.drawable.profile_banner6,
+    R.drawable.profile_banner7,
+    R.drawable.profile_banner8,
+    R.drawable.profile_banner9,
+    R.drawable.profile_banner10
 )
 
 private val PS_ACHIEV_CATEGORIES = listOf(
@@ -217,6 +222,7 @@ fun ProfileScreen(
     val notificationMinute   by viewModel.notificationMinute.collectAsState()
     val userStreak           by viewModel.userStreak.collectAsState()
     val profileBannerIndex   by viewModel.profileBannerIndex.collectAsState()
+    val username             by viewModel.username.collectAsState()
 
     val speciesCount = collectedSpecies.size
     val totalSpecies = PetType.entries.size
@@ -253,7 +259,9 @@ fun ProfileScreen(
     val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
     var isSyncing        by remember { mutableStateOf(false) }
-    var showBannerPicker by remember { mutableStateOf(false) }
+    var showBannerPicker    by remember { mutableStateOf(false) }
+    var showUsernameEditor  by remember { mutableStateOf(false) }
+    var usernameInput       by remember(username) { mutableStateOf(username) }
 
     // ── Tab state ─────────────────────────────────────────────────────────────
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -439,6 +447,44 @@ fun ProfileScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showUsernameEditor) {
+        AlertDialog(
+            onDismissRequest = { showUsernameEditor = false },
+            title = { Text("Your Trainer Name", fontWeight = FontWeight.ExtraBold) },
+            text = {
+                Column {
+                    Text(
+                        "This name appears on your profile and when you share your trainer link.",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value         = usernameInput,
+                        onValueChange = { if (it.length <= 24) usernameInput = it },
+                        label         = { Text("Trainer name") },
+                        singleLine    = true,
+                        modifier      = Modifier.fillMaxWidth(),
+                        supportingText = { Text("${usernameInput.length} / 24") }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val trimmed = usernameInput.trim()
+                    if (trimmed.isNotEmpty()) {
+                        viewModel.saveUsername(trimmed)
+                        scope.launch { viewModel.syncProfileToFirebase() }
+                    }
+                    showUsernameEditor = false
+                }) { Text("Save", color = Color(0xFFFF6D00), fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUsernameEditor = false }) { Text("Cancel") }
             }
         )
     }

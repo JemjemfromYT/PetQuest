@@ -43,7 +43,8 @@ class PetQuestViewModel(
                     .filter { it.isUnlocked }
                     .map { it.title }
 
-                val trainerName = pets.firstOrNull()?.name ?: "Trainer"
+                val savedUsername = prefsRepository.username.first().trim()
+                val trainerName = if (savedUsername.isNotEmpty()) savedUsername else pets.firstOrNull()?.name ?: "Trainer"
 
                 val petSummaries = pets.take(6).map { pet ->
                     PetSummary(
@@ -304,6 +305,10 @@ class PetQuestViewModel(
 
     fun saveBannerIndex(index: Int) {
         viewModelScope.launch { prefsRepository.updateProfileBannerIndex(index) }
+    }
+
+    fun saveUsername(name: String) {
+        viewModelScope.launch { prefsRepository.updateUsername(name) }
     }
 
     // ─── Event bonus claim ─────────────────────────────────────────────────────
