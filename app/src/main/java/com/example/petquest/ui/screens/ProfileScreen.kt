@@ -197,7 +197,6 @@ private val PS_ACHIEV_CATEGORIES = listOf(
     )
 )
 
-@Suppress("UNUSED_VALUE")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -221,6 +220,7 @@ fun ProfileScreen(
     val notificationMinute   by viewModel.notificationMinute.collectAsState()
     val userStreak           by viewModel.userStreak.collectAsState()
     val profileBannerIndex   by viewModel.profileBannerIndex.collectAsState()
+    val username             by viewModel.username.collectAsState()
 
     val speciesCount = collectedSpecies.size
     val totalSpecies = PetType.entries.size
@@ -257,6 +257,7 @@ fun ProfileScreen(
     val scope            = rememberCoroutineScope()
     var isSharingProfile by remember { mutableStateOf(false) }
     var isSyncing        by remember { mutableStateOf(false) }
+    @Suppress("UNUSED_VALUE")
     var showBannerPicker by remember { mutableStateOf(false) }
 
     // ── Tab state ─────────────────────────────────────────────────────────────
@@ -338,6 +339,7 @@ fun ProfileScreen(
         }
     }
 
+    @Suppress("UNUSED_VALUE")
     var showTimePicker by remember { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -644,6 +646,27 @@ fun ProfileScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // ── Trainer name ───────────────────────────────────────────────────
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 2.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text       = username.ifBlank { "PetQuest Trainer" },
+                        fontSize   = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color      = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text     = "PetQuest Trainer",
+                        fontSize = 13.sp,
+                        color    = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
