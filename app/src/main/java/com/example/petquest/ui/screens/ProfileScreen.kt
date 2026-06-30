@@ -90,6 +90,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import com.example.petquest.R
@@ -527,35 +528,28 @@ fun ProfileScreen(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .clickable { showBannerPicker = true }
-                                    .padding(bottom = 4.dp, end = 4.dp)
+                                    .size(80.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .clickable { showBannerPicker = true },
+                                contentAlignment = Alignment.BottomEnd
                             ) {
-                                Card(
-                                    shape     = MaterialTheme.shapes.medium,
-                                    colors    = CardDefaults.cardColors(
-                                        containerColor = Color.White.copy(alpha = 0.25f)
-                                    ),
-                                    elevation = CardDefaults.cardElevation(0.dp)
-                                ) {
-                                    val bannerRes = PROFILE_BANNERS.getOrElse(profileBannerIndex - 1) { PROFILE_BANNERS[0] }
-                                    Image(
-                                        painter            = painterResource(bannerRes),
-                                        contentDescription = "Profile banner",
-                                        modifier           = Modifier.size(72.dp).padding(4.dp),
-                                        contentScale       = ContentScale.Fit
-                                    )
-                                }
-                                Surface(
-                                    modifier        = Modifier.align(Alignment.BottomEnd),
-                                    shape           = CircleShape,
-                                    color           = Color(0xFFFF6D00),
-                                    shadowElevation = 2.dp
+                                val bannerRes = PROFILE_BANNERS.getOrElse(profileBannerIndex - 1) { PROFILE_BANNERS[0] }
+                                Image(
+                                    painter            = painterResource(bannerRes),
+                                    contentDescription = "Profile banner",
+                                    modifier           = Modifier.fillMaxSize().padding(4.dp),
+                                    contentScale       = ContentScale.Fit
+                                )
+                                // Dark scrim + pencil icon so user knows it's tappable
+                                Box(
+                                    modifier         = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.30f)),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Default.Edit,
                                         contentDescription = "Change banner",
                                         tint     = Color.White,
-                                        modifier = Modifier.size(20.dp).padding(4.dp)
+                                        modifier = Modifier.size(28.dp)
                                     )
                                 }
                             }
@@ -1737,81 +1731,79 @@ private fun PetCardBack(pet: PetEntity, rarityColor: Color) {
 // Banner Picker Bottom Sheet
 // ─────────────────────────────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BannerPickerSheet(
     currentIndex : Int,
     onSelect     : (Int) -> Unit,
     onDismiss    : () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest  = onDismiss,
-        sheetState        = sheetState,
-        containerColor    = MaterialTheme.colorScheme.surface,
-        dragHandle        = { BottomSheetDefaults.DragHandle() }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp)
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp
         ) {
-            Text(
-                "Choose Profile Banner",
-                fontSize   = 18.sp,
-                fontWeight = FontWeight.ExtraBold,
-                modifier   = Modifier.padding(bottom = 16.dp)
-            )
-            LazyVerticalGrid(
-                columns             = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement   = Arrangement.spacedBy(12.dp),
-                modifier            = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
             ) {
-                items(PROFILE_BANNERS.size) { i ->
-                    val idx      = i + 1
-                    val selected = idx == currentIndex
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1.6f)
-                            .clip(MaterialTheme.shapes.medium)
-                            .border(
-                                width = if (selected) 3.dp else 1.dp,
-                                color = if (selected) Color(0xFFFF6D00) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                                shape = MaterialTheme.shapes.medium
+                Text(
+                    "Choose Profile Banner",
+                    fontSize   = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier   = Modifier.padding(bottom = 16.dp)
+                )
+                LazyVerticalGrid(
+                    columns               = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement   = Arrangement.spacedBy(12.dp),
+                    modifier              = Modifier.fillMaxWidth()
+                ) {
+                    items(PROFILE_BANNERS.size) { i ->
+                        val idx      = i + 1
+                        val selected = idx == currentIndex
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1.6f)
+                                .clip(MaterialTheme.shapes.medium)
+                                .border(
+                                    width = if (selected) 3.dp else 1.dp,
+                                    color = if (selected) Color(0xFFFF6D00) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                    shape = MaterialTheme.shapes.medium
+                                )
+                                .clickable { onSelect(idx) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter            = painterResource(PROFILE_BANNERS[i]),
+                                contentDescription = "Banner $idx",
+                                modifier           = Modifier.fillMaxSize(),
+                                contentScale       = ContentScale.Fit
                             )
-                            .clickable { onSelect(idx) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter            = painterResource(PROFILE_BANNERS[i]),
-                            contentDescription = "Banner $idx",
-                            modifier           = Modifier.fillMaxSize(),
-                            contentScale       = ContentScale.Fit
-                        )
-                        if (selected) {
-                            Box(
-                                modifier         = Modifier.fillMaxSize().background(Color(0xFFFF6D00).copy(alpha = 0.15f)),
-                                contentAlignment = Alignment.TopEnd
-                            ) {
-                                Surface(
-                                    modifier = Modifier.padding(6.dp),
-                                    shape    = CircleShape,
-                                    color    = Color(0xFFFF6D00)
+                            if (selected) {
+                                Box(
+                                    modifier         = Modifier.fillMaxSize().background(Color(0xFFFF6D00).copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.TopEnd
                                 ) {
                                     Icon(
                                         Icons.Default.CheckCircle,
                                         contentDescription = "Selected",
                                         tint     = Color.White,
-                                        modifier = Modifier.size(20.dp).padding(2.dp)
+                                        modifier = Modifier.size(20.dp).padding(6.dp)
                                     )
                                 }
                             }
                         }
                     }
+                }
+                Spacer(Modifier.height(16.dp))
+                TextButton(
+                    onClick  = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Cancel", color = Color(0xFFFF6D00))
                 }
             }
         }
