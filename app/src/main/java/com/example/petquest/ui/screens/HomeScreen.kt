@@ -259,7 +259,7 @@ private fun HomeStatCard(
                 fontSize   = 17.sp,
                 color      = if (dimmed) valueColor.copy(alpha = 0.40f) else valueColor
             )
-            Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(label, fontSize = 10.sp, color = Color.White.copy(alpha = 0.78f))
         }
     }
 }

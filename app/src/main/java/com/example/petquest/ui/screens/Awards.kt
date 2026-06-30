@@ -458,9 +458,9 @@ private fun CategoryHeader(cat: CategoryDef, unlocked: Int, total: Int) {
 
 // Lightens a dark color for use on dark backgrounds in dark mode.
 private fun lightenColor(c: Color): Color = Color(
-    red   = 1f - (1f - c.red)   * 0.42f,
-    green = 1f - (1f - c.green) * 0.42f,
-    blue  = 1f - (1f - c.blue)  * 0.42f,
+    red   = 1f - (1f - c.red)   * 0.65f,
+    green = 1f - (1f - c.green) * 0.65f,
+    blue  = 1f - (1f - c.blue)  * 0.65f,
     alpha = c.alpha
 )
 
@@ -479,8 +479,8 @@ private fun AchievementTile(
     val icon = ICON_MAP[a.title] ?: Icons.Default.Star
     val hint = HINT_MAP[a.title] ?: "Keep playing"
 
-    val isDark        = isSystemInDarkTheme()
-    val displayColor  = if (isDark) lightenColor(categoryColor) else categoryColor
+    val isDark       = isSystemInDarkTheme()
+    val displayColor = if (isDark) lightenColor(categoryColor) else categoryColor
 
     // Stagger fade-in so tiles don't all appear at once
     var visible by remember { mutableStateOf(false) }
@@ -523,7 +523,7 @@ private fun AchievementTile(
         ),
         colors    = CardDefaults.cardColors(
             containerColor = if (a.isUnlocked)
-                categoryColor.copy(alpha = 0.07f)
+                (if (isDark) categoryColor.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surface)
             else
                 MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f)
         )
@@ -559,7 +559,7 @@ private fun AchievementTile(
                 modifier = Modifier.size(56.dp),
                 shape    = MaterialTheme.shapes.large,
                 color    = if (a.isUnlocked)
-                    categoryColor.copy(alpha = 0.15f)
+                    (if (isDark) displayColor.copy(alpha = 0.22f) else categoryColor.copy(alpha = 0.20f))
                 else
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
             ) {
@@ -604,7 +604,7 @@ private fun AchievementTile(
             if (a.isUnlocked) {
                 Surface(
                     shape = RoundedCornerShape(4.dp),
-                    color = displayColor.copy(alpha = 0.18f)
+                    color = displayColor.copy(alpha = 0.20f)
                 ) {
                     Text(
                         "✓  UNLOCKED",
