@@ -33,8 +33,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -176,12 +176,6 @@ private val ACHIEV_CATEGORIES = listOf(
     )
 )
 
-private val TITLE_TO_ACHIEV_CATEGORY: Map<String, AchievCategoryDef> by lazy {
-    buildMap {
-        for (cat in ACHIEV_CATEGORIES) for (title in cat.titles) put(title, cat)
-    }
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Pet emoji fallback
 // ─────────────────────────────────────────────────────────────────────────────
@@ -207,7 +201,7 @@ private fun SpPetPhoto(photoUri: String, name: String, modifier: Modifier = Modi
                 val base64Part = photoUri.substringAfter("base64,")
                 val bytes      = Base64.decode(base64Part, Base64.DEFAULT)
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }
@@ -250,7 +244,7 @@ fun SharedProfileScreen(
                 val profile = supabaseRepository.fetchProfile(uid)
                 state = if (profile != null) SharedProfileState.Success(profile)
                 else SharedProfileState.NotFound
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 state = SharedProfileState.Error
             }
         }
@@ -276,7 +270,7 @@ fun SharedProfileScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                     Text(
                         "Trainer Profile",
@@ -589,8 +583,8 @@ private fun SpLevelCard(level: Int, xpInLevel: Int, xpProgress: Float, bannerInd
                     Image(
                         painter            = painterResource(bannerRes),
                         contentDescription = "Trainer banner",
-                        modifier           = Modifier.size(64.dp).padding(4.dp),
-                        contentScale       = ContentScale.Fit
+                        modifier           = Modifier.size(64.dp),
+                        contentScale       = ContentScale.Crop
                     )
                 }
                 Spacer(Modifier.width(16.dp))
@@ -785,7 +779,7 @@ private fun SpFlippablePetCard(pet: PetSummary, modifier: Modifier = Modifier) {
             rotationY = 180f
             alpha     = if (rotation > 90f) 1f else 0f
         }) {
-            SpPetCardBack(pet = pet, rarityColor = rarityColor)
+            SpPetCardBack(pet = pet)
         }
         Box(modifier = Modifier.graphicsLayer {
             alpha = if (rotation <= 90f) 1f else 0f
@@ -955,7 +949,7 @@ private fun SpPetCardFront(pet: PetSummary, rarityColor: Color) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
+private fun SpPetCardBack(pet: PetSummary) {
     val virtue     = try { Virtue.valueOf(pet.virtue.uppercase()) } catch (_: Exception) { Virtue.WISDOM }
     val virtueInfo = VirtueConfig[virtue]
 
@@ -1075,17 +1069,15 @@ private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
                 )
             }
 
-            if (virtueInfo != null) {
-                Image(
-                    painter            = painterResource(virtueInfo.emblemRes),
-                    contentDescription = null,
-                    modifier           = Modifier
-                        .size(emblemSize)
-                        .align(Alignment.Center)
-                        .graphicsLayer { alpha = emblemAlpha },
-                    contentScale       = ContentScale.Fit
-                )
-            }
+            Image(
+                painter            = painterResource(virtueInfo.emblemRes),
+                contentDescription = null,
+                modifier           = Modifier
+                    .size(emblemSize)
+                    .align(Alignment.Center)
+                    .graphicsLayer { alpha = emblemAlpha },
+                contentScale       = ContentScale.Fit
+            )
 
             if (tier >= 3) {
                 val dotChar = if (tier >= 4) "✦" else "·"
@@ -1102,20 +1094,18 @@ private fun SpPetCardBack(pet: PetSummary, rarityColor: Color) {
                 }
             }
 
-            if (virtueInfo != null) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(9.dp)
-                        .background(color = Color.White.copy(alpha = 0.18f), shape = RoundedCornerShape(20.dp))
-                        .padding(7.dp)
-                ) {
-                    Image(
-                        painter            = painterResource(virtueInfo.emblemRes),
-                        contentDescription = virtue.name,
-                        modifier           = Modifier.size(16.dp)
-                    )
-                }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(9.dp)
+                    .background(color = Color.White.copy(alpha = 0.18f), shape = RoundedCornerShape(20.dp))
+                    .padding(7.dp)
+            ) {
+                Image(
+                    painter            = painterResource(virtueInfo.emblemRes),
+                    contentDescription = virtue.name,
+                    modifier           = Modifier.size(16.dp)
+                )
             }
 
             val bondStatus: String

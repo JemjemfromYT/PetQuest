@@ -52,7 +52,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -124,8 +123,12 @@ val PROFILE_BANNERS: List<Int> = listOf(
     R.drawable.profile_banner2,
     R.drawable.profile_banner3,
     R.drawable.profile_banner4,
-    R.drawable.profile_banner5
-    // Add more here when ready: R.drawable.profile_banner6 … R.drawable.profile_banner10
+    R.drawable.profile_banner5,
+    R.drawable.profile_banner6,
+    R.drawable.profile_banner7,
+    R.drawable.profile_banner8,
+    R.drawable.profile_banner9,
+    R.drawable.profile_banner10
 )
 
 private val PS_ACHIEV_CATEGORIES = listOf(
@@ -194,6 +197,7 @@ private val PS_ACHIEV_CATEGORIES = listOf(
     )
 )
 
+@Suppress("UNUSED_VALUE")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -554,8 +558,8 @@ fun ProfileScreen(
                                     Image(
                                         painter            = painterResource(bannerRes),
                                         contentDescription = "Profile banner",
-                                        modifier           = Modifier.fillMaxSize().padding(6.dp),
-                                        contentScale       = ContentScale.Fit
+                                        modifier           = Modifier.fillMaxSize(),
+                                        contentScale       = ContentScale.Crop
                                     )
                                 }
                                 // Pencil badge at bottom-right corner
