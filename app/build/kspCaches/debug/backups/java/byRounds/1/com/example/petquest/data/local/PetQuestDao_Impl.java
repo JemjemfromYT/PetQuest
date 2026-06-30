@@ -52,6 +52,8 @@ public final class PetQuestDao_Impl implements PetQuestDao {
 
   private final SharedSQLiteStatement __preparedStmtOfUpdatePet;
 
+  private final SharedSQLiteStatement __preparedStmtOfUpdatePetPhotoUri;
+
   private final SharedSQLiteStatement __preparedStmtOfDeletePetById;
 
   private final SharedSQLiteStatement __preparedStmtOfCompleteTask;
@@ -149,6 +151,14 @@ public final class PetQuestDao_Impl implements PetQuestDao {
       @NonNull
       public String createQuery() {
         final String _query = "UPDATE pets SET name = ? WHERE id = ?";
+        return _query;
+      }
+    };
+    this.__preparedStmtOfUpdatePetPhotoUri = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "UPDATE pets SET photoUri = ? WHERE id = ?";
         return _query;
       }
     };
@@ -330,6 +340,34 @@ public final class PetQuestDao_Impl implements PetQuestDao {
           }
         } finally {
           __preparedStmtOfUpdatePet.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object updatePetPhotoUri(final int petId, final String newUri,
+      final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfUpdatePetPhotoUri.acquire();
+        int _argIndex = 1;
+        _stmt.bindString(_argIndex, newUri);
+        _argIndex = 2;
+        _stmt.bindLong(_argIndex, petId);
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfUpdatePetPhotoUri.release(_stmt);
         }
       }
     }, $completion);
