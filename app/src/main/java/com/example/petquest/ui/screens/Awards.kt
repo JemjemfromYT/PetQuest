@@ -19,6 +19,7 @@ package com.example.petquest.ui.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -454,6 +455,15 @@ private fun CategoryHeader(cat: CategoryDef, unlocked: Int, total: Int) {
     }
 }
 
+
+// Lightens a dark color for use on dark backgrounds in dark mode.
+private fun lightenColor(c: Color): Color = Color(
+    red   = 1f - (1f - c.red)   * 0.42f,
+    green = 1f - (1f - c.green) * 0.42f,
+    blue  = 1f - (1f - c.blue)  * 0.42f,
+    alpha = c.alpha
+)
+
 // ── Single achievement tile ───────────────────────────────────────────────────
 // DESIGN RULES:
 //   Unlocked → category color accent strip (6dp) + light category tint bg + colored icon
@@ -468,6 +478,9 @@ private fun AchievementTile(
     val a    = achievement
     val icon = ICON_MAP[a.title] ?: Icons.Default.Star
     val hint = HINT_MAP[a.title] ?: "Keep playing"
+
+    val isDark        = isSystemInDarkTheme()
+    val displayColor  = if (isDark) lightenColor(categoryColor) else categoryColor
 
     // Stagger fade-in so tiles don't all appear at once
     var visible by remember { mutableStateOf(false) }
@@ -555,7 +568,7 @@ private fun AchievementTile(
                         Icon(
                             imageVector        = icon,
                             contentDescription = a.title,
-                            tint               = categoryColor,
+                            tint               = displayColor,
                             modifier           = Modifier.size(28.dp)
                         )
                     } else {
@@ -579,7 +592,7 @@ private fun AchievementTile(
                 textAlign  = TextAlign.Center,
                 maxLines   = 2,
                 color      = if (a.isUnlocked)
-                    categoryColor
+                    displayColor
                 else
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.40f),
                 modifier   = Modifier.padding(horizontal = 8.dp)
@@ -591,14 +604,14 @@ private fun AchievementTile(
             if (a.isUnlocked) {
                 Surface(
                     shape = RoundedCornerShape(4.dp),
-                    color = categoryColor.copy(alpha = 0.12f)
+                    color = displayColor.copy(alpha = 0.18f)
                 ) {
                     Text(
                         "✓  UNLOCKED",
                         modifier      = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                         fontSize      = 8.sp,
                         fontWeight    = FontWeight.ExtraBold,
-                        color         = categoryColor,
+                        color         = displayColor,
                         letterSpacing = 0.4.sp
                     )
                 }
