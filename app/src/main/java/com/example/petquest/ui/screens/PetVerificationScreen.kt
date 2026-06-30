@@ -149,7 +149,9 @@ private val PET_TYPE_LABELS: Map<PetType, List<String>> = mapOf(
     PetType.SHEEP      to listOf("sheep", "lamb"),
     PetType.DEER       to listOf("deer", "fawn", "reindeer"),
     PetType.BEAR       to listOf("bear", "grizzly"),
-    PetType.WOLF       to listOf("wolf")
+    PetType.WOLF       to listOf("wolf"),
+    PetType.DRAGON     to listOf("dragon", "toy", "figurine", "sculpture", "fictional creature", "reptile"),
+    PetType.DINOSAUR   to listOf("dinosaur", "toy", "figurine", "fossil", "skeleton", "sculpture", "reptile")
 )
 
 private val GENERIC_ANIMAL_LABELS = listOf(

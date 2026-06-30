@@ -31,7 +31,9 @@ enum class PetType(val rarity: Rarity) {
     SHEEP(Rarity.COMMON),
     DEER(Rarity.RARE),
     BEAR(Rarity.EPIC),
-    WOLF(Rarity.EPIC)
+    WOLF(Rarity.EPIC),
+    DRAGON(Rarity.EPIC),
+    DINOSAUR(Rarity.EPIC)
 }
 
 enum class Virtue { WISDOM, DILIGENCE, TEMPERANCE, COURAGE, COMPASSION }

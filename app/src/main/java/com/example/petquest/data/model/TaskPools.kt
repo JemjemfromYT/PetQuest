@@ -255,6 +255,16 @@ object TaskPools {
             "Check and clean {name}'s exercise wheel",
             "Observe {name}'s quills and skin health",
             "Give {name} a foraging tray or digging box"
+        ),
+        PetType.DRAGON to listOf(
+            "Tell {name} an epic story worthy of a dragon",
+            "Polish {name}'s scales and check for any dullness",
+            "Give {name} a legendary challenge or quest today"
+        ),
+        PetType.DINOSAUR to listOf(
+            "Take {name} on a prehistoric adventure walk",
+            "Study {name}'s ancient instincts and behaviours",
+            "Provide {name} with a Jurassic-sized enrichment activity"
         )
     )
 

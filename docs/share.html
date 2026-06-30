@@ -257,7 +257,8 @@
     function speciesEmoji(s) {
         const m={'DOG':'🐶','CAT':'🐱','RABBIT':'🐰','HAMSTER':'🐹','BIRD':'🐦',
                  'FISH':'🐟','TURTLE':'🐢','SNAKE':'🐍','LIZARD':'🦎','PARROT':'🦜',
-                 'HEDGEHOG':'🦔','FOX':'🦊','HORSE':'🐴','COW':'🐄'};
+                 'HEDGEHOG':'🦔','FOX':'🦊','HORSE':'🐴','COW':'🐄',
+                 'DRAGON':'🐉','DINOSAUR':'🦕'};
         return m[(s||'').toUpperCase()] || '🐾';
     }
 
@@ -308,7 +309,7 @@
         const speciesCount = data.species_count ?? 0;
         const streak       = data.streak        ?? 0;
         const bannerIndex  = data.banner_index  ?? 1;
-        const totalSpecies = 29;
+        const totalSpecies = 31;
 
         const allPets       = Array.isArray(data.pets) ? data.pets : [];
         const pets          = allPets.filter(p => p.isVerified === true);
